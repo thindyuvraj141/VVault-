@@ -75,7 +75,7 @@ If you find a security issue, please open an issue (or, for anything sensitive, 
 
 ## Tech stack
 
-Vanilla HTML, CSS, and JavaScript. No frameworks, no bundler, no npm install. Uses native browser APIs only:
+Vanilla HTML, CSS, and JavaScript. No  frameworks, no bundler, no npm install. Uses native browser APIs only:
 
 - `IndexedDB` for local storage
 - `Web Crypto API` (`SubtleCrypto`) for password hashing and backup encryption
