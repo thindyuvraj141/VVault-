@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vvault-v1';
+const CACHE_NAME = 'vvault-v2';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
@@ -23,23 +23,21 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Cache-first for app shell files, network-first fallback for everything else
-// (e.g. Google Fonts) so the app still renders offline once fonts were cached once.
+// NETWORK-FIRST: always try to fetch the latest version first. Only fall back
+// to the cached copy if the network request fails (i.e. truly offline).
+// This is what makes updates show up immediately instead of being stuck on
+// whatever was cached the very first time the app was installed.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
-        .then((res) => {
-          // opportunistically cache same-origin GET responses
-          if (req.method === 'GET' && res && res.status === 200) {
-            const resClone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
-          }
-          return res;
-        })
-        .catch(() => cached);
-    })
+    fetch(req)
+      .then((res) => {
+        if (req.method === 'GET' && res && res.status === 200) {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req))
   );
 });
