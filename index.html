@@ -1949,11 +1949,12 @@ async function confirmBackupPassword(){
   const pw = document.getElementById('backup-pw-input').value;
   if(!pw){ setError('backuppw', 'Enter your password.'); return; }
 
-  if(backupPwMode === 'create'){
-    const saltCheck = base64ToBuf(vault.passwordSalt);
-    const checkHash = await hashSecret(pw, saltCheck);
-    if(checkHash !== vault.passwordHash){ setError('backuppw', 'That password isn\'t right.'); return; }
-    try{
+  try{
+    if(backupPwMode === 'create'){
+      const saltCheck = base64ToBuf(vault.passwordSalt);
+      const checkHash = await hashSecret(pw, saltCheck);
+      if(checkHash !== vault.passwordHash){ setError('backuppw', 'That password isn\'t right.'); return; }
+
       const saltBytes = crypto.getRandomValues(new Uint8Array(16));
       const ivBytes = crypto.getRandomValues(new Uint8Array(12));
       const key = await deriveKey(pw, saltBytes);
@@ -1980,11 +1981,8 @@ async function confirmBackupPassword(){
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       closeBackupPwModal();
       showToast('Backup file created — check your Downloads');
-    }catch(err){
-      setError('backuppw', 'Something went wrong creating the backup.');
-    }
-  } else if(backupPwMode === 'restore'){
-    try{
+
+    } else if(backupPwMode === 'restore'){
       const saltBytes = base64ToBuf(pendingRestoreEncrypted.salt);
       const ivBytes = base64ToBuf(pendingRestoreEncrypted.iv);
       const key = await deriveKey(pw, saltBytes);
@@ -2019,9 +2017,11 @@ async function confirmBackupPassword(){
       if(currentFolderId) renderFolderPhotos();
       persistLibrary();
       showToast('Backup restored');
-    }catch(err){
-      setError('backuppw', 'Wrong password, or this file is damaged.');
     }
+  }catch(err){
+    console.error('V Vault backup error:', err);
+    const fallback = backupPwMode === 'restore' ? 'Wrong password, or this file is damaged.' : 'Something went wrong creating the backup.';
+    setError('backuppw', (err && err.message ? err.message + ' — ' : '') + fallback);
   }
 }
 
