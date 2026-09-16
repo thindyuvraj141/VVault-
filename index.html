@@ -275,6 +275,33 @@
   }
   .fab:active{transform:translateX(-50%) scale(0.98);}
 
+  /* ---------- Folders (home screen) ---------- */
+  .folder-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+    padding-bottom:100px;
+  }
+  .folder-card{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px;
+    transition:background .15s;
+  }
+  .folder-card:active{background:var(--card-hover);}
+  .folder-card .folder-icon{color:var(--accent);}
+  .folder-card .folder-name{
+    font-size:14.5px;font-weight:600;color:var(--text);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .folder-card .folder-count{font-size:12px;color:var(--text-muted);}
+
+  .new-folder-fab{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+    max-width:430px;width:calc(100% - 40px);
+    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
+    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+  }
+  .new-folder-fab:active{transform:translateX(-50%) scale(0.98);}
+
   /* ---------- Lightbox ---------- */
   .lightbox{
     position:fixed;inset:0;background:rgba(6,7,9,0.97);z-index:100;
@@ -661,7 +688,7 @@
     <div class="vault-header">
       <div class="vault-title-block">
         <div class="brand-name">Your vault</div>
-        <div class="count" id="photo-count">0 photos</div>
+        <div class="count" id="folder-count">0 folders</div>
       </div>
       <div class="header-actions">
         <div class="icon-btn" onclick="openSettings()">
@@ -676,18 +703,63 @@
 
     <div class="search-wrap">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <input type="text" id="search-input" placeholder="Search captions or albums" oninput="onSearchInput()">
+      <input type="text" id="search-input" placeholder="Search captions or folders" oninput="onSearchInput()">
       <button id="search-clear" onclick="clearSearch()">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 1.5L12.5 12.5M12.5 1.5L1.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       </button>
     </div>
 
-    <div class="album-row" id="album-row">
-      <div class="chip active" data-album="__all__" onclick="selectAlbum(null)">All</div>
-      <div class="chip new-chip" onclick="openNewAlbumModal()">+ New album</div>
+    <div class="search-results-label" id="search-results-label" style="display:none;"></div>
+
+    <!-- folder list (default home view) -->
+    <div id="folder-view">
+      <div class="folder-grid" id="folder-grid"></div>
+
+      <div class="empty-state" id="folder-empty-state" style="display:none;">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2.2"/>
+          <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+          <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
+        </svg>
+        <h3>No folders yet</h3>
+        <p>Create a folder to start adding photos. Everything stays on this device.</p>
+        <button class="btn btn-primary" style="margin-top:14px;width:auto;padding:12px 22px;" onclick="openNewAlbumModal()">+ Create your first folder</button>
+      </div>
+
+      <button class="new-folder-fab" onclick="openNewAlbumModal()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New folder
+      </button>
     </div>
 
-    <div class="search-results-label" id="search-results-label" style="display:none;"></div>
+    <!-- search results (flat, across all folders) -->
+    <div id="search-view" style="display:none;">
+      <div class="grid" id="search-grid"></div>
+      <div class="empty-state" id="search-empty-state" style="display:none;">
+        <h3>No matches</h3>
+        <p>Try a different word, or check the folder name.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOLDER DETAIL ================= -->
+  <section class="screen" id="screen-folder">
+    <div class="vault-header">
+      <div class="header-actions">
+        <div class="icon-btn" onclick="closeFolder()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="vault-title-block" style="text-align:center;">
+        <div class="brand-name" id="folder-view-title">Folder</div>
+        <div class="count" id="photo-count">0 photos</div>
+      </div>
+      <div class="header-actions">
+        <div class="icon-btn" onclick="openFolderMenu()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+        </div>
+      </div>
+    </div>
 
     <div class="empty-state" id="empty-state">
       <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -695,12 +767,30 @@
         <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
         <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
       </svg>
-      <h3 id="empty-title">Your vault is empty</h3>
-      <p id="empty-text">Photos you add here stay only on this device. Nothing is uploaded anywhere.</p>
+      <h3>This folder is empty</h3>
+      <p>Photos you add here stay only on this device. Nothing is uploaded anywhere.</p>
     </div>
 
     <div class="grid" id="photo-grid" style="display:none;"></div>
   </section>
+
+  <!-- Folder menu (rename / delete) -->
+  <div class="modal-overlay" id="folder-menu-overlay">
+    <div class="modal-card">
+      <h3 id="folder-menu-title">Folder</h3>
+      <div class="sheet-item" onclick="renameCurrentFolder()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M12 3l3 3-8 8H4v-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Rename folder
+      </div>
+      <div class="sheet-item danger" onclick="deleteCurrentFolder()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Delete folder
+      </div>
+      <div class="modal-actions" style="margin-top:10px;">
+        <button class="btn btn-ghost" onclick="closeFolderMenu()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <button class="fab" id="add-fab" style="display:none;" onclick="document.getElementById('file-input').click()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#1A1204" stroke-width="2" stroke-linecap="round"/></svg>
@@ -783,10 +873,6 @@
       <span style="flex:1;">Face / Touch unlock</span>
       <div class="toggle-switch" id="biometric-toggle"><div class="toggle-knob"></div></div>
     </div>
-    <div class="sheet-item" onclick="closeSettings(); openManageAlbums();">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h5l1.3 2H15.5v7h-13z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-      Manage albums
-    </div>
     <div class="sheet-item" onclick="closeSettings(); createBackup();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       Create backup file
@@ -806,29 +892,18 @@
     </div>
   </div>
 
-  <!-- New album modal -->
+  <!-- New folder modal -->
   <div class="modal-overlay" id="new-album-overlay">
     <div class="modal-card">
-      <h3>New album</h3>
+      <h3>New folder</h3>
       <div class="field">
-        <label for="new-album-name">Album name</label>
+        <label for="new-album-name">Folder name</label>
         <input type="text" id="new-album-name" placeholder="e.g. Trips, Family" onkeydown="if(event.key==='Enter')createAlbum()">
       </div>
       <div class="error-msg" id="newalbum-error">&nbsp;</div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeNewAlbumModal()">Cancel</button>
         <button class="btn btn-primary" onclick="createAlbum()">Create</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Manage albums modal -->
-  <div class="modal-overlay" id="manage-albums-overlay">
-    <div class="modal-card">
-      <h3>Manage albums</h3>
-      <div class="manage-list" id="manage-albums-list"></div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeManageAlbums()">Done</button>
       </div>
     </div>
   </div>
@@ -894,7 +969,7 @@ let vault = {
 };
 let photos = []; // {id, src, albumId, caption}
 let albums = []; // {id, name}
-let selectedAlbum = null; // null = "All"
+let currentFolderId = null; // the folder currently open in screen-folder
 let searchQuery = "";
 let currentLightboxId = null;
 let privacyModeEnabled = true;
@@ -987,6 +1062,7 @@ async function bootFromStorage(){
       const savedAlbums = await dbGet('albums');
       photos = savedPhotos || [];
       albums = savedAlbums || [];
+      migrateOrphanPhotos();
       goTo('screen-lock');
     }
     // if no config, the setup screen (already active by default) is correct
@@ -1201,6 +1277,9 @@ async function createVault(){
   vault.answerHash = answerHash;
   vault.answerSalt = bufToBase64(ansSalt);
   vault.secretType = setupType;
+
+  // fresh vault: start with one folder ready to go, instead of an empty home screen
+  albums.push({ id: 'alb_' + Date.now(), name: 'My Photos' });
 
   await persistVaultConfig();
   await persistLibrary();
@@ -1446,8 +1525,11 @@ async function unlockWithBiometric(){
 /* ---------------- vault home ---------------- */
 function enterVault(){
   goTo('screen-vault');
-  renderAlbumChips();
-  renderGrid();
+  document.getElementById('add-fab').style.display = 'none';
+  document.getElementById('search-input').value = '';
+  searchQuery = '';
+  renderSearchOrFolders();
+  renderFolders();
 }
 
 function albumName(id){
@@ -1456,99 +1538,67 @@ function albumName(id){
   return a ? a.name : null;
 }
 
-function renderAlbumChips(){
-  const row = document.getElementById('album-row');
-  row.innerHTML = '';
-  const allChip = document.createElement('div');
-  allChip.className = 'chip' + (selectedAlbum === null ? ' active' : '');
-  allChip.textContent = 'All';
-  allChip.onclick = () => selectAlbum(null);
-  row.appendChild(allChip);
-
-  albums.forEach(a => {
-    const chip = document.createElement('div');
-    chip.className = 'chip' + (selectedAlbum === a.id ? ' active' : '');
-    chip.textContent = a.name;
-    chip.onclick = () => selectAlbum(a.id);
-    row.appendChild(chip);
-  });
-
-  const newChip = document.createElement('div');
-  newChip.className = 'chip new-chip';
-  newChip.textContent = '+ New album';
-  newChip.onclick = openNewAlbumModal;
-  row.appendChild(newChip);
+function folderIconSvg(){
+  return '<svg class="folder-icon" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M3 6.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3 16.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 }
 
-function selectAlbum(id){
-  selectedAlbum = id;
-  searchQuery = "";
-  document.getElementById('search-input').value = '';
-  document.getElementById('search-clear').style.display = 'none';
-  renderAlbumChips();
-  renderGrid();
-}
+/* ---------------- folders (home screen) ---------------- */
+function renderFolders(){
+  const grid = document.getElementById('folder-grid');
+  const empty = document.getElementById('folder-empty-state');
+  const folderCount = document.getElementById('folder-count');
 
-function getVisiblePhotos(){
-  if(searchQuery){
-    const q = searchQuery.toLowerCase();
-    return photos.filter(p => {
-      const cap = (p.caption || '').toLowerCase();
-      const alb = (albumName(p.albumId) || '').toLowerCase();
-      return cap.includes(q) || alb.includes(q);
-    });
+  folderCount.textContent = albums.length + (albums.length === 1 ? ' folder' : ' folders');
+
+  if(albums.length === 0){
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
   }
-  if(selectedAlbum === null) return photos;
-  return photos.filter(p => p.albumId === selectedAlbum);
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+  albums.forEach(a => {
+    const n = photos.filter(p => p.albumId === a.id).length;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'folder-card';
+    card.onclick = () => openFolder(a.id);
+    card.innerHTML = folderIconSvg() +
+      '<div><div class="folder-name">' + a.name + '</div>' +
+      '<div class="folder-count">' + n + (n === 1 ? ' photo' : ' photos') + '</div></div>';
+    grid.appendChild(card);
+  });
 }
 
-function onSearchInput(){
-  searchQuery = document.getElementById('search-input').value.trim();
-  document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
-  document.getElementById('album-row').style.display = searchQuery ? 'none' : 'flex';
-  renderGrid();
-}
-function clearSearch(){
-  searchQuery = "";
-  document.getElementById('search-input').value = '';
-  document.getElementById('search-clear').style.display = 'none';
-  document.getElementById('album-row').style.display = 'flex';
-  renderGrid();
+function openFolder(id){
+  const a = albums.find(x => x.id === id);
+  if(!a) return;
+  currentFolderId = id;
+  document.getElementById('folder-view-title').textContent = a.name;
+  goTo('screen-folder');
+  document.getElementById('add-fab').style.display = 'flex';
+  renderFolderPhotos();
 }
 
-function renderGrid(){
+function closeFolder(){
+  currentFolderId = null;
+  document.getElementById('add-fab').style.display = 'none';
+  goTo('screen-vault');
+  renderFolders();
+}
+
+function renderFolderPhotos(){
   const grid = document.getElementById('photo-grid');
   const empty = document.getElementById('empty-state');
-  const fab = document.getElementById('add-fab');
   const count = document.getElementById('photo-count');
-  const resultsLabel = document.getElementById('search-results-label');
-  const emptyTitle = document.getElementById('empty-title');
-  const emptyText = document.getElementById('empty-text');
 
-  const visible = getVisiblePhotos();
-  count.textContent = photos.length + (photos.length === 1 ? ' photo' : ' photos');
-  fab.style.display = 'flex';
-
-  if(searchQuery){
-    resultsLabel.style.display = 'block';
-    resultsLabel.textContent = visible.length + (visible.length === 1 ? ' result' : ' results') + ' for "' + searchQuery + '"';
-  } else {
-    resultsLabel.style.display = 'none';
-  }
+  const visible = photos.filter(p => p.albumId === currentFolderId);
+  count.textContent = visible.length + (visible.length === 1 ? ' photo' : ' photos');
 
   if(visible.length === 0){
     grid.style.display = 'none';
     empty.style.display = 'flex';
-    if(searchQuery){
-      emptyTitle.textContent = 'No matches';
-      emptyText.textContent = 'Try a different word, or check the album name.';
-    } else if(selectedAlbum !== null){
-      emptyTitle.textContent = 'This album is empty';
-      emptyText.textContent = 'Photos you add while this album is selected will land here.';
-    } else {
-      emptyTitle.textContent = 'Your vault is empty';
-      emptyText.textContent = 'Photos you add here stay only on this device. Nothing is uploaded anywhere.';
-    }
     return;
   }
   empty.style.display = 'none';
@@ -1563,18 +1613,131 @@ function renderGrid(){
   });
 }
 
+/* ---------------- folder menu: rename / delete ---------------- */
+function openFolderMenu(){
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  document.getElementById('folder-menu-title').textContent = a.name;
+  document.getElementById('folder-menu-overlay').classList.add('active');
+}
+function closeFolderMenu(){
+  document.getElementById('folder-menu-overlay').classList.remove('active');
+}
+function renameCurrentFolder(){
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  const newName = prompt('Rename folder', a.name);
+  closeFolderMenu();
+  if(!newName || !newName.trim()) return;
+  const trimmed = newName.trim();
+  if(albums.some(x => x.id !== a.id && x.name.toLowerCase() === trimmed.toLowerCase())){
+    showToast('You already have a folder with that name');
+    return;
+  }
+  a.name = trimmed;
+  document.getElementById('folder-view-title').textContent = trimmed;
+  persistLibrary();
+  showToast('Folder renamed');
+}
+function deleteCurrentFolder(){
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  closeFolderMenu();
+  if(!confirm('Delete "' + a.name + '"? Its photos will be moved to Unsorted, not deleted.')) return;
+  const unsortedId = ensureUnsortedFolder();
+  photos.forEach(p => { if(p.albumId === a.id) p.albumId = unsortedId; });
+  albums = albums.filter(x => x.id !== a.id);
+  persistLibrary();
+  closeFolder();
+  showToast('Folder deleted — photos moved to Unsorted');
+}
+
+/* ---------------- keep every photo inside a folder, always ---------------- */
+function ensureUnsortedFolder(){
+  let unsorted = albums.find(a => a.name === 'Unsorted');
+  if(!unsorted){
+    unsorted = { id: 'alb_unsorted_' + Date.now(), name: 'Unsorted' };
+    albums.push(unsorted);
+  }
+  return unsorted.id;
+}
+function migrateOrphanPhotos(){
+  const orphans = photos.filter(p => !p.albumId);
+  if(orphans.length === 0) return;
+  const unsortedId = ensureUnsortedFolder();
+  orphans.forEach(p => { p.albumId = unsortedId; });
+  persistLibrary();
+}
+
+/* ---------------- search (home screen, across all folders) ---------------- */
+function onSearchInput(){
+  searchQuery = document.getElementById('search-input').value.trim();
+  document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
+  renderSearchOrFolders();
+}
+function clearSearch(){
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  renderSearchOrFolders();
+}
+function renderSearchOrFolders(){
+  const folderView = document.getElementById('folder-view');
+  const searchView = document.getElementById('search-view');
+  const resultsLabel = document.getElementById('search-results-label');
+
+  if(!searchQuery){
+    folderView.style.display = 'block';
+    searchView.style.display = 'none';
+    resultsLabel.style.display = 'none';
+    return;
+  }
+  folderView.style.display = 'none';
+  searchView.style.display = 'block';
+
+  const q = searchQuery.toLowerCase();
+  const visible = photos.filter(p => {
+    const cap = (p.caption || '').toLowerCase();
+    const alb = (albumName(p.albumId) || '').toLowerCase();
+    return cap.includes(q) || alb.includes(q);
+  });
+
+  resultsLabel.style.display = 'block';
+  resultsLabel.textContent = visible.length + (visible.length === 1 ? ' result' : ' results') + ' for "' + searchQuery + '"';
+
+  const grid = document.getElementById('search-grid');
+  const empty = document.getElementById('search-empty-state');
+  if(visible.length === 0){
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+  visible.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.onclick = () => openLightbox(p.id);
+    div.innerHTML = '<img src="' + p.src + '" alt="">';
+    grid.appendChild(div);
+  });
+}
+
+/* ---------------- adding photos: always into the currently open folder ---------------- */
 function handleFiles(e){
   const files = Array.from(e.target.files);
   let remaining = files.length;
   if(remaining === 0) return;
-  const targetAlbum = searchQuery ? null : selectedAlbum;
+  if(!currentFolderId){ showToast('Open a folder first to add photos'); e.target.value = ''; return; }
+  const targetAlbum = currentFolderId;
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       photos.push({ id: Date.now() + Math.random(), src: ev.target.result, albumId: targetAlbum, caption: '' });
       remaining--;
       if(remaining === 0){
-        renderGrid();
+        renderFolderPhotos();
         persistLibrary();
         showToast(files.length > 1 ? files.length + ' photos added' : 'Photo added');
       }
@@ -1596,55 +1759,17 @@ function closeNewAlbumModal(){
 }
 function createAlbum(){
   const name = document.getElementById('new-album-name').value.trim();
-  if(!name){ setError('newalbum', 'Give your album a name.'); return; }
+  if(!name){ setError('newalbum', 'Give your folder a name.'); return; }
   if(albums.some(a => a.name.toLowerCase() === name.toLowerCase())){
-    setError('newalbum', 'You already have an album with that name.');
+    setError('newalbum', 'You already have a folder with that name.');
     return;
   }
   const album = { id: 'alb_' + Date.now(), name };
   albums.push(album);
   closeNewAlbumModal();
-  selectAlbum(album.id);
   persistLibrary();
-  showToast('Album created');
-}
-
-function openManageAlbums(){
-  renderManageAlbumsList();
-  document.getElementById('manage-albums-overlay').classList.add('active');
-}
-function closeManageAlbums(){
-  document.getElementById('manage-albums-overlay').classList.remove('active');
-}
-function renderManageAlbumsList(){
-  const list = document.getElementById('manage-albums-list');
-  if(albums.length === 0){
-    list.innerHTML = '<div class="manage-empty">No albums yet.</div>';
-    return;
-  }
-  list.innerHTML = '';
-  albums.forEach(a => {
-    const n = photos.filter(p => p.albumId === a.id).length;
-    const row = document.createElement('div');
-    row.className = 'manage-row';
-    row.innerHTML = '<span>' + a.name + '<span class="mini-count">' + n + (n===1?' photo':' photos') + '</span></span>';
-    const del = document.createElement('button');
-    del.className = 'manage-del';
-    del.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.7h4V4M5 4v9h6V4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    del.onclick = () => deleteAlbum(a.id);
-    row.appendChild(del);
-    list.appendChild(row);
-  });
-}
-function deleteAlbum(id){
-  albums = albums.filter(a => a.id !== id);
-  photos.forEach(p => { if(p.albumId === id) p.albumId = null; });
-  if(selectedAlbum === id) selectedAlbum = null;
-  renderManageAlbumsList();
-  renderAlbumChips();
-  renderGrid();
-  persistLibrary();
-  showToast('Album deleted — photos kept, unfiled');
+  showToast('Folder created');
+  openFolder(album.id);
 }
 
 /* ---------------- lightbox ---------------- */
@@ -1656,18 +1781,21 @@ function openLightbox(id){
   document.getElementById('caption-input').value = p.caption || '';
 
   const sel = document.getElementById('lightbox-album-select');
-  sel.innerHTML = '<option value="">No album</option>' +
-    albums.map(a => '<option value="' + a.id + '">' + a.name + '</option>').join('');
+  sel.innerHTML = albums.map(a => '<option value="' + a.id + '">' + a.name + '</option>').join('');
   sel.value = p.albumId || '';
 
   document.getElementById('lightbox').classList.add('active');
   resetZoom();
 }
+function refreshCurrentView(){
+  if(currentFolderId) renderFolderPhotos();
+  else renderSearchOrFolders();
+}
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('active');
   currentLightboxId = null;
   resetZoom();
-  renderGrid();
+  refreshCurrentView();
 }
 function saveCaption(){
   const p = photos.find(p => p.id === currentLightboxId);
@@ -1684,7 +1812,6 @@ function setCurrentAlbum(albumId){
 function deleteCurrent(){
   photos = photos.filter(p => p.id !== currentLightboxId);
   closeLightbox();
-  renderGrid();
   persistLibrary();
   showToast('Photo deleted');
 }
@@ -1712,7 +1839,7 @@ async function confirmWipe(){
   if(confirm('Erase all photos and reset the vault? This cannot be undone.')){
     photos = [];
     albums = [];
-    selectedAlbum = null;
+    currentFolderId = null;
     searchQuery = "";
     vault = { passwordSet:false, passwordHash:"", passwordSalt:"", question:"", answerHash:"", answerSalt:"", changingPassword:false, secretType:"password", biometricEnabled:false, biometricCredentialId:"" };
     await dbClearAll();
@@ -1887,8 +2014,9 @@ async function confirmBackupPassword(){
       });
 
       closeBackupPwModal();
-      renderAlbumChips();
-      renderGrid();
+      migrateOrphanPhotos();
+      renderFolders();
+      if(currentFolderId) renderFolderPhotos();
       persistLibrary();
       showToast('Backup restored');
     }catch(err){
