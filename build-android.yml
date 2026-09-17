@@ -1,0 +1,95 @@
+name: Build Native Android App (Capacitor)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Confirm Android SDK is already on this runner
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+
+      - name: Read app version
+        id: ver
+        run: |
+          VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "num=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create Capacitor project
+        run: |
+          mkdir -p capacitor-app/www
+          cp index.html manifest.json sw.js icon-*.png capacitor-app/www/
+          echo "window.APP_VERSION = '${{ steps.ver.outputs.num }}';" > capacitor-app/www/version.js
+          cd capacitor-app
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+
+      - name: Write Capacitor config
+        working-directory: capacitor-app
+        run: |
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.vvault.app",
+            "appName": "V Vault",
+            "webDir": "www",
+            "android": {
+              "allowMixedContent": false
+            }
+          }
+          EOF
+
+      - name: Add Android platform
+        working-directory: capacitor-app
+        run: npx cap add android
+
+      - name: Sync web assets into the Android project
+        working-directory: capacitor-app
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: capacitor-app/android
+        run: chmod +x ./gradlew && ./gradlew assembleDebug
+
+      - name: Rename APK with version
+        run: |
+          mkdir -p release-out
+          cp capacitor-app/android/app/build/outputs/apk/debug/app-debug.apk \
+             release-out/vvault-${{ steps.ver.outputs.tag }}.apk
+
+      - name: Upload APK (build artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vvault-android-app
+          path: release-out/vvault-${{ steps.ver.outputs.tag }}.apk
+
+      - name: Publish GitHub Release with APK attached
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: V Vault ${{ steps.ver.outputs.tag }}
+          files: release-out/vvault-${{ steps.ver.outputs.tag }}.apk
+          make_latest: true
