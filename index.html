@@ -249,7 +249,7 @@
   .search-results-label{font-size:12.5px;color:var(--text-muted);margin-bottom:14px;}
 
   .grid{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+    display:grid;grid-template-columns:repeat(var(--grid-cols, 3),1fr);gap:8px;
     padding-bottom:110px;
   }
   .thumb{
@@ -281,6 +281,7 @@
     padding-bottom:100px;
   }
   .folder-card{
+    position:relative;
     background:var(--card);border:1px solid var(--border);border-radius:14px;
     padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px;
     transition:background .15s;
@@ -307,6 +308,20 @@
 
   .folder-card.favorites-card{background:var(--accent-soft);border-color:var(--accent-dim);}
   .folder-card.favorites-card .folder-icon{color:var(--accent);}
+  .folder-card.trash-card{opacity:0.85;}
+  .folder-card.trash-card .folder-icon{color:var(--text-faint);}
+  .folder-lock-badge{position:absolute;top:10px;right:10px;color:var(--accent);z-index:2;}
+  .folder-card.has-cover .folder-lock-badge{color:#fff;}
+
+  .trash-actions{
+    position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:8px;
+  }
+  .trash-btn{
+    width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);border:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .trash-btn.danger{background:rgba(196,69,62,0.85);}
+
 
   .thumb{position:relative;}
   .thumb-video-badge{
@@ -356,6 +371,10 @@
   }
   .lightbox.active{display:flex;}
   .lightbox-top{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 0;}
+  .slideshow-badge{
+    display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);
+    color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;
+  }
   .lightbox-body{
     flex:1;display:flex;align-items:center;justify-content:center;padding:16px;min-height:0;
     overflow:hidden;position:relative;touch-action:none;
@@ -387,7 +406,7 @@
     width:auto;font-size:12.5px;padding:7px 30px 7px 12px;border-radius:20px;
     background-position:right 10px center;
   }
-  .lightbox-bottom{display:flex;justify-content:center;gap:14px;padding:14px 18px 30px;}
+  .lightbox-bottom{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 14px;padding:14px 14px 26px;}
   .lb-action{
     display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-muted);
     background:none;border:none;font-size:11.5px;font-family:'Inter',sans-serif;cursor:pointer;
@@ -864,9 +883,25 @@
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M12 3l3 3-8 8H4v-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
         Rename folder
       </div>
-      <div class="sheet-item" onclick="exportCurrentFolder()">
+      <div class="sheet-item" id="folder-lock-item" onclick="toggleFolderLock()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span id="folder-lock-item-label">Set folder lock</span>
+      </div>
+      <div class="sheet-item" onclick="toggleGridSize(); closeFolderMenu();">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="2.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="10.5" y="2.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="10.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="10.5" y="10.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+        Grid size
+      </div>
+      <div class="sheet-item" onclick="startSlideshow()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 3.5L14 9L5 14.5Z" fill="currentColor"/></svg>
+        Play slideshow
+      </div>
+      <div class="sheet-item" id="export-folder-item" onclick="exportCurrentFolder()">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         Export folder as .zip
+      </div>
+      <div class="sheet-item" id="empty-trash-item" style="display:none;" onclick="emptyTrash()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Empty trash
       </div>
       <div class="sheet-item danger" id="delete-folder-item" onclick="deleteCurrentFolder()">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -887,7 +922,10 @@
   <!-- ================= LIGHTBOX ================= -->
   <div class="lightbox" id="lightbox">
     <div class="lightbox-top">
-      <div></div>
+      <div class="slideshow-badge" id="slideshow-badge" style="display:none;" onclick="stopSlideshow()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="2" width="3" height="8" fill="white"/><rect x="7" y="2" width="3" height="8" fill="white"/></svg>
+        <span>Playing</span>
+      </div>
       <button class="icon-btn" onclick="closeLightbox()">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
@@ -919,6 +957,18 @@
       <button class="lb-action" id="lightbox-fav-btn" onclick="toggleFavoriteCurrent()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span>Favorite</span>
+      </button>
+      <button class="lb-action" onclick="rotateCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 1 1.8 4.3M4 10V6M4 10H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Rotate</span>
+      </button>
+      <button class="lb-action" onclick="cropToSquareCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6 2V14A2 2 0 0 0 8 16H18M14 4H6M4 6V18H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Crop</span>
+      </button>
+      <button class="lb-action" onclick="shareCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="15" cy="4" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="5" cy="10" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="15" cy="16" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M6.7 8.8L13.3 5.2M6.7 11.2L13.3 14.8" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span>Share</span>
       </button>
       <button class="lb-action" onclick="downloadCurrent()">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2V13M10 13L6 9M10 13L14 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 16H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -987,9 +1037,24 @@
       <span style="flex:1;">Hide content when I switch apps</span>
       <div class="toggle-switch" id="privacy-toggle"><div class="toggle-knob"></div></div>
     </div>
+    <div class="sheet-item" onclick="openStorageStats()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 15V9M9 15V3M15 15V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Storage &amp; stats
+    </div>
     <div class="sheet-item danger" onclick="closeSettings(); confirmWipe();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Erase vault
+    </div>
+  </div>
+
+  <!-- Storage & stats modal -->
+  <div class="modal-overlay" id="stats-overlay">
+    <div class="modal-card">
+      <h3>Storage &amp; stats</h3>
+      <div class="manage-list" id="stats-body"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeStorageStats()">Done</button>
+      </div>
     </div>
   </div>
 
@@ -1076,6 +1141,10 @@ let selectedPhotoIds = new Set();
 let sortOrder = 'newest'; // 'newest' | 'oldest'
 let autoLockMinutes = 0; // 0 = off
 let autoLockTimer = null;
+let gridColumns = 3;
+let slideshowTimer = null;
+let slideshowList = [];
+let slideshowIndex = 0;
 let searchQuery = "";
 let currentLightboxId = null;
 let privacyModeEnabled = true;
@@ -1169,6 +1238,7 @@ async function bootFromStorage(){
       photos = savedPhotos || [];
       albums = savedAlbums || [];
       migrateOrphanPhotos();
+      purgeOldTrash();
       goTo('screen-lock');
     }
     // if no config, the setup screen (already active by default) is correct
@@ -1666,7 +1736,7 @@ function renderFolders(){
   grid.innerHTML = '';
 
   // Favorites card always first
-  const favCount = photos.filter(p => p.favorite).length;
+  const favCount = photos.filter(p => p.favorite && !p.deletedAt).length;
   const favCard = document.createElement('button');
   favCard.type = 'button';
   favCard.className = 'folder-card favorites-card';
@@ -1678,7 +1748,7 @@ function renderFolders(){
   grid.appendChild(favCard);
 
   albums.forEach(a => {
-    const folderPhotos = photos.filter(p => p.albumId === a.id);
+    const folderPhotos = photos.filter(p => p.albumId === a.id && !p.deletedAt);
     const n = folderPhotos.length;
     const imagePhotos = folderPhotos.filter(p => p.type !== 'video');
     const cover = imagePhotos[imagePhotos.length - 1]; // most recently added image
@@ -1687,30 +1757,62 @@ function renderFolders(){
     card.className = 'folder-card' + (cover ? ' has-cover' : '');
     if(cover) card.style.backgroundImage = "url('" + cover.src + "')";
     card.onclick = () => openFolder(a.id);
-    card.innerHTML = (cover ? '' : folderIconSvg()) +
+    const lockBadge = a.pinHash ? '<svg class="folder-lock-badge" width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>' : '';
+    card.innerHTML = (cover ? '' : folderIconSvg()) + lockBadge +
       '<div><div class="folder-name">' + a.name + '</div>' +
       '<div class="folder-count">' + n + (n === 1 ? ' photo' : ' photos') + '</div></div>';
     grid.appendChild(card);
   });
+
+  // Trash card always last
+  const trashCount = photos.filter(p => p.deletedAt).length;
+  const trashCard = document.createElement('button');
+  trashCard.type = 'button';
+  trashCard.className = 'folder-card trash-card';
+  trashCard.onclick = () => openFolder('__trash__');
+  trashCard.innerHTML =
+    '<svg class="folder-icon" width="26" height="26" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+    '<div><div class="folder-name">Trash</div>' +
+    '<div class="folder-count">' + trashCount + (trashCount === 1 ? ' item' : ' items') + '</div></div>';
+  grid.appendChild(trashCard);
 }
 
-function openFolder(id){
+async function openFolder(id){
   const isFav = id === '__favorites__';
-  if(!isFav && !albums.find(x => x.id === id)) return;
+  const isTrash = id === '__trash__';
+  const album = albums.find(x => x.id === id);
+  if(!isFav && !isTrash && !album) return;
+
+  // folder-level PIN check (skip for virtual folders)
+  if(album && album.pinHash){
+    const entered = prompt('This folder is locked. Enter its PIN:');
+    if(entered === null) return;
+    const salt = base64ToBuf(album.pinSalt);
+    const hash = await hashSecret(entered, salt);
+    if(hash !== album.pinHash){ showToast('Wrong PIN'); return; }
+  }
+
   currentFolderId = id;
   selectionMode = false;
   selectedPhotoIds.clear();
   document.getElementById('select-toggle-btn').style.color = '';
-  document.getElementById('folder-view-title').textContent = isFav ? 'Favorites' : albums.find(x => x.id === id).name;
-  document.getElementById('rename-folder-item').style.display = isFav ? 'none' : 'flex';
-  document.getElementById('delete-folder-item').style.display = isFav ? 'none' : 'flex';
+  document.getElementById('folder-view-title').textContent = isFav ? 'Favorites' : isTrash ? 'Trash' : album.name;
+  document.getElementById('rename-folder-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('delete-folder-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('folder-lock-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('folder-lock-item-label').textContent = (album && album.pinHash) ? 'Remove folder lock' : 'Set folder lock';
+  document.getElementById('empty-trash-item').style.display = isTrash ? 'flex' : 'none';
+  document.getElementById('export-folder-item').style.display = isTrash ? 'none' : 'flex';
   goTo('screen-folder');
-  document.getElementById('add-fab').style.display = isFav ? 'none' : 'flex';
+  document.getElementById('add-fab').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('sort-toggle-btn').style.display = isTrash ? 'none' : 'flex';
+  document.getElementById('select-toggle-btn').style.display = isTrash ? 'none' : 'flex';
   renderFolderPhotos();
   updateSelectionUI();
 }
 
 function closeFolder(){
+  if(slideshowTimer) stopSlideshow();
   currentFolderId = null;
   selectionMode = false;
   selectedPhotoIds.clear();
@@ -1721,9 +1823,10 @@ function closeFolder(){
 }
 
 function getFolderPhotos(){
-  let list = currentFolderId === '__favorites__'
-    ? photos.filter(p => p.favorite)
-    : photos.filter(p => p.albumId === currentFolderId);
+  let list;
+  if(currentFolderId === '__favorites__') list = photos.filter(p => p.favorite && !p.deletedAt);
+  else if(currentFolderId === '__trash__') list = photos.filter(p => p.deletedAt);
+  else list = photos.filter(p => p.albumId === currentFolderId && !p.deletedAt);
   list = list.slice().sort((a, b) => sortOrder === 'newest' ? b.id - a.id : a.id - b.id);
   return list;
 }
@@ -1732,6 +1835,15 @@ function toggleSortOrder(){
   sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest';
   showToast(sortOrder === 'newest' ? 'Sorted: newest first' : 'Sorted: oldest first');
   renderFolderPhotos();
+}
+
+function toggleGridSize(){
+  const order = ['2','3','4'];
+  const next = order[(order.indexOf(String(gridColumns)) + 1) % order.length];
+  gridColumns = parseInt(next, 10);
+  document.documentElement.style.setProperty('--grid-cols', gridColumns);
+  persistAppSettings();
+  showToast(gridColumns + ' columns');
 }
 
 function thumbBadges(p){
@@ -1761,6 +1873,9 @@ function renderFolderPhotos(){
     if(currentFolderId === '__favorites__'){
       emptyTitle.textContent = 'No favorites yet';
       emptyText.textContent = 'Tap the star on any photo to add it here.';
+    } else if(currentFolderId === '__trash__'){
+      emptyTitle.textContent = 'Trash is empty';
+      emptyText.textContent = 'Deleted photos stay here for 30 days before being removed for good.';
     } else {
       emptyTitle.textContent = 'This folder is empty';
       emptyText.textContent = 'Photos you add here stay only on this device. Nothing is uploaded anywhere.';
@@ -1770,20 +1885,75 @@ function renderFolderPhotos(){
   empty.style.display = 'none';
   grid.style.display = 'grid';
   grid.innerHTML = '';
+
+  if(currentFolderId === '__trash__'){
+    visible.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'thumb';
+      const mediaHtml = p.type === 'video'
+        ? '<video src="' + p.src + '" muted preload="metadata"></video>'
+        : '<img src="' + p.src + '" alt="">';
+      div.innerHTML = mediaHtml + thumbBadges(p) +
+        '<div class="trash-actions">' +
+          '<button class="trash-btn" onclick="event.stopPropagation(); restorePhoto(' + p.id + ')" title="Restore"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7a5 5 0 1 0 1.5-3.5M2 2v2.5H4.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+          '<button class="trash-btn danger" onclick="event.stopPropagation(); deletePermanently(' + p.id + ')" title="Delete forever"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 4h8M5.5 4V2.7h3V4M4.5 4v8h5V4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '</div>';
+      grid.appendChild(div);
+    });
+    return;
+  }
+
   visible.forEach(p => {
     const div = document.createElement('div');
     const isSelected = selectedPhotoIds.has(p.id);
     div.className = 'thumb' + (selectionMode ? ' selectable' : '') + (isSelected ? ' selected' : '');
     div.onclick = () => selectionMode ? togglePhotoSelection(p.id) : openLightbox(p.id);
+    const rot = p.rotation ? ' style="transform:rotate(' + p.rotation + 'deg);"' : '';
     const mediaHtml = p.type === 'video'
-      ? '<video src="' + p.src + '" muted preload="metadata"></video>'
-      : '<img src="' + p.src + '" alt="">';
+      ? '<video src="' + p.src + '" muted preload="metadata"' + rot + '></video>'
+      : '<img src="' + p.src + '" alt=""' + rot + '>';
     const checkHtml = selectionMode
       ? '<div class="thumb-check">' + (isSelected ? '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5L4 8.5L10 1.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</div>'
       : '';
     div.innerHTML = mediaHtml + thumbBadges(p) + checkHtml;
     grid.appendChild(div);
   });
+}
+
+/* ---------------- trash: restore / delete forever / auto-purge ---------------- */
+function restorePhoto(id){
+  const p = photos.find(p => p.id === id);
+  if(!p) return;
+  if(!albums.find(a => a.id === p.albumId)){
+    p.albumId = ensureUnsortedFolder();
+  }
+  p.deletedAt = null;
+  persistLibrary();
+  renderFolderPhotos();
+  showToast('Restored');
+}
+function deletePermanently(id){
+  if(!confirm('Delete this forever? This cannot be undone.')) return;
+  photos = photos.filter(p => p.id !== id);
+  persistLibrary();
+  renderFolderPhotos();
+  showToast('Deleted forever');
+}
+function emptyTrash(){
+  const n = photos.filter(p => p.deletedAt).length;
+  if(n === 0){ showToast('Trash is already empty'); return; }
+  if(!confirm('Permanently delete ' + n + (n === 1 ? ' item' : ' items') + ' in Trash?')) return;
+  photos = photos.filter(p => !p.deletedAt);
+  persistLibrary();
+  closeFolderMenu();
+  renderFolderPhotos();
+  showToast('Trash emptied');
+}
+function purgeOldTrash(){
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const before = photos.length;
+  photos = photos.filter(p => !(p.deletedAt && (Date.now() - p.deletedAt > THIRTY_DAYS)));
+  if(photos.length !== before) persistLibrary();
 }
 
 /* ---------------- multi-select + bulk actions ---------------- */
@@ -1813,14 +1983,15 @@ function updateSelectionUI(){
 function deleteSelectedPhotos(){
   const n = selectedPhotoIds.size;
   if(n === 0) return;
-  if(!confirm('Delete ' + n + (n === 1 ? ' item' : ' items') + '? This cannot be undone.')) return;
-  photos = photos.filter(p => !selectedPhotoIds.has(p.id));
+  if(!confirm('Move ' + n + (n === 1 ? ' item' : ' items') + ' to Trash?')) return;
+  const now = Date.now();
+  photos.forEach(p => { if(selectedPhotoIds.has(p.id)) p.deletedAt = now; });
   selectedPhotoIds.clear();
   selectionMode = false;
   persistLibrary();
   renderFolderPhotos();
   updateSelectionUI();
-  showToast(n + (n === 1 ? ' item deleted' : ' items deleted'));
+  showToast(n + (n === 1 ? ' item moved to Trash' : ' items moved to Trash'));
 }
 function openMoveSelectedModal(){
   if(selectedPhotoIds.size === 0) return;
@@ -1900,6 +2071,142 @@ async function exportCurrentFolder(){
     console.error('V Vault export error:', err);
     showToast('Could not export this folder');
   }
+}
+
+/* ---------------- folder-level PIN lock ---------------- */
+async function toggleFolderLock(){
+  closeFolderMenu();
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  if(a.pinHash){
+    if(!confirm('Remove the lock from "' + a.name + '"?')) return;
+    delete a.pinHash;
+    delete a.pinSalt;
+    persistLibrary();
+    showToast('Folder lock removed');
+    return;
+  }
+  const pin = prompt('Set a 4-6 digit PIN for this folder:');
+  if(!pin) return;
+  if(!/^\d{4,6}$/.test(pin)){ showToast('PIN must be 4-6 digits'); return; }
+  const confirmPin = prompt('Confirm PIN:');
+  if(pin !== confirmPin){ showToast('PINs didn\'t match'); return; }
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  a.pinHash = await hashSecret(pin, salt);
+  a.pinSalt = bufToBase64(salt);
+  persistLibrary();
+  showToast('Folder locked');
+}
+
+/* ---------------- slideshow ---------------- */
+function startSlideshow(){
+  closeFolderMenu();
+  slideshowList = getFolderPhotos().filter(p => p.type !== 'video');
+  if(slideshowList.length === 0){ showToast('No photos here to play'); return; }
+  slideshowIndex = 0;
+  openLightbox(slideshowList[0].id);
+  document.getElementById('slideshow-badge').style.display = 'flex';
+  slideshowTimer = setInterval(() => {
+    slideshowIndex = (slideshowIndex + 1) % slideshowList.length;
+    openLightbox(slideshowList[slideshowIndex].id);
+  }, 3000);
+}
+function stopSlideshow(){
+  clearInterval(slideshowTimer);
+  slideshowTimer = null;
+  document.getElementById('slideshow-badge').style.display = 'none';
+}
+
+/* ---------------- rotate / crop (lightbox edits) ---------------- */
+function rotateCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p || p.type === 'video') return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.height;
+    canvas.height = img.width;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    p.src = canvas.toDataURL('image/jpeg', 0.92);
+    document.getElementById('lightbox-img').src = p.src;
+    persistLibrary();
+    showToast('Rotated');
+  };
+  img.src = p.src;
+}
+function cropToSquareCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p || p.type === 'video') return;
+  const img = new Image();
+  img.onload = () => {
+    const side = Math.min(img.width, img.height);
+    const sx = (img.width - side) / 2;
+    const sy = (img.height - side) / 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = side;
+    canvas.height = side;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, side, side);
+    p.src = canvas.toDataURL('image/jpeg', 0.92);
+    document.getElementById('lightbox-img').src = p.src;
+    persistLibrary();
+    showToast('Cropped to square');
+  };
+  img.src = p.src;
+}
+
+/* ---------------- share directly ---------------- */
+async function shareCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p) return;
+  if(!navigator.share){ showToast('Sharing isn\'t supported in this browser'); return; }
+  try{
+    const res = await fetch(p.src);
+    const blob = await res.blob();
+    const ext = p.type === 'video' ? 'mp4' : (blob.type.split('/')[1] || 'jpg');
+    const file = new File([blob], 'vvault-photo.' + ext, { type: blob.type });
+    if(navigator.canShare && !navigator.canShare({ files: [file] })){
+      showToast('This file can\'t be shared from here');
+      return;
+    }
+    await navigator.share({ files: [file] });
+  }catch(err){
+    if(err && err.name === 'AbortError') return; // user cancelled the share sheet
+    console.error('V Vault share error:', err);
+    showToast('Could not share this file');
+  }
+}
+
+/* ---------------- storage & stats ---------------- */
+function openStorageStats(){
+  closeSettings();
+  const live = photos.filter(p => !p.deletedAt);
+  const photoCount = live.filter(p => p.type !== 'video').length;
+  const videoCount = live.filter(p => p.type === 'video').length;
+  const favCount = live.filter(p => p.favorite).length;
+  const trashCount = photos.filter(p => p.deletedAt).length;
+  let totalChars = 0;
+  photos.forEach(p => { totalChars += p.src ? p.src.length : 0; });
+  const approxBytes = totalChars * 0.75; // base64 → raw bytes estimate
+  const approxMB = (approxBytes / (1024 * 1024)).toFixed(1);
+
+  document.getElementById('stats-body').innerHTML =
+    statRow('Folders', albums.length) +
+    statRow('Photos', photoCount) +
+    statRow('Videos', videoCount) +
+    statRow('Favorites', favCount) +
+    statRow('In Trash', trashCount) +
+    statRow('Approx. storage used', approxMB + ' MB');
+  document.getElementById('stats-overlay').classList.add('active');
+}
+function statRow(label, value){
+  return '<div class="manage-row"><span>' + label + '</span><span class="mini-count">' + value + '</span></div>';
+}
+function closeStorageStats(){
+  document.getElementById('stats-overlay').classList.remove('active');
 }
 
 /* ---------------- folder menu: rename / delete ---------------- */
@@ -1987,6 +2294,7 @@ function renderSearchOrFolders(){
 
   const q = searchQuery.toLowerCase();
   const visible = photos.filter(p => {
+    if(p.deletedAt) return false;
     const cap = (p.caption || '').toLowerCase();
     const alb = (albumName(p.albumId) || '').toLowerCase();
     return cap.includes(q) || alb.includes(q);
@@ -2019,18 +2327,30 @@ function handleFiles(e){
   const files = Array.from(e.target.files);
   let remaining = files.length;
   if(remaining === 0) return;
-  if(!currentFolderId || currentFolderId === '__favorites__'){ showToast('Open a folder first to add photos'); e.target.value = ''; return; }
+  if(!currentFolderId || currentFolderId === '__favorites__' || currentFolderId === '__trash__'){ showToast('Open a folder first to add photos'); e.target.value = ''; return; }
   const targetAlbum = currentFolderId;
+  const existingInFolder = photos.filter(p => p.albumId === targetAlbum && !p.deletedAt);
+  let addedCount = 0, dupeCount = 0;
   files.forEach(file => {
     const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
     const reader = new FileReader();
     reader.onload = (ev) => {
-      photos.push({ id: Date.now() + Math.random(), src: ev.target.result, albumId: targetAlbum, caption: '', favorite: false, type: mediaType });
+      const isDuplicate = existingInFolder.some(p => p.src === ev.target.result);
+      if(isDuplicate){
+        dupeCount++;
+      } else {
+        const newPhoto = { id: Date.now() + Math.random(), src: ev.target.result, albumId: targetAlbum, caption: '', favorite: false, type: mediaType, rotation: 0, deletedAt: null };
+        photos.push(newPhoto);
+        existingInFolder.push(newPhoto);
+        addedCount++;
+      }
       remaining--;
       if(remaining === 0){
         renderFolderPhotos();
         persistLibrary();
-        showToast(files.length > 1 ? files.length + ' items added' : (mediaType === 'video' ? 'Video added' : 'Photo added'));
+        let msg = addedCount > 0 ? (addedCount > 1 ? addedCount + ' items added' : (mediaType === 'video' ? 'Video added' : 'Photo added')) : '';
+        if(dupeCount > 0) msg += (msg ? ' — ' : '') + dupeCount + (dupeCount > 1 ? ' duplicates skipped' : ' duplicate skipped');
+        showToast(msg || 'Nothing added');
       }
     };
     reader.readAsDataURL(file);
@@ -2098,6 +2418,7 @@ function refreshCurrentView(){
   else renderSearchOrFolders();
 }
 function closeLightbox(){
+  if(slideshowTimer) stopSlideshow();
   document.getElementById('lightbox').classList.remove('active');
   document.getElementById('lightbox-video').pause();
   currentLightboxId = null;
@@ -2117,10 +2438,11 @@ function setCurrentAlbum(albumId){
   persistLibrary();
 }
 function deleteCurrent(){
-  photos = photos.filter(p => p.id !== currentLightboxId);
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(p) p.deletedAt = Date.now();
   closeLightbox();
   persistLibrary();
-  showToast('Photo deleted');
+  showToast('Moved to Trash');
 }
 function downloadCurrent(){
   const p = photos.find(p => p.id === currentLightboxId);
@@ -2351,7 +2673,7 @@ let appTheme = 'light';
 let appAccent = 'gold';
 
 async function persistAppSettings(){
-  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes });
+  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns });
 }
 async function loadAppSettings(){
   try{
@@ -2360,11 +2682,13 @@ async function loadAppSettings(){
       appTheme = saved.theme || 'light';
       appAccent = saved.accent || 'gold';
       autoLockMinutes = saved.autoLockMinutes || 0;
+      gridColumns = saved.gridColumns || 3;
     }
   }catch(err){
     // no saved settings yet — keep defaults
   }
   applyAppearance();
+  document.documentElement.style.setProperty('--grid-cols', gridColumns);
   const sel = document.getElementById('autolock-select');
   if(sel) sel.value = String(autoLockMinutes);
 }
