@@ -2207,7 +2207,15 @@ async function deriveKey(password, saltBytes){
     ['encrypt', 'decrypt']
   );
 }
-function bufToBase64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function bufToBase64(buf){
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  const chunkSize = 0x8000; // 32768 — stay well under the JS engine's argument-count limit
+  for(let i = 0; i < bytes.length; i += chunkSize){
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
 function base64ToBuf(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
 
 let backupPwMode = null; // 'create' | 'restore'
