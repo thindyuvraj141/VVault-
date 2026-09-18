@@ -110,6 +110,9 @@ public class VaultMediaPlugin extends Plugin {
         call.resolve(ret);
     }
 
+    private String pendingDeleteCallbackId;
+    private static final int DELETE_REQUEST_CODE = 9821;
+
     @PluginMethod
     public void deleteMedia(PluginCall call) {
         JSArray uriArray = call.getArray("uris");
@@ -136,12 +139,20 @@ public class VaultMediaPlugin extends Plugin {
             // in the batch. The user taps "Allow" once; there is no way to
             // skip this dialog — it's an OS privacy requirement, not
             // something this plugin can bypass.
+            //
+            // We launch this the plain Android way (Activity.startIntentSenderForResult)
+            // and catch the result in handleOnActivityResult below, rather than
+            // relying on a newer Capacitor Plugin helper method that may not
+            // exist in every Capacitor version.
             try {
                 PendingIntent pendingIntent =
                         MediaStore.createDeleteRequest(getContext().getContentResolver(), uris);
-                startIntentSenderForResult(
-                        call, pendingIntent.getIntentSender(), "deleteMediaResult",
-                        null, 0, 0, 0, null
+                call.setKeepAlive(true);
+                bridge.saveCall(call);
+                pendingDeleteCallbackId = call.getCallbackId();
+                getActivity().startIntentSenderForResult(
+                        pendingIntent.getIntentSender(), DELETE_REQUEST_CODE,
+                        null, 0, 0, 0
                 );
             } catch (Exception e) {
                 call.reject("Could not request delete", e);
@@ -165,13 +176,18 @@ public class VaultMediaPlugin extends Plugin {
         }
     }
 
-    @ActivityCallback
-    private void deleteMediaResult(PluginCall call, ActivityResult result) {
-        if (call == null) return;
+    @Override
+    protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
+        super.handleOnActivityResult(requestCode, resultCode, data);
+        if (requestCode != DELETE_REQUEST_CODE || pendingDeleteCallbackId == null) return;
+        PluginCall savedCall = bridge.getSavedCall(pendingDeleteCallbackId);
+        pendingDeleteCallbackId = null;
+        if (savedCall == null) return;
         JSObject ret = new JSObject();
         // Android doesn't report back exactly how many were deleted from this
         // dialog — RESULT_OK means the user approved the whole batch.
-        ret.put("deleted", result.getResultCode() == Activity.RESULT_OK ? 1 : 0);
-        call.resolve(ret);
+        ret.put("deleted", resultCode == Activity.RESULT_OK ? 1 : 0);
+        savedCall.resolve(ret);
+        bridge.releaseCall(savedCall);
     }
-    }
+}
