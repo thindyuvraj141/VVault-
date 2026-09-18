@@ -1,0 +1,3235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="gold">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>V Vault — Photo Vault</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E4EEFC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="V Vault">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* --- structural tokens: overridden per theme below --- */
+    --bg:#FFFFFF;
+    --bg-elevated:#F1F5F9;
+    --card:#FFFFFF;
+    --card-hover:#F3F6FA;
+    --text:#1C2126;
+    --text-muted:#6B7280;
+    --text-faint:#9AA1AB;
+    --danger:#C4453E;
+    --border:rgba(0,0,0,0.09);
+    --header-border:rgba(0,0,0,0.06);
+    --radius:18px;
+
+    /* --- accent tokens: overridden per accent choice below --- */
+    --accent-rgb:198,161,91;
+    --accent:rgb(var(--accent-rgb));
+    --accent-soft:rgba(var(--accent-rgb),0.14);
+    --accent-dim:rgba(var(--accent-rgb),0.45);
+    --header-bg:rgba(var(--accent-rgb),0.16);
+  }
+
+  /* ---------- dark mode ---------- */
+  html[data-theme="dark"]{
+    --bg:#0B0D10;
+    --bg-elevated:#14171C;
+    --card:#1A1E24;
+    --card-hover:#20242B;
+    --text:#F1EEE8;
+    --text-muted:#8D929A;
+    --text-faint:#565B63;
+    --danger:#D9756A;
+    --border:rgba(255,255,255,0.08);
+    --header-border:rgba(255,255,255,0.08);
+    --header-bg:rgba(var(--accent-rgb),0.22);
+  }
+
+  /* ---------- accent choices ---------- */
+  html[data-accent="gold"]{ --accent-rgb:198,161,91; }
+  html[data-accent="blue"]{ --accent-rgb:74,144,217; }
+  html[data-accent="green"]{ --accent-rgb:87,168,120; }
+  html[data-accent="rose"]{ --accent-rgb:212,110,110; }
+  html[data-accent="purple"]{ --accent-rgb:150,122,214; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    height:100%;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  #app{
+    max-width:430px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{
+    display:none;
+    flex-direction:column;
+    flex:1;
+    padding:36px 26px 28px;
+    animation:fadeIn .35s ease;
+  }
+  .screen.active{display:flex;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
+
+  /* ---------- Brand lockup ---------- */
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--text);}
+  .logo{width:34px;height:34px;flex-shrink:0;}
+
+  .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 30px;}
+  .center-brand .logo{width:62px;height:62px;}
+  .center-brand .brand-name{font-size:26px;}
+  .center-brand .tagline{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;max-width:260px;}
+
+  /* ---------- Form elements ---------- */
+  .field{margin-bottom:16px;}
+  /* auth type toggle (Password / PIN) */
+  .type-toggle{
+    display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    padding:4px;margin-bottom:22px;
+  }
+  .type-chip{
+    flex:1;padding:10px;border:none;background:transparent;color:var(--text-muted);
+    font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;border-radius:9px;cursor:pointer;
+    transition:background .2s,color .2s;
+  }
+  .type-chip.active{background:var(--accent-soft);color:var(--accent);}
+
+  .btn-biometric{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;
+    border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+    font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;cursor:pointer;margin-top:10px;
+  }
+  .btn-biometric:active{transform:scale(0.98);}
+  .btn-biometric svg{color:var(--accent);flex-shrink:0;}
+
+  .field label{
+    display:block;font-size:12.5px;color:var(--text-muted);margin-bottom:7px;font-weight:500;
+  }
+  .pw-wrap{position:relative;}
+  input[type="password"], input[type="text"]{
+    width:100%;
+    background:var(--bg-elevated);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:14px 44px 14px 16px;
+    border-radius:12px;
+    font-size:15px;
+    font-family:'Inter',sans-serif;
+    outline:none;
+    transition:border-color .2s, background .2s;
+  }
+  input[type="text"]{padding-right:16px;}
+  input:focus{border-color:var(--accent-dim);background:var(--card-hover);}
+  input::placeholder{color:var(--text-faint);}
+  .toggle-eye{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;cursor:pointer;color:var(--text-muted);
+    display:flex;align-items:center;justify-content:center;background:none;border:none;
+  }
+  select{
+    width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);
+    padding:14px 16px;border-radius:12px;font-size:15px;font-family:'Inter',sans-serif;outline:none;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%238D929A' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 16px center;
+  }
+
+  .strength{display:flex;gap:5px;margin-top:9px;}
+  .strength div{height:3px;flex:1;border-radius:3px;background:var(--border);transition:background .25s;}
+  .strength-label{font-size:11.5px;color:var(--text-faint);margin-top:6px;}
+
+  .hint{font-size:12.5px;color:var(--text-faint);line-height:1.5;margin-top:-4px;margin-bottom:20px;}
+
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
+    font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
+    transition:transform .15s, opacity .15s, background .2s;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--accent);color:#1A1204;}
+  .btn-primary:hover{background:#D2AE68;}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+  .btn-ghost:hover{color:var(--text);border-color:var(--text-faint);}
+  .link-btn{
+    background:none;border:none;color:var(--accent);font-size:13.5px;font-weight:500;
+    cursor:pointer;font-family:'Inter',sans-serif;padding:4px;
+  }
+
+  .error-msg{
+    font-size:12.5px;color:var(--danger);margin:-4px 0 14px;min-height:1px;
+  }
+  .success-toast{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    padding:12px 18px;border-radius:12px;font-size:13.5px;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);
+    opacity:0;pointer-events:none;transition:opacity .3s, transform .3s;
+    z-index:50;max-width:340px;
+  }
+  .success-toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+  .success-toast svg{flex-shrink:0;color:var(--accent);}
+
+  /* ---------- Setup / Lock screens spacing ---------- */
+  .stack{flex:1;display:flex;flex-direction:column;justify-content:center;}
+  .footer-link{text-align:center;margin-top:8px;}
+  .back-row{margin-bottom:20px;}
+  .back-btn{
+    display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);
+    font-size:13.5px;cursor:pointer;font-family:'Inter',sans-serif;padding:4px 0;
+  }
+  .back-btn:hover{color:var(--text);}
+  .security-q-display{
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;font-size:14px;color:var(--text-muted);margin-bottom:18px;line-height:1.5;
+  }
+  .security-q-display strong{color:var(--text);font-weight:500;}
+
+  /* ---------- Vault home ---------- */
+  #screen-vault{padding:22px 20px 0;}
+  .update-banner{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--accent-soft);border:1px solid var(--accent-dim);border-radius:12px;
+    padding:12px 14px;margin:16px 20px 0;font-size:13px;color:var(--text);
+  }
+  .update-banner-btn{
+    background:var(--accent);color:#1A1204;border:none;border-radius:8px;
+    padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+  }
+  .update-banner-dismiss{
+    background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:4px;
+  }
+
+  .vault-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:-22px -20px 22px;padding:22px 20px 18px;
+    background:var(--header-bg);border-bottom:1px solid var(--header-border);
+  }
+  .vault-title-block .brand-name{font-size:20px;}
+  .vault-title-block .count{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+  .icon-btn{
+    width:38px;height:38px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);
+  }
+  .icon-btn:hover{color:var(--text);border-color:var(--text-faint);}
+  .header-actions{display:flex;gap:8px;}
+
+  /* search */
+  .search-wrap{position:relative;margin-bottom:16px;}
+  .search-wrap svg{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-faint);pointer-events:none;
+  }
+  #search-input{
+    width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);
+    padding:11px 14px 11px 38px;border-radius:11px;font-size:14px;font-family:'Inter',sans-serif;outline:none;
+  }
+  #search-input:focus{border-color:var(--accent-dim);}
+  #search-clear{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;
+    color:var(--text-faint);cursor:pointer;padding:4px;display:none;
+  }
+
+  /* album chips */
+  .album-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;scrollbar-width:none;}
+  .album-row::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:500;
+    background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
+    cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,border-color .2s;
+  }
+  .chip.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-dim);}
+  .chip.new-chip{color:var(--accent);border:1px dashed var(--accent-dim);background:transparent;}
+
+  .search-results-label{font-size:12.5px;color:var(--text-muted);margin-bottom:14px;}
+  .filter-chip-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
+  .filter-chip-row::-webkit-scrollbar{display:none;}
+  .filter-chip{
+    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;
+    background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
+    cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;
+  }
+  .filter-chip.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-dim);}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(var(--grid-cols, 3),1fr);gap:8px;
+    padding-bottom:110px;
+  }
+  .thumb{
+    position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1/1;
+    background:var(--bg-elevated);cursor:pointer;
+  }
+  .thumb img{width:100%;height:100%;object-fit:contain;background:var(--bg);display:block;}
+
+  .empty-state{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:0 30px 90px;gap:14px;
+  }
+  .empty-state .logo{width:48px;height:48px;opacity:.5;}
+  .empty-state h3{font-size:17px;color:var(--text);}
+  .empty-state p{font-size:13.5px;color:var(--text-muted);line-height:1.5;max-width:230px;}
+
+  .fab{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+    max-width:430px;width:calc(100% - 40px);
+    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
+    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+  }
+  .fab:active{transform:translateX(-50%) scale(0.98);}
+
+  /* ---------- Folders (home screen) ---------- */
+  .folder-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+    padding-bottom:100px;
+  }
+  .folder-card{
+    position:relative;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px;
+    transition:background .15s;
+  }
+  .folder-card:active{background:var(--card-hover);}
+  .folder-card .folder-icon{color:var(--folder-accent, var(--accent));}
+  .folder-card.selected{outline:2px solid var(--accent);}
+  .folder-check{z-index:2;}
+  .folder-card .folder-name{
+    font-size:14.5px;font-weight:600;color:var(--text);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .folder-card .folder-count{font-size:12px;color:var(--text-muted);}
+
+  .folder-card.has-cover{
+    position:relative;height:110px;background-size:cover;background-position:center;color:#fff;justify-content:flex-end;
+  }
+  .folder-card.has-cover::before{
+    content:'';position:absolute;inset:0;border-radius:14px;
+    background:linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0) 60%);
+  }
+  .folder-card.has-cover .folder-icon{display:none;}
+  .folder-card.has-cover .folder-name,
+  .folder-card.has-cover .folder-count{position:relative;z-index:1;color:#fff;}
+  .folder-card.has-cover .folder-count{color:rgba(255,255,255,0.85);}
+
+  .folder-card.favorites-card{background:var(--accent-soft);border-color:var(--accent-dim);}
+  .folder-card.favorites-card .folder-icon{color:var(--accent);}
+  .folder-card.trash-card{opacity:0.85;}
+  .folder-card.trash-card .folder-icon{color:var(--text-faint);}
+  .folder-lock-badge{position:absolute;top:10px;right:10px;color:var(--folder-accent, var(--accent));z-index:2;}
+  .folder-card.has-cover .folder-lock-badge{color:#fff;}
+
+  .trash-actions{
+    position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:8px;
+  }
+  .trash-btn{
+    width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);border:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .trash-btn.danger{background:rgba(196,69,62,0.85);}
+
+
+  .thumb{position:relative;}
+  .thumb-video-badge{
+    position:absolute;bottom:6px;right:6px;width:20px;height:20px;border-radius:50%;
+    background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;
+  }
+  .thumb-fav-badge{
+    position:absolute;top:6px;right:6px;width:18px;height:18px;color:#F2C94C;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  }
+  .thumb.selectable{cursor:pointer;}
+  .thumb-check{
+    position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;
+    background:rgba(0,0,0,0.4);border:1.5px solid rgba(255,255,255,0.8);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .thumb.selected .thumb-check{background:var(--accent);border-color:var(--accent);}
+  .thumb.selected img{opacity:0.7;}
+
+  .selection-bar{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    max-width:430px;width:100%;background:var(--card);border-top:1px solid var(--border);
+    padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+    z-index:25;font-size:13.5px;color:var(--text-muted);
+    box-shadow:0 -8px 24px rgba(0,0,0,0.15);
+  }
+  .selection-actions{display:flex;gap:16px;}
+  .sel-action{
+    display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;
+    color:var(--text);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;
+  }
+  .sel-action.danger{color:var(--danger);}
+
+  .new-folder-fab{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+    max-width:430px;width:calc(100% - 40px);
+    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
+    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+  }
+  .new-folder-fab:active{transform:translateX(-50%) scale(0.98);}
+
+  /* ---------- Lightbox ---------- */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(6,7,9,0.97);z-index:100;
+    display:none;flex-direction:column;
+  }
+  .lightbox.active{display:flex;}
+  .lightbox-top{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 0;}
+  .slideshow-badge{
+    display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);
+    color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;
+  }
+  .lightbox-body{
+    flex:1;display:flex;align-items:center;justify-content:center;padding:16px;min-height:0;
+    overflow:hidden;position:relative;touch-action:none;
+  }
+  .lightbox-body img{
+    max-width:100%;max-height:100%;border-radius:10px;object-fit:contain;
+    transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none;
+  }
+  .lightbox-body img.zoom-transition{transition:transform .2s ease;}
+  .zoom-controls{
+    position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:6px;
+    opacity:1;pointer-events:auto;transition:opacity .2s;
+  }
+  .zoom-controls.visible{opacity:1;pointer-events:auto;}
+  .zoom-btn{
+    width:36px;height:36px;border-radius:10px;background:rgba(20,23,28,0.85);border:1px solid var(--border);
+    color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;
+    backdrop-filter:blur(6px);
+  }
+  .zoom-btn:active{transform:scale(0.94);}
+  .caption-wrap{padding:0 22px;}
+  #caption-input{
+    width:100%;background:transparent;border:none;color:var(--text-muted);
+    font-family:'Inter',sans-serif;font-size:13.5px;text-align:center;outline:none;padding:8px 0;
+  }
+  #caption-input::placeholder{color:var(--text-faint);}
+  .album-select-wrap{padding:0 22px 6px;display:flex;justify-content:center;}
+  .album-select-wrap select{
+    width:auto;font-size:12.5px;padding:7px 30px 7px 12px;border-radius:20px;
+    background-position:right 10px center;
+  }
+  .lightbox-bottom{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 14px;padding:14px 14px 26px;}
+  .lb-action{
+    display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-muted);
+    background:none;border:none;font-size:11.5px;font-family:'Inter',sans-serif;cursor:pointer;
+  }
+  .lb-action svg{color:var(--text-muted);}
+  .lb-action.danger svg,.lb-action.danger span{color:var(--danger);}
+  .lb-action:hover svg,.lb-action:hover span{color:var(--text);}
+  .lb-action.active svg{color:#F2C94C;fill:#F2C94C;}
+  .lb-action.active span{color:#F2C94C;}
+
+  /* ---------- Settings sheet ---------- */
+  .sheet-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;display:none;
+  }
+  .sheet-overlay.active{display:block;}
+  .sheet{
+    position:fixed;left:50%;bottom:0;transform:translateX(-50%);
+    max-width:430px;width:100%;background:var(--card);border-radius:20px 20px 0 0;
+    padding:10px 22px 28px;z-index:95;
+    box-shadow:0 -10px 40px rgba(0,0,0,.5);
+  }
+  .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
+  .sheet-item{
+    display:flex;align-items:center;gap:12px;padding:14px 6px;cursor:pointer;
+    border-bottom:1px solid var(--border);color:var(--text);font-size:14.5px;
+  }
+  .sheet-item:last-child{border-bottom:none;}
+  .sheet-item svg{color:var(--text-muted);flex-shrink:0;}
+  .sheet-item.danger{color:var(--danger);}
+  .sheet-item.danger svg{color:var(--danger);}
+
+  .toggle-switch{
+    width:38px;height:22px;border-radius:20px;background:var(--bg-elevated);border:1px solid var(--border);
+    position:relative;flex-shrink:0;transition:background .2s,border-color .2s;
+  }
+  .toggle-switch.on{background:var(--accent-soft);border-color:var(--accent-dim);}
+  .toggle-knob{
+    width:16px;height:16px;border-radius:50%;background:var(--text-faint);
+    position:absolute;top:2px;left:2px;transition:left .2s,background .2s;
+  }
+  .toggle-switch.on .toggle-knob{left:18px;background:var(--accent);}
+
+  .accent-row{flex-wrap:wrap;}
+  .accent-swatches{display:flex;gap:8px;}
+  .accent-swatch{
+    width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+    padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .accent-swatch.active{border-color:var(--text);}
+
+  /* aperture unlock animation */
+  /* privacy blur overlay (shown when the app/tab loses focus) */
+  .privacy-overlay{
+    position:fixed;inset:0;z-index:300;background:var(--bg);
+    display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  }
+  .privacy-overlay.active{display:flex;}
+  .privacy-overlay .logo{width:44px;height:44px;opacity:.7;}
+  .privacy-overlay p{font-size:12.5px;color:var(--text-faint);}
+
+  .iris-burst{
+    position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;opacity:0;
+  }
+  .iris-burst.play{animation:irisFade .6s ease forwards;}
+  @keyframes irisFade{
+    0%{opacity:1;}
+    100%{opacity:0;}
+  }
+  .iris-burst svg{width:120px;height:120px;}
+  .iris-burst.play svg{animation:irisSpin .6s cubic-bezier(.2,.8,.2,1) forwards;}
+  @keyframes irisSpin{
+    0%{transform:scale(0.6) rotate(0deg);opacity:1;}
+    100%{transform:scale(2.4) rotate(50deg);opacity:0;}
+  }
+
+  input[type=file]{display:none;}
+
+  /* centered modal (new album / manage albums) */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:110;display:none;
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-card{
+    background:var(--card);border:1px solid var(--border);border-radius:18px;
+    padding:24px;width:100%;max-width:340px;
+  }
+  .modal-card h3{font-size:17px;margin-bottom:16px;}
+  .manage-list{max-height:260px;overflow-y:auto;margin-bottom:16px;}
+  .manage-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:11px 4px;border-bottom:1px solid var(--border);font-size:14px;
+  }
+  .manage-row:last-child{border-bottom:none;}
+  .manage-row .mini-count{color:var(--text-faint);font-size:12px;margin-left:6px;}
+  .manage-del{background:none;border:none;color:var(--text-faint);cursor:pointer;padding:6px;}
+  .manage-del:hover{color:var(--danger);}
+  .manage-empty{color:var(--text-faint);font-size:13px;text-align:center;padding:16px 0;}
+  .modal-actions{display:flex;gap:10px;}
+  .modal-actions .btn{width:auto;flex:1;padding:12px;font-size:14px;}
+
+  /* password/PIN type toggle */
+  .type-toggle{
+    display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    padding:4px;margin-bottom:20px;
+  }
+  .type-toggle button{
+    flex:1;background:none;border:none;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;
+    color:var(--text-muted);cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s,color .2s;
+  }
+  .type-toggle button.active{background:var(--accent);color:#1A1204;}
+
+  /* PIN pad */
+  .pin-set-indicator{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;margin-bottom:16px;font-size:14px;color:var(--text);
+  }
+  .pin-set-indicator .change-link{color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
+  .pin-dots{display:flex;justify-content:center;gap:14px;margin:18px 0 26px;}
+  .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--text-faint);transition:background .15s,border-color .15s;}
+  .pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+  .pin-label{text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:4px;}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:270px;margin:0 auto 20px;}
+  .keypad-btn{
+    aspect-ratio:1/1;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--border);
+    color:var(--text);font-size:21px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .keypad-btn:active{background:var(--card-hover);}
+  .keypad-btn.ghost{background:none;border:none;}
+  .keypad-btn svg{color:var(--text-muted);}
+
+  /* biometric */
+  .biometric-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;padding:13px;border-radius:12px;background:var(--bg-elevated);
+    border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:500;
+    cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:14px;
+  }
+  .biometric-btn svg{color:var(--accent);}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="version.js"></script>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================= SETUP SCREEN ================= -->
+  <section class="screen active" id="screen-setup">
+    <div class="stack">
+      <div class="center-brand">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2.2"/>
+          <g stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round">
+            <path d="M32 9 L32 16"/>
+            <path d="M32 48 L32 55"/>
+            <path d="M9 32 L16 32"/>
+            <path d="M48 32 L55 32"/>
+            <path d="M15.5 15.5 L20.3 20.3"/>
+            <path d="M43.7 43.7 L48.5 48.5"/>
+            <path d="M15.5 48.5 L20.3 43.7"/>
+            <path d="M43.7 20.3 L48.5 15.5"/>
+          </g>
+          <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+          <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
+        </svg>
+        <div class="brand-name">V Vault</div>
+        <div class="tagline">A private vault for your photos. No account, no cloud — everything stays on this device.</div>
+      </div>
+
+      <div class="type-toggle">
+        <button type="button" id="setup-type-password" class="active" onclick="setSetupType('password')">Password</button>
+        <button type="button" id="setup-type-pin" onclick="setSetupType('pin')">PIN</button>
+      </div>
+
+      <div id="setup-password-fields">
+        <div class="field">
+          <label for="setup-pw">New password</label>
+          <div class="pw-wrap">
+            <input type="password" id="setup-pw" placeholder="Enter a password" oninput="updateStrength(); clearError('setup')">
+            <button type="button" class="toggle-eye" onclick="toggleEye('setup-pw', this)"></button>
+          </div>
+          <div class="strength" id="strength-bars">
+            <div></div><div></div><div></div><div></div>
+          </div>
+          <div class="strength-label" id="strength-label">&nbsp;</div>
+        </div>
+
+        <div class="field">
+          <label for="setup-pw2">Confirm password</label>
+          <div class="pw-wrap">
+            <input type="password" id="setup-pw2" placeholder="Re-enter your password" oninput="clearError('setup')">
+            <button type="button" class="toggle-eye" onclick="toggleEye('setup-pw2', this)"></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="setup-pin-fields" style="display:none;">
+        <div id="setup-pin-pad">
+          <div class="pin-label" id="setup-pin-label">Enter a 4–6 digit PIN</div>
+          <div class="pin-dots" id="setup-pin-dots"></div>
+          <div class="keypad" id="setup-pin-keypad"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="setup-question">Security question</label>
+        <select id="setup-question">
+          <option value="pet">What was the name of your first pet?</option>
+          <option value="city">What city were you born in?</option>
+          <option value="school">What was the name of your first school?</option>
+          <option value="word">What is your favourite word?</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="setup-answer">Your answer</label>
+        <input type="text" id="setup-answer" placeholder="Only you should know this" oninput="clearError('setup')">
+      </div>
+
+      <div class="error-msg" id="setup-error">&nbsp;</div>
+      <div class="hint">Used only to reset your password if you forget it. Stored on this device alone.</div>
+
+      <button class="btn btn-primary" onclick="createVault()">Create vault</button>
+    </div>
+  </section>
+
+  <!-- ================= LOCK SCREEN ================= -->
+  <section class="screen" id="screen-lock">
+    <div class="stack">
+      <div class="center-brand">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2.2"/>
+          <g stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round">
+            <path d="M32 9 L32 16"/><path d="M32 48 L32 55"/>
+            <path d="M9 32 L16 32"/><path d="M48 32 L55 32"/>
+            <path d="M15.5 15.5 L20.3 20.3"/><path d="M43.7 43.7 L48.5 48.5"/>
+            <path d="M15.5 48.5 L20.3 43.7"/><path d="M43.7 20.3 L48.5 15.5"/>
+          </g>
+          <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+          <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
+        </svg>
+        <div class="brand-name">V Vault</div>
+        <div class="tagline" id="lock-tagline">Enter your password to open your vault.</div>
+      </div>
+
+      <button type="button" class="biometric-btn" id="lock-biometric-btn" style="display:none;" onclick="unlockWithBiometric()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.4 2.5 2.5 5.4 2.5 9v2.5M9 2.5c3.6 0 6.5 2.9 6.5 6.5v2.5M6 15.2V9a3 3 0 0 1 6 0v3.5a1.5 1.5 0 0 1-3 0V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Use Face / Touch unlock
+      </button>
+
+      <div id="lock-password-field">
+        <div class="field">
+          <label for="lock-pw">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="lock-pw" placeholder="Enter your password" onkeydown="if(event.key==='Enter')unlockVault()" oninput="clearError('lock')">
+            <button type="button" class="toggle-eye" onclick="toggleEye('lock-pw', this)"></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="lock-pin-field" style="display:none;">
+        <div class="pin-label">Enter your PIN</div>
+        <div class="pin-dots" id="lock-pin-dots"></div>
+        <div class="keypad" id="lock-pin-keypad"></div>
+      </div>
+
+      <div class="error-msg" id="lock-error">&nbsp;</div>
+
+      <button class="btn btn-primary" id="lock-unlock-btn" onclick="unlockVault()">Unlock</button>
+      <div class="footer-link">
+        <button class="link-btn" onclick="goTo('screen-forgot-1')">Forgot password?</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FORGOT STEP 1: security question ================= -->
+  <section class="screen" id="screen-forgot-1">
+    <div class="back-row">
+      <button class="back-btn" onclick="goTo('screen-lock')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
+    </div>
+    <div class="stack" style="justify-content:flex-start;">
+      <h2 style="font-size:21px;margin-bottom:8px;">Reset your password</h2>
+      <p style="font-size:13.5px;color:var(--text-muted);line-height:1.5;margin-bottom:24px;">Answer your security question to continue. This stays on your device.</p>
+
+      <div class="security-q-display" id="forgot-question-display">Loading question…</div>
+
+      <div class="field">
+        <label for="forgot-answer">Your answer</label>
+        <input type="text" id="forgot-answer" placeholder="Type your answer" oninput="clearError('forgot1')">
+      </div>
+      <div class="error-msg" id="forgot1-error">&nbsp;</div>
+
+      <button class="btn btn-primary" onclick="verifyAnswer()">Continue</button>
+    </div>
+  </section>
+
+  <!-- ================= FORGOT STEP 2: new password ================= -->
+  <section class="screen" id="screen-forgot-2">
+    <div class="back-row">
+      <button class="back-btn" onclick="goTo('screen-forgot-1')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
+    </div>
+    <div class="stack" style="justify-content:flex-start;">
+      <h2 style="font-size:21px;margin-bottom:8px;" id="reset-title">Set a new password</h2>
+      <p style="font-size:13.5px;color:var(--text-muted);line-height:1.5;margin-bottom:24px;">Choose something you'll remember — there's no email to fall back on.</p>
+
+      <div id="reset-password-fields">
+        <div class="field">
+          <label for="reset-pw">New password</label>
+          <div class="pw-wrap">
+            <input type="password" id="reset-pw" placeholder="Enter a new password" oninput="clearError('forgot2')">
+            <button type="button" class="toggle-eye" onclick="toggleEye('reset-pw', this)"></button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="reset-pw2">Confirm new password</label>
+          <div class="pw-wrap">
+            <input type="password" id="reset-pw2" placeholder="Re-enter your new password" oninput="clearError('forgot2')">
+            <button type="button" class="toggle-eye" onclick="toggleEye('reset-pw2', this)"></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="reset-pin-fields" style="display:none;">
+        <div id="reset-pin-pad">
+          <div class="pin-label" id="reset-pin-label">Enter a new 4–6 digit PIN</div>
+          <div class="pin-dots" id="reset-pin-dots"></div>
+          <div class="keypad" id="reset-pin-keypad"></div>
+        </div>
+      </div>
+
+      <div class="error-msg" id="forgot2-error">&nbsp;</div>
+
+      <button class="btn btn-primary" onclick="resetPassword()">Reset password</button>
+    </div>
+  </section>
+
+  <!-- ================= VAULT HOME ================= -->
+  <section class="screen" id="screen-vault">
+    <div class="update-banner" id="update-banner" style="display:none;">
+      <span id="update-banner-text">Update available</span>
+      <div style="display:flex;gap:8px;">
+        <button class="update-banner-btn" onclick="downloadAppUpdate()">Download</button>
+        <button class="update-banner-dismiss" onclick="dismissUpdateBanner()">✕</button>
+      </div>
+    </div>
+    <div class="vault-header">
+      <div class="vault-title-block">
+        <div class="brand-name">Your vault</div>
+        <div class="count" id="folder-count">0 folders</div>
+      </div>
+      <div class="header-actions">
+        <div class="icon-btn" id="home-select-btn" onclick="toggleHomeSelectionMode()" title="Select folders">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l2 2 4-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="icon-btn" onclick="openSettings()">
+          <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="3.5"/>
+            <circle cx="32" cy="30" r="6.5" fill="currentColor"/>
+            <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="currentColor"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <input type="text" id="search-input" placeholder="Search captions or folders" oninput="onSearchInput()">
+      <button id="search-clear" onclick="clearSearch()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 1.5L12.5 12.5M12.5 1.5L1.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="filter-chip-row">
+      <button type="button" class="filter-chip active" data-filter="all" onclick="setSearchTypeFilter('all')">All</button>
+      <button type="button" class="filter-chip" data-filter="image" onclick="setSearchTypeFilter('image')">Photos</button>
+      <button type="button" class="filter-chip" data-filter="video" onclick="setSearchTypeFilter('video')">Videos</button>
+      <button type="button" class="filter-chip" data-filter="favorite" onclick="setSearchTypeFilter('favorite')">Favorites</button>
+    </div>
+
+    <div class="search-results-label" id="search-results-label" style="display:none;"></div>
+
+    <!-- folder list (default home view) -->
+    <div id="folder-view">
+      <div class="folder-grid" id="folder-grid"></div>
+
+      <div class="empty-state" id="folder-empty-state" style="display:none;">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2.2"/>
+          <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+          <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
+        </svg>
+        <h3>No folders yet</h3>
+        <p>Create a folder to start adding photos. Everything stays on this device.</p>
+        <button class="btn btn-primary" style="margin-top:14px;width:auto;padding:12px 22px;" onclick="openNewAlbumModal()">+ Create your first folder</button>
+      </div>
+
+      <button class="new-folder-fab" onclick="openNewAlbumModal()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New folder
+      </button>
+    </div>
+
+    <!-- search results (flat, across all folders) -->
+    <div id="search-view" style="display:none;">
+      <div class="grid" id="search-grid"></div>
+      <div class="empty-state" id="search-empty-state" style="display:none;">
+        <h3>No matches</h3>
+        <p>Try a different word, or check the folder name.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bulk selection action bar for folders (home screen) -->
+  <div class="selection-bar" id="home-selection-bar" style="display:none;">
+    <span id="home-selection-count">0 selected</span>
+    <div class="selection-actions">
+      <button class="sel-action" onclick="exportSelectedFolders()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Export
+      </button>
+      <button class="sel-action danger" onclick="deleteSelectedFolders()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= FOLDER DETAIL ================= -->
+  <section class="screen" id="screen-folder">
+    <div class="vault-header">
+      <div class="header-actions">
+        <div class="icon-btn" onclick="closeFolder()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="vault-title-block" style="text-align:center;">
+        <div class="brand-name" id="folder-view-title">Folder</div>
+        <div class="count" id="photo-count">0 photos</div>
+      </div>
+      <div class="header-actions">
+        <div class="icon-btn" id="sort-toggle-btn" onclick="toggleSortOrder()" title="Sort">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M4 5h10M4 9h7M4 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="icon-btn" id="select-toggle-btn" onclick="toggleSelectionMode()" title="Select">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l2 2 4-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="icon-btn" id="folder-menu-btn" onclick="openFolderMenu()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" id="empty-state">
+      <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2.2"/>
+        <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+        <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
+      </svg>
+      <h3 id="empty-state-title">This folder is empty</h3>
+      <p id="empty-state-text">Photos you add here stay only on this device. Nothing is uploaded anywhere.</p>
+    </div>
+
+    <div class="grid" id="photo-grid" style="display:none;"></div>
+  </section>
+
+  <!-- Bulk selection action bar -->
+  <div class="selection-bar" id="selection-bar" style="display:none;">
+    <span id="selection-count">0 selected</span>
+    <div class="selection-actions">
+      <button class="sel-action" onclick="openMoveSelectedModal()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h5l1.3 2H15.5v7h-13z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Move
+      </button>
+      <button class="sel-action danger" onclick="deleteSelectedPhotos()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Move-to-folder modal (bulk) -->
+  <div class="modal-overlay" id="move-selected-overlay">
+    <div class="modal-card">
+      <h3>Move to folder</h3>
+      <div class="manage-list" id="move-selected-list"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeMoveSelectedModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Folder menu (rename / delete) -->
+  <div class="modal-overlay" id="folder-menu-overlay">
+    <div class="modal-card">
+      <h3 id="folder-menu-title">Folder</h3>
+      <div class="sheet-item" id="rename-folder-item" onclick="renameCurrentFolder()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M12 3l3 3-8 8H4v-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        Rename folder
+      </div>
+      <div class="sheet-item" id="folder-lock-item" onclick="toggleFolderLock()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span id="folder-lock-item-label">Set folder lock</span>
+      </div>
+      <div class="sheet-item accent-row" id="folder-color-item" style="cursor:default;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span style="flex:1;">Folder colour</span>
+        <div class="accent-swatches" id="folder-color-swatches">
+          <button type="button" class="accent-swatch folder-color-swatch" data-color="" style="background:var(--accent)" onclick="setFolderColor('')" title="Default"></button>
+          <button type="button" class="accent-swatch folder-color-swatch" data-color="#4A90D9" style="background:#4A90D9" onclick="setFolderColor('#4A90D9')"></button>
+          <button type="button" class="accent-swatch folder-color-swatch" data-color="#57A878" style="background:#57A878" onclick="setFolderColor('#57A878')"></button>
+          <button type="button" class="accent-swatch folder-color-swatch" data-color="#D46E6E" style="background:#D46E6E" onclick="setFolderColor('#D46E6E')"></button>
+          <button type="button" class="accent-swatch folder-color-swatch" data-color="#967AD6" style="background:#967AD6" onclick="setFolderColor('#967AD6')"></button>
+        </div>
+      </div>
+      <div class="sheet-item" onclick="toggleGridSize(); closeFolderMenu();">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="2.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="10.5" y="2.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="10.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="10.5" y="10.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+        Grid size
+      </div>
+      <div class="sheet-item" onclick="startSlideshow()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 3.5L14 9L5 14.5Z" fill="currentColor"/></svg>
+        Play slideshow
+      </div>
+      <div class="sheet-item" id="export-folder-item" onclick="exportCurrentFolder()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Export folder as .zip
+      </div>
+      <div class="sheet-item" id="empty-trash-item" style="display:none;" onclick="emptyTrash()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Empty trash
+      </div>
+      <div class="sheet-item danger" id="delete-folder-item" onclick="deleteCurrentFolder()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Delete folder
+      </div>
+      <div class="modal-actions" style="margin-top:10px;">
+        <button class="btn btn-ghost" onclick="closeFolderMenu()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="fab" id="add-fab" style="display:none;" onclick="document.getElementById('file-input').click()">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#1A1204" stroke-width="2" stroke-linecap="round"/></svg>
+    Add photos
+  </button>
+  <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="handleFiles(event)">
+
+  <!-- ================= LIGHTBOX ================= -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-top">
+      <div class="slideshow-badge" id="slideshow-badge" style="display:none;" onclick="stopSlideshow()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="2" width="3" height="8" fill="white"/><rect x="7" y="2" width="3" height="8" fill="white"/></svg>
+        <span>Playing</span>
+      </div>
+      <button class="icon-btn" onclick="closeLightbox()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="lightbox-body" id="lightbox-body">
+      <img id="lightbox-img" src="" alt="">
+      <video id="lightbox-video" src="" controls playsinline style="display:none;max-width:100%;max-height:100%;"></video>
+      <div class="zoom-controls" id="zoom-controls">
+        <button type="button" class="zoom-btn" onclick="zoomStep(1)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7 4.5V9.5M4.5 7H9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="zoom-btn" onclick="zoomStep(-1)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M4.5 7H9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="zoom-btn" onclick="resetZoom()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 6V3H6M13 6V3H10M3 10V13H6M13 10V13H10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="album-select-wrap">
+      <select id="lightbox-album-select" onchange="setCurrentAlbum(this.value)">
+        <option value="">No album</option>
+      </select>
+    </div>
+    <div class="caption-wrap">
+      <input type="text" id="caption-input" placeholder="Add a caption…" onblur="saveCaption()" onkeydown="if(event.key==='Enter'){this.blur();}">
+    </div>
+    <div class="lightbox-bottom">
+      <button class="lb-action" id="lightbox-fav-btn" onclick="toggleFavoriteCurrent()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span>Favorite</span>
+      </button>
+      <button class="lb-action" onclick="rotateCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 1 1.8 4.3M4 10V6M4 10H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Rotate</span>
+      </button>
+      <button class="lb-action" onclick="cropToSquareCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6 2V14A2 2 0 0 0 8 16H18M14 4H6M4 6V18H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Crop</span>
+      </button>
+      <button class="lb-action" onclick="shareCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="15" cy="4" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="5" cy="10" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="15" cy="16" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M6.7 8.8L13.3 5.2M6.7 11.2L13.3 14.8" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span>Share</span>
+      </button>
+      <button class="lb-action" onclick="downloadCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2V13M10 13L6 9M10 13L14 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 16H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Save</span>
+      </button>
+      <button class="lb-action danger" onclick="deleteCurrent()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 6H16M8 6V4H12V6M6 6V16H14V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Delete</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS SHEET ================= -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSettings()"></div>
+  <div class="sheet" id="settings-sheet" style="display:none;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-item" onclick="toggleDarkMode()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <span style="flex:1;">Dark mode</span>
+      <div class="toggle-switch" id="darkmode-toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="sheet-item accent-row" style="cursor:default;">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M9 2.5V9l4.2 4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span style="flex:1;">App colour</span>
+      <div class="accent-swatches" id="accent-swatches">
+        <button type="button" class="accent-swatch" data-accent="gold" style="background:#C6A15B" onclick="setAccent('gold')"></button>
+        <button type="button" class="accent-swatch" data-accent="blue" style="background:#4A90D9" onclick="setAccent('blue')"></button>
+        <button type="button" class="accent-swatch" data-accent="green" style="background:#57A878" onclick="setAccent('green')"></button>
+        <button type="button" class="accent-swatch" data-accent="rose" style="background:#D46E6E" onclick="setAccent('rose')"></button>
+        <button type="button" class="accent-swatch" data-accent="purple" style="background:#967AD6" onclick="setAccent('purple')"></button>
+      </div>
+    </div>
+    <div class="sheet-item" style="cursor:default;">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
+      <span style="flex:1;">Auto-lock</span>
+      <select id="autolock-select" onchange="setAutoLock(this.value)" style="width:auto;padding:6px 26px 6px 10px;font-size:13px;border-radius:8px;background-position:right 8px center;">
+        <option value="0">Off</option>
+        <option value="1">1 minute</option>
+        <option value="5">5 minutes</option>
+        <option value="15">15 minutes</option>
+      </select>
+    </div>
+    <div class="sheet-item" onclick="closeSettings(); lockVaultNow();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
+      Lock vault now
+    </div>
+    <div class="sheet-item" onclick="closeSettings(); goToChangePassword();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M9 5.5V9L11.5 10.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span id="change-secret-label">Change password</span>
+    </div>
+    <div class="sheet-item" onclick="toggleBiometric()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.4 2.5 2.5 5.4 2.5 9v2.5M9 2.5c3.6 0 6.5 2.9 6.5 6.5v2.5M6 15.2V9a3 3 0 0 1 6 0v3.5a1.5 1.5 0 0 1-3 0V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span style="flex:1;">Face / Touch unlock</span>
+      <div class="toggle-switch" id="biometric-toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="sheet-item" onclick="closeSettings(); createBackup();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Create backup file
+    </div>
+    <div class="sheet-item" onclick="closeSettings(); document.getElementById('restore-input').click();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V2M9 2L5.5 5.5M9 2L12.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Restore from backup
+    </div>
+    <div class="sheet-item" onclick="togglePrivacyMode()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 9C3 5.5 6 3.5 9 3.5s6 2 7.5 5.5c-1.5 3.5-4.5 5.5-7.5 5.5S3 12.5 1.5 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.3" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span style="flex:1;">Hide content when I switch apps</span>
+      <div class="toggle-switch" id="privacy-toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="sheet-item" onclick="closeSettings(); manualCheckForUpdate();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 9a7 7 0 1 1 2 4.9M2 9V5M2 9H6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Check for app update
+    </div>
+    <div class="sheet-item" onclick="openStorageStats()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 15V9M9 15V3M15 15V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Storage &amp; stats
+    </div>
+    <div class="sheet-item" onclick="toggleAppBadge()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.4"/><circle cx="13" cy="5" r="2.5" fill="currentColor"/></svg>
+      <span style="flex:1;">Show item count on app icon</span>
+      <div class="toggle-switch" id="badge-toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="sheet-item danger" onclick="closeSettings(); confirmWipe();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Erase vault
+    </div>
+  </div>
+
+  <!-- Storage & stats modal -->
+  <div class="modal-overlay" id="stats-overlay">
+    <div class="modal-card">
+      <h3>Storage &amp; stats</h3>
+      <div class="manage-list" id="stats-body"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeStorageStats()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onboarding tips (shown once, right after setup) -->
+  <div class="modal-overlay" id="onboarding-overlay">
+    <div class="modal-card">
+      <h3>Quick tips</h3>
+      <div class="manage-list">
+        <div class="manage-row" style="align-items:flex-start;"><span>📁&nbsp; Everything lives in folders — tap "+ New folder" on the home screen to make one.</span></div>
+        <div class="manage-row" style="align-items:flex-start;"><span>⭐&nbsp; Tap the star on any photo to pin it to Favorites.</span></div>
+        <div class="manage-row" style="align-items:flex-start;"><span>🔒&nbsp; The gear icon has backups, dark mode, auto-lock, and a lock for individual folders.</span></div>
+        <div class="manage-row" style="align-items:flex-start;"><span>🗑️&nbsp; Deleted photos sit safely in Trash for 30 days before they're gone for good.</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeOnboarding()">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New folder modal -->
+  <div class="modal-overlay" id="new-album-overlay">
+    <div class="modal-card">
+      <h3>New folder</h3>
+      <div class="field">
+        <label for="new-album-name">Folder name</label>
+        <input type="text" id="new-album-name" placeholder="e.g. Trips, Family" onkeydown="if(event.key==='Enter')createAlbum()">
+      </div>
+      <div class="error-msg" id="newalbum-error">&nbsp;</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeNewAlbumModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createAlbum()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup / restore password prompt -->
+  <div class="modal-overlay" id="backup-pw-overlay">
+    <div class="modal-card">
+      <h3 id="backup-pw-title">Confirm your password</h3>
+      <p style="font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:16px;" id="backup-pw-desc"></p>
+      <div class="field">
+        <label for="backup-pw-input">Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="backup-pw-input" placeholder="Enter your vault password" onkeydown="if(event.key==='Enter')confirmBackupPassword()">
+          <button type="button" class="toggle-eye" onclick="toggleEye('backup-pw-input', this)"></button>
+        </div>
+      </div>
+      <div class="error-msg" id="backuppw-error">&nbsp;</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeBackupPwModal()">Cancel</button>
+        <button class="btn btn-primary" id="backup-pw-confirm-btn" onclick="confirmBackupPassword()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="success-toast" id="toast">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8L7.3 9.8L11 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="toast-text">Saved</span>
+  </div>
+
+  <div class="iris-burst" id="iris-burst">
+    <svg viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+    </svg>
+  </div>
+
+  <div class="privacy-overlay" id="privacy-overlay">
+    <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="26" stroke="var(--accent)" stroke-width="2.2"/>
+      <circle cx="32" cy="30" r="6.5" fill="var(--accent)"/>
+      <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="var(--accent)"/>
+    </svg>
+    <p>Hidden while you're away</p>
+  </div>
+
+  <input type="file" id="restore-input" accept=".vault,application/json" onchange="handleRestoreFile(event)">
+
+</div>
+
+<script>
+/* ---------------- state ---------------- */
+let vault = {
+  passwordSet: false,
+  passwordHash: "",
+  passwordSalt: "",
+  question: "",
+  answerHash: "",
+  answerSalt: "",
+  changingPassword: false,
+  secretType: "password", // "password" | "pin"
+  biometricEnabled: false,
+  biometricCredentialId: ""
+};
+let photos = []; // {id, src, albumId, caption}
+let albums = []; // {id, name}
+let currentFolderId = null; // the folder currently open in screen-folder, or '__favorites__'
+let selectionMode = false;
+let selectedPhotoIds = new Set();
+let sortOrder = 'newest'; // 'newest' | 'oldest'
+let autoLockMinutes = 0; // 0 = off
+let autoLockTimer = null;
+let gridColumns = 3;
+let slideshowTimer = null;
+let slideshowList = [];
+let slideshowIndex = 0;
+let homeSelectionMode = false;
+let selectedFolderIds = new Set();
+let searchTypeFilter = 'all'; // 'all' | 'image' | 'video' | 'favorite'
+let showAppBadge = true;
+let searchQuery = "";
+let currentLightboxId = null;
+let privacyModeEnabled = true;
+let pendingRestoreEncrypted = null; // holds parsed backup JSON while awaiting password
+
+const questionText = {
+  pet: "What was the name of your first pet?",
+  city: "What city were you born in?",
+  school: "What was the name of your first school?",
+  word: "What is your favourite word?"
+};
+
+/* ================= LOCAL STORAGE (IndexedDB) =================
+   Everything lives in this browser's IndexedDB, scoped to this site's origin.
+   Nothing is ever sent anywhere. Passwords are never stored in plain text —
+   only a salted PBKDF2 hash, so opening the database file directly doesn't
+   reveal your password. Photo bytes are stored as-is (not re-encrypted) since
+   IndexedDB is already private to this origin; see the README's security
+   notes if you need at-rest encryption too. */
+const DB_NAME = 'vvault-db';
+const DB_VERSION = 1;
+const STORE = 'kv';
+let dbPromise = null;
+
+function openDB(){
+  if(dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return dbPromise;
+}
+async function dbGet(key){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(key);
+    req.onsuccess = () => resolve(req.result === undefined ? null : req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbSet(key, value){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbClearAll(){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function persistVaultConfig(){
+  await dbSet('vaultConfig', {
+    passwordSet: vault.passwordSet,
+    passwordHash: vault.passwordHash,
+    passwordSalt: vault.passwordSalt,
+    question: vault.question,
+    answerHash: vault.answerHash,
+    answerSalt: vault.answerSalt,
+    secretType: vault.secretType,
+    biometricEnabled: vault.biometricEnabled,
+    biometricCredentialId: vault.biometricCredentialId
+  });
+}
+async function persistLibrary(){
+  await dbSet('photos', photos);
+  await dbSet('albums', albums);
+  updateAppBadge();
+}
+function updateAppBadge(){
+  if(!showAppBadge || !navigator.setAppBadge) return;
+  const liveCount = photos.filter(p => !p.deletedAt).length;
+  try{
+    if(liveCount > 0) navigator.setAppBadge(liveCount).catch(() => {});
+    else if(navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {});
+  }catch(err){ /* Badging API not available on this device — silently skip */ }
+}
+
+/* boot: restore any existing vault + library from IndexedDB on page load */
+async function bootFromStorage(){
+  try{
+    const cfg = await dbGet('vaultConfig');
+    if(cfg && cfg.passwordSet){
+      vault = { ...vault, ...cfg, changingPassword: false };
+      const savedPhotos = await dbGet('photos');
+      const savedAlbums = await dbGet('albums');
+      photos = savedPhotos || [];
+      albums = savedAlbums || [];
+      migrateOrphanPhotos();
+      purgeOldTrash();
+      updateAppBadge();
+      goTo('screen-lock');
+    }
+    // if no config, the setup screen (already active by default) is correct
+  }catch(err){
+    console.error('V Vault: could not read local storage', err);
+  }
+}
+
+/* ---------------- navigation ---------------- */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id === 'screen-forgot-1'){
+    document.getElementById('forgot-question-display').innerHTML =
+      '<strong>' + questionText[vault.question] + '</strong>';
+    document.getElementById('forgot-answer').value = "";
+    clearError('forgot1');
+  }
+  if(id === 'screen-lock'){
+    renderLockMode();
+  }
+  if(id === 'screen-forgot-2'){
+    renderResetMode();
+  }
+}
+
+/* ---------------- password eye toggle ---------------- */
+function toggleEye(inputId, btn){
+  const el = document.getElementById(inputId);
+  if(el.type === 'password'){
+    el.type = 'text';
+    btn.innerHTML = eyeOffSvg();
+  } else {
+    el.type = 'password';
+    btn.innerHTML = eyeSvg();
+  }
+}
+function eyeSvg(){
+  return '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 9C3 5.5 6 3.5 9 3.5s6 2 7.5 5.5c-1.5 3.5-4.5 5.5-7.5 5.5S3 12.5 1.5 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.3" stroke="currentColor" stroke-width="1.3"/></svg>';
+}
+function eyeOffSvg(){
+  return '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 9C3 5.5 6 3.5 9 3.5s6 2 7.5 5.5c-1.5 3.5-4.5 5.5-7.5 5.5S3 12.5 1.5 9Z" stroke="currentColor" stroke-width="1.3"/><path d="M2 2L16 16" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+}
+document.querySelectorAll('.toggle-eye').forEach(b => b.innerHTML = eyeSvg());
+
+/* ---------------- error helpers ---------------- */
+function setError(scope, msg){ document.getElementById(scope + '-error').textContent = msg; }
+function clearError(scope){ document.getElementById(scope + '-error').innerHTML = '&nbsp;'; }
+
+/* ---------------- password strength ---------------- */
+function updateStrength(){
+  const pw = document.getElementById('setup-pw').value;
+  const bars = document.querySelectorAll('#strength-bars div');
+  const label = document.getElementById('strength-label');
+  let score = 0;
+  if(pw.length >= 6) score++;
+  if(pw.length >= 10) score++;
+  if(/[0-9]/.test(pw) && /[a-zA-Z]/.test(pw)) score++;
+  if(/[^a-zA-Z0-9]/.test(pw)) score++;
+  const colors = ['#C4614F','#C6A15B','#C6A15B','#8FBF7F'];
+  const labels = ['Weak','Fair','Good','Strong'];
+  bars.forEach((b,i) => { b.style.background = i < score ? colors[Math.max(score-1,0)] : 'var(--border)'; });
+  label.textContent = pw.length ? labels[Math.max(score-1,0)] : '\u00A0';
+}
+
+/* ---------------- toast ---------------- */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------------- iris unlock animation ---------------- */
+function playIris(cb){
+  const iris = document.getElementById('iris-burst');
+  iris.classList.add('play');
+  setTimeout(() => { iris.classList.remove('play'); }, 650);
+  cb();
+}
+
+/* ================= PIN PAD (shared by setup / lock / reset) ================= */
+let setupPinPhase = 'enter';   // 'enter' | 'confirm'
+let setupPinFirstEntry = '';
+let setupPinBuffer = '';
+let setupType = 'password';    // mirrors vault.secretType while on the setup screen
+
+let lockPinBuffer = '';
+
+let resetPinPhase = 'enter';
+let resetPinFirstEntry = '';
+let resetPinBuffer = '';
+
+function backspaceSvg(){
+  return '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 5H16.5A1.5 1.5 0 0 1 18 6.5v7A1.5 1.5 0 0 1 16.5 15H8L3 10Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 8L13 11.5M13 8L9.5 11.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+}
+
+function buildKeypad(containerId, onDigit, onBackspace){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','back'];
+  keys.forEach(k => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    if(k === ''){
+      btn.className = 'keypad-btn ghost';
+      btn.disabled = true;
+    } else if(k === 'back'){
+      btn.className = 'keypad-btn ghost';
+      btn.innerHTML = backspaceSvg();
+      btn.onclick = onBackspace;
+    } else {
+      btn.className = 'keypad-btn';
+      btn.textContent = k;
+      btn.onclick = () => onDigit(k);
+    }
+    el.appendChild(btn);
+  });
+}
+
+function renderPinDots(dotsId, length){
+  const el = document.getElementById(dotsId);
+  el.innerHTML = '';
+  const max = 6;
+  for(let i = 0; i < max; i++){
+    const d = document.createElement('div');
+    d.className = 'pin-dot' + (i < length ? ' filled' : '');
+    el.appendChild(d);
+  }
+}
+
+/* ---------------- setup type toggle ---------------- */
+function setSetupType(type){
+  setupType = type;
+  document.getElementById('setup-type-password').classList.toggle('active', type === 'password');
+  document.getElementById('setup-type-pin').classList.toggle('active', type === 'pin');
+  document.getElementById('setup-password-fields').style.display = type === 'password' ? 'block' : 'none';
+  document.getElementById('setup-pin-fields').style.display = type === 'pin' ? 'block' : 'none';
+  if(type === 'pin'){
+    setupPinPhase = 'enter';
+    setupPinFirstEntry = '';
+    setupPinBuffer = '';
+    document.getElementById('setup-pin-label').textContent = 'Enter a 4–6 digit PIN';
+    renderPinDots('setup-pin-dots', 0);
+    buildKeypad('setup-pin-keypad',
+      (d) => {
+        if(setupPinBuffer.length >= 6) return;
+        setupPinBuffer += d;
+        renderPinDots('setup-pin-dots', setupPinBuffer.length);
+        clearError('setup');
+      },
+      () => {
+        setupPinBuffer = setupPinBuffer.slice(0, -1);
+        renderPinDots('setup-pin-dots', setupPinBuffer.length);
+      }
+    );
+  }
+  clearError('setup');
+}
+
+/* ---------------- setup flow ---------------- */
+async function createVault(){
+  const question = document.getElementById('setup-question').value;
+  const answer = document.getElementById('setup-answer').value.trim();
+
+  let secretValue = null;
+
+  if(setupType === 'password'){
+    const pw = document.getElementById('setup-pw').value;
+    const pw2 = document.getElementById('setup-pw2').value;
+    if(pw.length < 6){ setError('setup','Password should be at least 6 characters.'); return; }
+    if(pw !== pw2){ setError('setup','Passwords don\'t match.'); return; }
+    secretValue = pw;
+  } else {
+    if(setupPinBuffer.length < 4 || setupPinBuffer.length > 6){
+      setError('setup','PIN should be 4–6 digits.');
+      return;
+    }
+    if(setupPinPhase === 'enter'){
+      setupPinFirstEntry = setupPinBuffer;
+      setupPinBuffer = '';
+      setupPinPhase = 'confirm';
+      document.getElementById('setup-pin-label').textContent = 'Confirm your PIN';
+      renderPinDots('setup-pin-dots', 0);
+      return;
+    }
+    // phase === 'confirm'
+    if(setupPinBuffer !== setupPinFirstEntry){
+      setError('setup','PINs don\'t match. Try again.');
+      setupPinPhase = 'enter';
+      setupPinFirstEntry = '';
+      setupPinBuffer = '';
+      document.getElementById('setup-pin-label').textContent = 'Enter a 4–6 digit PIN';
+      renderPinDots('setup-pin-dots', 0);
+      return;
+    }
+    secretValue = setupPinBuffer;
+  }
+
+  if(!answer){ setError('setup','Please answer the security question.'); return; }
+
+  const pwSalt = crypto.getRandomValues(new Uint8Array(16));
+  const ansSalt = crypto.getRandomValues(new Uint8Array(16));
+  const passwordHash = await hashSecret(secretValue, pwSalt);
+  const answerHash = await hashSecret(answer.toLowerCase(), ansSalt);
+
+  vault.passwordSet = true;
+  vault.passwordHash = passwordHash;
+  vault.passwordSalt = bufToBase64(pwSalt);
+  vault.question = question;
+  vault.answerHash = answerHash;
+  vault.answerSalt = bufToBase64(ansSalt);
+  vault.secretType = setupType;
+
+  // fresh vault: start with one folder ready to go, instead of an empty home screen
+  albums.push({ id: 'alb_' + Date.now(), name: 'My Photos' });
+
+  await persistVaultConfig();
+  await persistLibrary();
+
+  playIris(() => { enterVault(); showToast('Vault created'); showOnboarding(); });
+}
+
+/* ---------------- lock screen rendering ---------------- */
+function renderLockMode(){
+  const isPin = vault.secretType === 'pin';
+  document.getElementById('lock-password-field').style.display = isPin ? 'none' : 'block';
+  document.getElementById('lock-pin-field').style.display = isPin ? 'block' : 'none';
+  document.getElementById('lock-tagline').textContent = vault.changingPassword
+    ? 'Enter your current ' + (isPin ? 'PIN' : 'password') + ' to continue.'
+    : 'Enter your ' + (isPin ? 'PIN' : 'password') + ' to open your vault.';
+  document.getElementById('lock-unlock-btn').textContent = 'Unlock';
+
+  if(isPin){
+    lockPinBuffer = '';
+    renderPinDots('lock-pin-dots', 0);
+    buildKeypad('lock-pin-keypad',
+      (d) => {
+        if(lockPinBuffer.length >= 6) return;
+        lockPinBuffer += d;
+        renderPinDots('lock-pin-dots', lockPinBuffer.length);
+        clearError('lock');
+      },
+      () => {
+        lockPinBuffer = lockPinBuffer.slice(0, -1);
+        renderPinDots('lock-pin-dots', lockPinBuffer.length);
+      }
+    );
+  }
+
+  const showBiometric = vault.biometricEnabled && !vault.changingPassword && (isNativeApp() || window.PublicKeyCredential);
+  document.getElementById('lock-biometric-btn').style.display = showBiometric ? 'flex' : 'none';
+}
+
+/* ---------------- lock / unlock ---------------- */
+async function unlockVault(){
+  const isPin = vault.secretType === 'pin';
+  const secretValue = isPin ? lockPinBuffer : document.getElementById('lock-pw').value;
+
+  if(isPin && secretValue.length < 4){ setError('lock','Enter your PIN.'); return; }
+  if(!isPin && !secretValue){ setError('lock','Enter your password.'); return; }
+
+  const saltBytes = base64ToBuf(vault.passwordSalt);
+  const hash = await hashSecret(secretValue, saltBytes);
+  if(hash !== vault.passwordHash){
+    setError('lock', isPin ? 'That PIN isn\'t right. Try again.' : 'That password isn\'t right. Try again.');
+    lockPinBuffer = '';
+    if(isPin) renderPinDots('lock-pin-dots', 0);
+    return;
+  }
+  document.getElementById('lock-pw').value = '';
+  lockPinBuffer = '';
+  if(vault.changingPassword){
+    vault.changingPassword = false;
+    goTo('screen-forgot-2');
+    return;
+  }
+  playIris(() => enterVault());
+}
+
+function lockVaultNow(){
+  goTo('screen-lock');
+  document.getElementById('lock-pw').value = '';
+  clearError('lock');
+}
+
+function goToChangePassword(){
+  vault.changingPassword = true;
+  goTo('screen-lock');
+  document.getElementById('lock-pw').value = '';
+  clearError('lock');
+  showToast('Enter your current ' + (vault.secretType === 'pin' ? 'PIN' : 'password') + ' to continue');
+}
+
+/* ---------------- forgot password flow ---------------- */
+async function verifyAnswer(){
+  const ans = document.getElementById('forgot-answer').value.trim().toLowerCase();
+  if(!ans){ setError('forgot1','Please enter an answer.'); return; }
+  const saltBytes = base64ToBuf(vault.answerSalt);
+  const hash = await hashSecret(ans, saltBytes);
+  if(hash !== vault.answerHash){
+    setError('forgot1','That answer doesn\'t match. Try again.');
+    return;
+  }
+  goTo('screen-forgot-2');
+}
+
+/* ---------------- reset screen rendering ---------------- */
+function renderResetMode(){
+  const isPin = vault.secretType === 'pin';
+  document.getElementById('reset-title').textContent = isPin ? 'Set a new PIN' : 'Set a new password';
+  document.getElementById('reset-password-fields').style.display = isPin ? 'none' : 'block';
+  document.getElementById('reset-pin-fields').style.display = isPin ? 'block' : 'none';
+
+  if(isPin){
+    resetPinPhase = 'enter';
+    resetPinFirstEntry = '';
+    resetPinBuffer = '';
+    document.getElementById('reset-pin-label').textContent = 'Enter a new 4–6 digit PIN';
+    renderPinDots('reset-pin-dots', 0);
+    buildKeypad('reset-pin-keypad',
+      (d) => {
+        if(resetPinBuffer.length >= 6) return;
+        resetPinBuffer += d;
+        renderPinDots('reset-pin-dots', resetPinBuffer.length);
+        clearError('forgot2');
+      },
+      () => {
+        resetPinBuffer = resetPinBuffer.slice(0, -1);
+        renderPinDots('reset-pin-dots', resetPinBuffer.length);
+      }
+    );
+  }
+}
+
+async function resetPassword(){
+  const isPin = vault.secretType === 'pin';
+  let secretValue = null;
+
+  if(!isPin){
+    const pw = document.getElementById('reset-pw').value;
+    const pw2 = document.getElementById('reset-pw2').value;
+    if(pw.length < 6){ setError('forgot2','Password should be at least 6 characters.'); return; }
+    if(pw !== pw2){ setError('forgot2','Passwords don\'t match.'); return; }
+    secretValue = pw;
+  } else {
+    if(resetPinBuffer.length < 4 || resetPinBuffer.length > 6){
+      setError('forgot2','PIN should be 4–6 digits.');
+      return;
+    }
+    if(resetPinPhase === 'enter'){
+      resetPinFirstEntry = resetPinBuffer;
+      resetPinBuffer = '';
+      resetPinPhase = 'confirm';
+      document.getElementById('reset-pin-label').textContent = 'Confirm your new PIN';
+      renderPinDots('reset-pin-dots', 0);
+      return;
+    }
+    if(resetPinBuffer !== resetPinFirstEntry){
+      setError('forgot2','PINs don\'t match. Try again.');
+      resetPinPhase = 'enter';
+      resetPinFirstEntry = '';
+      resetPinBuffer = '';
+      document.getElementById('reset-pin-label').textContent = 'Enter a new 4–6 digit PIN';
+      renderPinDots('reset-pin-dots', 0);
+      return;
+    }
+    secretValue = resetPinBuffer;
+  }
+
+  const pwSalt = crypto.getRandomValues(new Uint8Array(16));
+  vault.passwordHash = await hashSecret(secretValue, pwSalt);
+  vault.passwordSalt = bufToBase64(pwSalt);
+  await persistVaultConfig();
+
+  document.getElementById('reset-pw').value = '';
+  document.getElementById('reset-pw2').value = '';
+  playIris(() => { enterVault(); showToast(isPin ? 'PIN reset' : 'Password reset'); });
+}
+
+/* ================= BIOMETRIC (native on Capacitor, WebAuthn in browser) =================
+   Inside the Capacitor-wrapped app, window.Capacitor is present and we use the
+   NativeBiometric plugin (real Android BiometricPrompt / iOS Face-Touch ID) —
+   plain Android WebView does not support WebAuthn platform authenticators.
+   In a normal browser tab (no Capacitor bridge), WebAuthn is used as before.
+   This is a purely local, on-device check either way: there's no server, so
+   a successful OS-level verification is itself the gate. */
+function isNativeApp(){
+  return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+}
+function bufToBase64Url(buf){
+  return bufToBase64(buf).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function base64UrlToBuf(b64url){
+  const b64 = b64url.replace(/-/g,'+').replace(/_/g,'/') + '==='.slice((b64url.length + 3) % 4);
+  return base64ToBuf(b64);
+}
+
+async function toggleBiometric(){
+  if(vault.biometricEnabled){
+    vault.biometricEnabled = false;
+    vault.biometricCredentialId = '';
+    await persistVaultConfig();
+    setBiometricToggleUI();
+    showToast('Face / Touch unlock disabled');
+    return;
+  }
+
+  if(isNativeApp()){
+    try{
+      const { NativeBiometric } = window.Capacitor.Plugins;
+      const result = await NativeBiometric.isAvailable();
+      if(!result.isAvailable){
+        showToast('This device has no Face/Touch ID or screen-lock set up');
+        return;
+      }
+      await NativeBiometric.verifyIdentity({
+        reason: 'Enable Face / Touch unlock for V Vault',
+        title: 'V Vault'
+      });
+      vault.biometricEnabled = true;
+      vault.biometricCredentialId = 'native'; // native plugin needs no stored credential id
+      await persistVaultConfig();
+      setBiometricToggleUI();
+      showToast('Face / Touch unlock enabled');
+    }catch(err){
+      console.error('V Vault native biometric setup error:', err);
+      showToast('Could not set up biometric unlock');
+    }
+    return;
+  }
+
+  if(!window.PublicKeyCredential){
+    showToast('Biometric unlock isn\'t supported on this browser');
+    return;
+  }
+  try{
+    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if(!available){
+      showToast('This device has no Face/Touch ID or screen-lock set up');
+      return;
+    }
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = crypto.getRandomValues(new Uint8Array(16));
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'V Vault' },
+        user: { id: userId, name: 'vault-user', displayName: 'V Vault' },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }
+    });
+    vault.biometricEnabled = true;
+    vault.biometricCredentialId = bufToBase64Url(credential.rawId);
+    await persistVaultConfig();
+    setBiometricToggleUI();
+    showToast('Face / Touch unlock enabled');
+  }catch(err){
+    console.error('V Vault biometric setup error:', err);
+    showToast((err && err.name ? err.name + ': ' : '') + (err && err.message ? err.message : 'Could not set up biometric unlock'));
+  }
+}
+
+function setBiometricToggleUI(){
+  const t = document.getElementById('biometric-toggle');
+  if(t) t.classList.toggle('on', vault.biometricEnabled);
+}
+
+async function unlockWithBiometric(){
+  if(isNativeApp()){
+    try{
+      const { NativeBiometric } = window.Capacitor.Plugins;
+      await NativeBiometric.verifyIdentity({
+        reason: 'Unlock V Vault',
+        title: 'V Vault'
+      });
+      playIris(() => enterVault());
+    }catch(err){
+      console.error('V Vault native biometric unlock error:', err);
+      showToast('Biometric unlock cancelled or failed');
+    }
+    return;
+  }
+
+  try{
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        allowCredentials: [{ type: 'public-key', id: base64UrlToBuf(vault.biometricCredentialId) }],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    playIris(() => enterVault());
+  }catch(err){
+    console.error('V Vault biometric unlock error:', err);
+    showToast((err && err.name ? err.name + ': ' : '') + (err && err.message ? err.message : 'Biometric unlock cancelled or failed'));
+  }
+}
+
+/* ---------------- vault home ---------------- */
+function enterVault(){
+  goTo('screen-vault');
+  document.getElementById('add-fab').style.display = 'none';
+  document.getElementById('search-input').value = '';
+  searchQuery = '';
+  renderSearchOrFolders();
+  renderFolders();
+  checkForAppUpdate();
+}
+
+/* ================= NATIVE APP UPDATE CHECK =================
+   Only relevant when running inside the Capacitor-wrapped native app
+   (window.Capacitor + window.APP_VERSION are only injected into that build —
+   in the plain website/PWA this whole thing quietly does nothing, since the
+   website is always the latest version anyway).
+   Update your own repo's owner/name below if you fork this project. */
+const VVAULT_REPO = 'thindyuvraj141/VVault-';
+let latestApkUrl = null;
+
+async function checkForAppUpdate(){
+  if(typeof window.Capacitor === 'undefined' || !window.APP_VERSION) return;
+  try{
+    const res = await fetch('https://api.github.com/repos/' + VVAULT_REPO + '/releases/latest');
+    if(!res.ok) return;
+    const data = await res.json();
+    const latestVersion = (data.tag_name || '').replace(/^v/, '');
+    if(!latestVersion || latestVersion === window.APP_VERSION) return;
+    const apkAsset = (data.assets || []).find(a => a.name.endsWith('.apk'));
+    if(!apkAsset) return;
+    latestApkUrl = apkAsset.browser_download_url;
+    document.getElementById('update-banner-text').textContent = 'Update available — v' + latestVersion;
+    document.getElementById('update-banner').style.display = 'flex';
+  }catch(err){
+    // offline, or GitHub unreachable — fail quietly, this is a background check
+  }
+}
+function downloadAppUpdate(){
+  if(latestApkUrl) window.open(latestApkUrl, '_blank');
+}
+function dismissUpdateBanner(){
+  document.getElementById('update-banner').style.display = 'none';
+}
+async function manualCheckForUpdate(){
+  if(typeof window.Capacitor === 'undefined'){
+    showToast('You\'re using the web version — it\'s always up to date');
+    return;
+  }
+  if(!window.APP_VERSION){
+    showToast('Could not read this app\'s version');
+    return;
+  }
+  showToast('Checking for updates…');
+  await checkForAppUpdate();
+  if(!latestApkUrl) showToast('You\'re on the latest version (v' + window.APP_VERSION + ')');
+}
+
+function albumName(id){
+  if(!id) return null;
+  const a = albums.find(a => a.id === id);
+  return a ? a.name : null;
+}
+
+function folderIconSvg(){
+  return '<svg class="folder-icon" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M3 6.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3 16.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+}
+
+/* ---------------- folders (home screen) ---------------- */
+function renderFolders(){
+  const grid = document.getElementById('folder-grid');
+  const empty = document.getElementById('folder-empty-state');
+  const folderCount = document.getElementById('folder-count');
+
+  folderCount.textContent = albums.length + (albums.length === 1 ? ' folder' : ' folders');
+
+  if(albums.length === 0){
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+
+  // Favorites card always first (not selectable/deletable — skip in select mode)
+  const favCount = photos.filter(p => p.favorite && !p.deletedAt).length;
+  const favCard = document.createElement('button');
+  favCard.type = 'button';
+  favCard.className = 'folder-card favorites-card';
+  favCard.onclick = () => openFolder('__favorites__');
+  favCard.innerHTML =
+    '<svg class="folder-icon" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" fill="currentColor"/></svg>' +
+    '<div><div class="folder-name">Favorites</div>' +
+    '<div class="folder-count">' + favCount + (favCount === 1 ? ' photo' : ' photos') + '</div></div>';
+  grid.appendChild(favCard);
+
+  albums.forEach(a => {
+    const folderPhotos = photos.filter(p => p.albumId === a.id && !p.deletedAt);
+    const n = folderPhotos.length;
+    const imagePhotos = folderPhotos.filter(p => p.type !== 'video');
+    const cover = imagePhotos[imagePhotos.length - 1]; // most recently added image
+    const isSelected = selectedFolderIds.has(a.id);
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'folder-card' + (cover ? ' has-cover' : '') + (isSelected ? ' selected' : '');
+    if(cover) card.style.backgroundImage = "url('" + cover.src + "')";
+    if(!cover && a.color) card.style.setProperty('--folder-accent', a.color);
+    card.onclick = () => homeSelectionMode ? toggleFolderSelection(a.id) : openFolder(a.id);
+    const lockBadge = a.pinHash ? '<svg class="folder-lock-badge" width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>' : '';
+    const checkBadge = homeSelectionMode
+      ? '<div class="thumb-check folder-check">' + (isSelected ? '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5L4 8.5L10 1.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</div>'
+      : '';
+    card.innerHTML = (cover ? '' : folderIconSvg()) + lockBadge + checkBadge +
+      '<div><div class="folder-name">' + a.name + '</div>' +
+      '<div class="folder-count">' + n + (n === 1 ? ' photo' : ' photos') + '</div></div>';
+    grid.appendChild(card);
+  });
+
+  // Trash card always last (not selectable)
+  const trashCount = photos.filter(p => p.deletedAt).length;
+  const trashCard = document.createElement('button');
+  trashCard.type = 'button';
+  trashCard.className = 'folder-card trash-card';
+  trashCard.onclick = () => openFolder('__trash__');
+  trashCard.innerHTML =
+    '<svg class="folder-icon" width="26" height="26" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+    '<div><div class="folder-name">Trash</div>' +
+    '<div class="folder-count">' + trashCount + (trashCount === 1 ? ' item' : ' items') + '</div></div>';
+  grid.appendChild(trashCard);
+}
+
+async function openFolder(id){
+  const isFav = id === '__favorites__';
+  const isTrash = id === '__trash__';
+  const album = albums.find(x => x.id === id);
+  if(!isFav && !isTrash && !album) return;
+
+  // folder-level PIN check (skip for virtual folders)
+  if(album && album.pinHash){
+    const entered = prompt('This folder is locked. Enter its PIN:');
+    if(entered === null) return;
+    const salt = base64ToBuf(album.pinSalt);
+    const hash = await hashSecret(entered, salt);
+    if(hash !== album.pinHash){ showToast('Wrong PIN'); return; }
+  }
+
+  currentFolderId = id;
+  selectionMode = false;
+  selectedPhotoIds.clear();
+  document.getElementById('select-toggle-btn').style.color = '';
+  document.getElementById('folder-view-title').textContent = isFav ? 'Favorites' : isTrash ? 'Trash' : album.name;
+  document.getElementById('rename-folder-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('delete-folder-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('folder-lock-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('folder-lock-item-label').textContent = (album && album.pinHash) ? 'Remove folder lock' : 'Set folder lock';
+  document.getElementById('empty-trash-item').style.display = isTrash ? 'flex' : 'none';
+  document.getElementById('export-folder-item').style.display = isTrash ? 'none' : 'flex';
+  goTo('screen-folder');
+  document.getElementById('add-fab').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  document.getElementById('sort-toggle-btn').style.display = isTrash ? 'none' : 'flex';
+  document.getElementById('select-toggle-btn').style.display = isTrash ? 'none' : 'flex';
+  renderFolderPhotos();
+  updateSelectionUI();
+}
+
+function closeFolder(){
+  if(slideshowTimer) stopSlideshow();
+  currentFolderId = null;
+  selectionMode = false;
+  selectedPhotoIds.clear();
+  document.getElementById('select-toggle-btn').style.color = '';
+  document.getElementById('add-fab').style.display = 'none';
+  goTo('screen-vault');
+  renderFolders();
+}
+
+/* ---------------- home screen: select + bulk actions on folders ---------------- */
+function toggleHomeSelectionMode(){
+  homeSelectionMode = !homeSelectionMode;
+  selectedFolderIds.clear();
+  document.getElementById('home-select-btn').style.color = homeSelectionMode ? 'var(--accent)' : '';
+  renderFolders();
+  updateHomeSelectionUI();
+}
+function toggleFolderSelection(id){
+  if(selectedFolderIds.has(id)) selectedFolderIds.delete(id);
+  else selectedFolderIds.add(id);
+  renderFolders();
+  updateHomeSelectionUI();
+}
+function updateHomeSelectionUI(){
+  const bar = document.getElementById('home-selection-bar');
+  if(homeSelectionMode && selectedFolderIds.size > 0){
+    bar.style.display = 'flex';
+    document.getElementById('home-selection-count').textContent = selectedFolderIds.size + ' selected';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+function deleteSelectedFolders(){
+  const n = selectedFolderIds.size;
+  if(n === 0) return;
+  if(!confirm('Delete ' + n + (n === 1 ? ' folder' : ' folders') + '? Photos inside will move to Unsorted.')) return;
+  const affectedPhotos = photos.filter(p => selectedFolderIds.has(p.albumId));
+  albums = albums.filter(a => !selectedFolderIds.has(a.id));
+  const unsortedId = ensureUnsortedFolder();
+  affectedPhotos.forEach(p => { p.albumId = unsortedId; });
+  selectedFolderIds.clear();
+  homeSelectionMode = false;
+  document.getElementById('home-select-btn').style.color = '';
+  persistLibrary();
+  renderFolders();
+  updateHomeSelectionUI();
+  showToast(n + (n === 1 ? ' folder deleted' : ' folders deleted'));
+}
+async function exportSelectedFolders(){
+  if(selectedFolderIds.size === 0) return;
+  if(typeof JSZip === 'undefined'){ showToast('Export isn\'t available offline the first time — connect once to load it'); return; }
+  showToast('Preparing export…');
+  try{
+    const zip = new JSZip();
+    let fileCount = 0;
+    albums.filter(a => selectedFolderIds.has(a.id)).forEach(a => {
+      const folder = zip.folder(a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+      const items = photos.filter(p => p.albumId === a.id && !p.deletedAt);
+      items.forEach((p, i) => {
+        const match = p.src.match(/^data:([^;]+);base64,(.*)$/);
+        if(!match) return;
+        const ext = match[1].split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg');
+        folder.file('vvault-' + (i + 1) + '.' + ext, match[2], { base64: true });
+        fileCount++;
+      });
+    });
+    if(fileCount === 0){ showToast('No photos in the selected folders'); return; }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vvault-export-' + Date.now() + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast('Folders exported');
+    toggleHomeSelectionMode();
+  }catch(err){
+    console.error('V Vault bulk export error:', err);
+    showToast('Could not export the selected folders');
+  }
+}
+
+/* ---------------- custom folder colour ---------------- */
+function setFolderColor(color){
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  if(color) a.color = color;
+  else delete a.color;
+  document.querySelectorAll('.folder-color-swatch').forEach(sw => {
+    sw.classList.toggle('active', sw.getAttribute('data-color') === color);
+  });
+  persistLibrary();
+  showToast('Folder colour updated');
+}
+
+function getFolderPhotos(){
+  let list;
+  if(currentFolderId === '__favorites__') list = photos.filter(p => p.favorite && !p.deletedAt);
+  else if(currentFolderId === '__trash__') list = photos.filter(p => p.deletedAt);
+  else list = photos.filter(p => p.albumId === currentFolderId && !p.deletedAt);
+  list = list.slice().sort((a, b) => sortOrder === 'newest' ? b.id - a.id : a.id - b.id);
+  return list;
+}
+
+function toggleSortOrder(){
+  sortOrder = sortOrder === 'newest' ? 'oldest' : 'newest';
+  showToast(sortOrder === 'newest' ? 'Sorted: newest first' : 'Sorted: oldest first');
+  renderFolderPhotos();
+}
+
+function toggleGridSize(){
+  const order = ['2','3','4'];
+  const next = order[(order.indexOf(String(gridColumns)) + 1) % order.length];
+  gridColumns = parseInt(next, 10);
+  document.documentElement.style.setProperty('--grid-cols', gridColumns);
+  persistAppSettings();
+  showToast(gridColumns + ' columns');
+}
+
+function thumbBadges(p){
+  let html = '';
+  if(p.type === 'video'){
+    html += '<div class="thumb-video-badge"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1L9 5L1 9Z" fill="white"/></svg></div>';
+  }
+  if(p.favorite){
+    html += '<svg class="thumb-fav-badge" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" fill="currentColor"/></svg>';
+  }
+  return html;
+}
+
+function renderFolderPhotos(){
+  const grid = document.getElementById('photo-grid');
+  const empty = document.getElementById('empty-state');
+  const count = document.getElementById('photo-count');
+  const emptyTitle = document.getElementById('empty-state-title');
+  const emptyText = document.getElementById('empty-state-text');
+
+  const visible = getFolderPhotos();
+  count.textContent = visible.length + (visible.length === 1 ? ' item' : ' items');
+
+  if(visible.length === 0){
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    if(currentFolderId === '__favorites__'){
+      emptyTitle.textContent = 'No favorites yet';
+      emptyText.textContent = 'Tap the star on any photo to add it here.';
+    } else if(currentFolderId === '__trash__'){
+      emptyTitle.textContent = 'Trash is empty';
+      emptyText.textContent = 'Deleted photos stay here for 30 days before being removed for good.';
+    } else {
+      emptyTitle.textContent = 'This folder is empty';
+      emptyText.textContent = 'Photos you add here stay only on this device. Nothing is uploaded anywhere.';
+    }
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+
+  if(currentFolderId === '__trash__'){
+    visible.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'thumb';
+      const mediaHtml = p.type === 'video'
+        ? '<video src="' + p.src + '" muted preload="metadata"></video>'
+        : '<img src="' + p.src + '" alt="">';
+      div.innerHTML = mediaHtml + thumbBadges(p) +
+        '<div class="trash-actions">' +
+          '<button class="trash-btn" onclick="event.stopPropagation(); restorePhoto(' + p.id + ')" title="Restore"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7a5 5 0 1 0 1.5-3.5M2 2v2.5H4.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+          '<button class="trash-btn danger" onclick="event.stopPropagation(); deletePermanently(' + p.id + ')" title="Delete forever"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 4h8M5.5 4V2.7h3V4M4.5 4v8h5V4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '</div>';
+      grid.appendChild(div);
+    });
+    return;
+  }
+
+  visible.forEach(p => {
+    const div = document.createElement('div');
+    const isSelected = selectedPhotoIds.has(p.id);
+    div.className = 'thumb' + (selectionMode ? ' selectable' : '') + (isSelected ? ' selected' : '');
+    div.onclick = () => selectionMode ? togglePhotoSelection(p.id) : openLightbox(p.id);
+    const rot = p.rotation ? ' style="transform:rotate(' + p.rotation + 'deg);"' : '';
+    const mediaHtml = p.type === 'video'
+      ? '<video src="' + p.src + '" muted preload="metadata"' + rot + '></video>'
+      : '<img src="' + p.src + '" alt=""' + rot + '>';
+    const checkHtml = selectionMode
+      ? '<div class="thumb-check">' + (isSelected ? '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5L4 8.5L10 1.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</div>'
+      : '';
+    div.innerHTML = mediaHtml + thumbBadges(p) + checkHtml;
+    grid.appendChild(div);
+  });
+}
+
+/* ---------------- trash: restore / delete forever / auto-purge ---------------- */
+function restorePhoto(id){
+  const p = photos.find(p => p.id === id);
+  if(!p) return;
+  if(!albums.find(a => a.id === p.albumId)){
+    p.albumId = ensureUnsortedFolder();
+  }
+  p.deletedAt = null;
+  persistLibrary();
+  renderFolderPhotos();
+  showToast('Restored');
+}
+function deletePermanently(id){
+  if(!confirm('Delete this forever? This cannot be undone.')) return;
+  photos = photos.filter(p => p.id !== id);
+  persistLibrary();
+  renderFolderPhotos();
+  showToast('Deleted forever');
+}
+function emptyTrash(){
+  const n = photos.filter(p => p.deletedAt).length;
+  if(n === 0){ showToast('Trash is already empty'); return; }
+  if(!confirm('Permanently delete ' + n + (n === 1 ? ' item' : ' items') + ' in Trash?')) return;
+  photos = photos.filter(p => !p.deletedAt);
+  persistLibrary();
+  closeFolderMenu();
+  renderFolderPhotos();
+  showToast('Trash emptied');
+}
+function purgeOldTrash(){
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const before = photos.length;
+  photos = photos.filter(p => !(p.deletedAt && (Date.now() - p.deletedAt > THIRTY_DAYS)));
+  if(photos.length !== before) persistLibrary();
+}
+
+/* ---------------- multi-select + bulk actions ---------------- */
+function toggleSelectionMode(){
+  selectionMode = !selectionMode;
+  selectedPhotoIds.clear();
+  document.getElementById('select-toggle-btn').style.color = selectionMode ? 'var(--accent)' : '';
+  renderFolderPhotos();
+  updateSelectionUI();
+}
+function togglePhotoSelection(id){
+  if(selectedPhotoIds.has(id)) selectedPhotoIds.delete(id);
+  else selectedPhotoIds.add(id);
+  renderFolderPhotos();
+  updateSelectionUI();
+}
+function updateSelectionUI(){
+  const bar = document.getElementById('selection-bar');
+  document.getElementById('select-toggle-btn').style.color = selectionMode ? 'var(--accent)' : '';
+  if(selectionMode && selectedPhotoIds.size > 0){
+    bar.style.display = 'flex';
+    document.getElementById('selection-count').textContent = selectedPhotoIds.size + (selectedPhotoIds.size === 1 ? ' selected' : ' selected');
+  } else {
+    bar.style.display = 'none';
+  }
+}
+function deleteSelectedPhotos(){
+  const n = selectedPhotoIds.size;
+  if(n === 0) return;
+  if(!confirm('Move ' + n + (n === 1 ? ' item' : ' items') + ' to Trash?')) return;
+  const now = Date.now();
+  photos.forEach(p => { if(selectedPhotoIds.has(p.id)) p.deletedAt = now; });
+  selectedPhotoIds.clear();
+  selectionMode = false;
+  persistLibrary();
+  renderFolderPhotos();
+  updateSelectionUI();
+  showToast(n + (n === 1 ? ' item moved to Trash' : ' items moved to Trash'));
+}
+function openMoveSelectedModal(){
+  if(selectedPhotoIds.size === 0) return;
+  const list = document.getElementById('move-selected-list');
+  list.innerHTML = '';
+  albums.forEach(a => {
+    if(a.id === currentFolderId) return;
+    const row = document.createElement('div');
+    row.className = 'manage-row';
+    row.style.cursor = 'pointer';
+    row.innerHTML = '<span>' + a.name + '</span>';
+    row.onclick = () => moveSelectedTo(a.id);
+    list.appendChild(row);
+  });
+  if(albums.length <= 1){
+    list.innerHTML = '<div class="manage-empty">No other folders yet.</div>';
+  }
+  document.getElementById('move-selected-overlay').classList.add('active');
+}
+function closeMoveSelectedModal(){
+  document.getElementById('move-selected-overlay').classList.remove('active');
+}
+function moveSelectedTo(folderId){
+  photos.forEach(p => { if(selectedPhotoIds.has(p.id)) p.albumId = folderId; });
+  const n = selectedPhotoIds.size;
+  selectedPhotoIds.clear();
+  selectionMode = false;
+  closeMoveSelectedModal();
+  persistLibrary();
+  renderFolderPhotos();
+  updateSelectionUI();
+  showToast(n + (n === 1 ? ' item moved' : ' items moved'));
+}
+
+/* ---------------- favorite toggle (lightbox) ---------------- */
+function toggleFavoriteCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p) return;
+  p.favorite = !p.favorite;
+  persistLibrary();
+  setFavoriteButtonUI(p.favorite);
+}
+function setFavoriteButtonUI(isFav){
+  const btn = document.getElementById('lightbox-fav-btn');
+  if(btn) btn.classList.toggle('active', isFav);
+}
+
+/* ---------------- export folder as .zip ---------------- */
+async function exportCurrentFolder(){
+  closeFolderMenu();
+  const list = getFolderPhotos();
+  if(list.length === 0){ showToast('This folder has no photos to export'); return; }
+  if(typeof JSZip === 'undefined'){ showToast('Export isn\'t available offline the first time — connect once to load it'); return; }
+  showToast('Preparing export…');
+  try{
+    const zip = new JSZip();
+    list.forEach((p, i) => {
+      const match = p.src.match(/^data:([^;]+);base64,(.*)$/);
+      if(!match) return;
+      const mime = match[1];
+      const base64Data = match[2];
+      const ext = mime.split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg');
+      zip.file('vvault-' + (i + 1) + '.' + ext, base64Data, { base64: true });
+    });
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const folderLabel = currentFolderId === '__favorites__' ? 'favorites' : (albums.find(x => x.id === currentFolderId)?.name || 'folder');
+    a.download = 'vvault-' + folderLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast('Folder exported');
+  }catch(err){
+    console.error('V Vault export error:', err);
+    showToast('Could not export this folder');
+  }
+}
+
+/* ---------------- folder-level PIN lock ---------------- */
+async function toggleFolderLock(){
+  closeFolderMenu();
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  if(a.pinHash){
+    if(!confirm('Remove the lock from "' + a.name + '"?')) return;
+    delete a.pinHash;
+    delete a.pinSalt;
+    persistLibrary();
+    showToast('Folder lock removed');
+    return;
+  }
+  const pin = prompt('Set a 4-6 digit PIN for this folder:');
+  if(!pin) return;
+  if(!/^\d{4,6}$/.test(pin)){ showToast('PIN must be 4-6 digits'); return; }
+  const confirmPin = prompt('Confirm PIN:');
+  if(pin !== confirmPin){ showToast('PINs didn\'t match'); return; }
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  a.pinHash = await hashSecret(pin, salt);
+  a.pinSalt = bufToBase64(salt);
+  persistLibrary();
+  showToast('Folder locked');
+}
+
+/* ---------------- slideshow ---------------- */
+function startSlideshow(){
+  closeFolderMenu();
+  slideshowList = getFolderPhotos().filter(p => p.type !== 'video');
+  if(slideshowList.length === 0){ showToast('No photos here to play'); return; }
+  slideshowIndex = 0;
+  openLightbox(slideshowList[0].id);
+  document.getElementById('slideshow-badge').style.display = 'flex';
+  slideshowTimer = setInterval(() => {
+    slideshowIndex = (slideshowIndex + 1) % slideshowList.length;
+    openLightbox(slideshowList[slideshowIndex].id);
+  }, 3000);
+}
+function stopSlideshow(){
+  clearInterval(slideshowTimer);
+  slideshowTimer = null;
+  document.getElementById('slideshow-badge').style.display = 'none';
+}
+
+/* ---------------- rotate / crop (lightbox edits) ---------------- */
+function rotateCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p || p.type === 'video') return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.height;
+    canvas.height = img.width;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    p.src = canvas.toDataURL('image/jpeg', 0.92);
+    document.getElementById('lightbox-img').src = p.src;
+    persistLibrary();
+    showToast('Rotated');
+  };
+  img.src = p.src;
+}
+function cropToSquareCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p || p.type === 'video') return;
+  const img = new Image();
+  img.onload = () => {
+    const side = Math.min(img.width, img.height);
+    const sx = (img.width - side) / 2;
+    const sy = (img.height - side) / 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = side;
+    canvas.height = side;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, side, side);
+    p.src = canvas.toDataURL('image/jpeg', 0.92);
+    document.getElementById('lightbox-img').src = p.src;
+    persistLibrary();
+    showToast('Cropped to square');
+  };
+  img.src = p.src;
+}
+
+/* ---------------- share directly ---------------- */
+async function shareCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p) return;
+  if(!navigator.share){ showToast('Sharing isn\'t supported in this browser'); return; }
+  try{
+    const res = await fetch(p.src);
+    const blob = await res.blob();
+    const ext = p.type === 'video' ? 'mp4' : (blob.type.split('/')[1] || 'jpg');
+    const file = new File([blob], 'vvault-photo.' + ext, { type: blob.type });
+    if(navigator.canShare && !navigator.canShare({ files: [file] })){
+      showToast('This file can\'t be shared from here');
+      return;
+    }
+    await navigator.share({ files: [file] });
+  }catch(err){
+    if(err && err.name === 'AbortError') return; // user cancelled the share sheet
+    console.error('V Vault share error:', err);
+    showToast('Could not share this file');
+  }
+}
+
+/* ---------------- storage & stats ---------------- */
+function openStorageStats(){
+  closeSettings();
+  const live = photos.filter(p => !p.deletedAt);
+  const photoCount = live.filter(p => p.type !== 'video').length;
+  const videoCount = live.filter(p => p.type === 'video').length;
+  const favCount = live.filter(p => p.favorite).length;
+  const trashCount = photos.filter(p => p.deletedAt).length;
+  let totalChars = 0;
+  photos.forEach(p => { totalChars += p.src ? p.src.length : 0; });
+  const approxBytes = totalChars * 0.75; // base64 → raw bytes estimate
+  const approxMB = (approxBytes / (1024 * 1024)).toFixed(1);
+
+  document.getElementById('stats-body').innerHTML =
+    statRow('Folders', albums.length) +
+    statRow('Photos', photoCount) +
+    statRow('Videos', videoCount) +
+    statRow('Favorites', favCount) +
+    statRow('In Trash', trashCount) +
+    statRow('Approx. storage used', approxMB + ' MB');
+  document.getElementById('stats-overlay').classList.add('active');
+}
+function statRow(label, value){
+  return '<div class="manage-row"><span>' + label + '</span><span class="mini-count">' + value + '</span></div>';
+}
+function closeStorageStats(){
+  document.getElementById('stats-overlay').classList.remove('active');
+}
+
+/* ---------------- onboarding tips (shown once, after setup) ---------------- */
+function showOnboarding(){
+  document.getElementById('onboarding-overlay').classList.add('active');
+}
+function closeOnboarding(){
+  document.getElementById('onboarding-overlay').classList.remove('active');
+}
+
+/* ---------------- folder menu: rename / delete ---------------- */
+function openFolderMenu(){
+  const isFav = currentFolderId === '__favorites__';
+  const isTrash = currentFolderId === '__trash__';
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!isFav && !isTrash && !a) return;
+  document.getElementById('folder-menu-title').textContent = isFav ? 'Favorites' : isTrash ? 'Trash' : a.name;
+  document.getElementById('folder-color-item').style.display = (isFav || isTrash) ? 'none' : 'flex';
+  if(a){
+    document.querySelectorAll('.folder-color-swatch').forEach(sw => {
+      sw.classList.toggle('active', sw.getAttribute('data-color') === (a.color || ''));
+    });
+  }
+  document.getElementById('folder-menu-overlay').classList.add('active');
+}
+function closeFolderMenu(){
+  document.getElementById('folder-menu-overlay').classList.remove('active');
+}
+function renameCurrentFolder(){
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  const newName = prompt('Rename folder', a.name);
+  closeFolderMenu();
+  if(!newName || !newName.trim()) return;
+  const trimmed = newName.trim();
+  if(albums.some(x => x.id !== a.id && x.name.toLowerCase() === trimmed.toLowerCase())){
+    showToast('You already have a folder with that name');
+    return;
+  }
+  a.name = trimmed;
+  document.getElementById('folder-view-title').textContent = trimmed;
+  persistLibrary();
+  showToast('Folder renamed');
+}
+function deleteCurrentFolder(){
+  const a = albums.find(x => x.id === currentFolderId);
+  if(!a) return;
+  closeFolderMenu();
+  if(!confirm('Delete "' + a.name + '"? Its photos will be moved to Unsorted, not deleted.')) return;
+  const affectedPhotos = photos.filter(p => p.albumId === a.id);
+  albums = albums.filter(x => x.id !== a.id);
+  const unsortedId = ensureUnsortedFolder();
+  affectedPhotos.forEach(p => { p.albumId = unsortedId; });
+  persistLibrary();
+  closeFolder();
+  showToast('Folder deleted — photos moved to Unsorted');
+}
+
+/* ---------------- keep every photo inside a folder, always ---------------- */
+function ensureUnsortedFolder(){
+  let unsorted = albums.find(a => a.name === 'Unsorted');
+  if(!unsorted){
+    unsorted = { id: 'alb_unsorted_' + Date.now(), name: 'Unsorted' };
+    albums.push(unsorted);
+  }
+  return unsorted.id;
+}
+function migrateOrphanPhotos(){
+  const orphans = photos.filter(p => !p.albumId);
+  if(orphans.length === 0) return;
+  const unsortedId = ensureUnsortedFolder();
+  orphans.forEach(p => { p.albumId = unsortedId; });
+  persistLibrary();
+}
+
+/* ---------------- search (home screen, across all folders) ---------------- */
+function onSearchInput(){
+  searchQuery = document.getElementById('search-input').value.trim();
+  document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
+  renderSearchOrFolders();
+}
+function clearSearch(){
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  renderSearchOrFolders();
+}
+function setSearchTypeFilter(type){
+  searchTypeFilter = type;
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-filter') === type);
+  });
+  renderSearchOrFolders();
+}
+function renderSearchOrFolders(){
+  const folderView = document.getElementById('folder-view');
+  const searchView = document.getElementById('search-view');
+  const resultsLabel = document.getElementById('search-results-label');
+
+  const isActive = !!searchQuery || searchTypeFilter !== 'all';
+  if(!isActive){
+    folderView.style.display = 'block';
+    searchView.style.display = 'none';
+    resultsLabel.style.display = 'none';
+    return;
+  }
+  folderView.style.display = 'none';
+  searchView.style.display = 'block';
+
+  const q = searchQuery.toLowerCase();
+  const visible = photos.filter(p => {
+    if(p.deletedAt) return false;
+    if(searchTypeFilter === 'video' && p.type !== 'video') return false;
+    if(searchTypeFilter === 'image' && p.type === 'video') return false;
+    if(searchTypeFilter === 'favorite' && !p.favorite) return false;
+    if(!q) return true;
+    const cap = (p.caption || '').toLowerCase();
+    const alb = (albumName(p.albumId) || '').toLowerCase();
+    return cap.includes(q) || alb.includes(q);
+  });
+
+  resultsLabel.style.display = 'block';
+  resultsLabel.textContent = visible.length + (visible.length === 1 ? ' result' : ' results') + (q ? ' for "' + searchQuery + '"' : '');
+
+  const grid = document.getElementById('search-grid');
+  const empty = document.getElementById('search-empty-state');
+  if(visible.length === 0){
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+  visible.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.onclick = () => openLightbox(p.id);
+    const mediaHtml = p.type === 'video'
+      ? '<video src="' + p.src + '" muted preload="metadata"></video>'
+      : '<img src="' + p.src + '" alt="">';
+    div.innerHTML = mediaHtml + thumbBadges(p);
+    grid.appendChild(div);
+  });
+}
+
+/* ---------------- adding photos: always into the currently open folder ---------------- */
+function handleFiles(e){
+  const files = Array.from(e.target.files);
+  let remaining = files.length;
+  if(remaining === 0) return;
+  if(!currentFolderId || currentFolderId === '__favorites__' || currentFolderId === '__trash__'){ showToast('Open a folder first to add photos'); e.target.value = ''; return; }
+  const targetAlbum = currentFolderId;
+  const existingInFolder = photos.filter(p => p.albumId === targetAlbum && !p.deletedAt);
+  let addedCount = 0, dupeCount = 0;
+  files.forEach(file => {
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const isDuplicate = existingInFolder.some(p => p.src === ev.target.result);
+      if(isDuplicate){
+        dupeCount++;
+      } else {
+        const newPhoto = { id: Date.now() + Math.random(), src: ev.target.result, albumId: targetAlbum, caption: '', favorite: false, type: mediaType, rotation: 0, deletedAt: null };
+        photos.push(newPhoto);
+        existingInFolder.push(newPhoto);
+        addedCount++;
+      }
+      remaining--;
+      if(remaining === 0){
+        renderFolderPhotos();
+        persistLibrary();
+        let msg = addedCount > 0 ? (addedCount > 1 ? addedCount + ' items added' : (mediaType === 'video' ? 'Video added' : 'Photo added')) : '';
+        if(dupeCount > 0) msg += (msg ? ' — ' : '') + dupeCount + (dupeCount > 1 ? ' duplicates skipped' : ' duplicate skipped');
+        showToast(msg || 'Nothing added');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+/* ---------------- albums: create / manage ---------------- */
+function openNewAlbumModal(){
+  document.getElementById('new-album-name').value = '';
+  clearError('newalbum');
+  document.getElementById('new-album-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('new-album-name').focus(), 50);
+}
+function closeNewAlbumModal(){
+  document.getElementById('new-album-overlay').classList.remove('active');
+}
+function createAlbum(){
+  const name = document.getElementById('new-album-name').value.trim();
+  if(!name){ setError('newalbum', 'Give your folder a name.'); return; }
+  if(albums.some(a => a.name.toLowerCase() === name.toLowerCase())){
+    setError('newalbum', 'You already have a folder with that name.');
+    return;
+  }
+  const album = { id: 'alb_' + Date.now(), name };
+  albums.push(album);
+  closeNewAlbumModal();
+  persistLibrary();
+  showToast('Folder created');
+  openFolder(album.id);
+}
+
+/* ---------------- lightbox ---------------- */
+function openLightbox(id){
+  const p = photos.find(p => p.id === id);
+  if(!p) return;
+  currentLightboxId = id;
+
+  const img = document.getElementById('lightbox-img');
+  const video = document.getElementById('lightbox-video');
+  if(p.type === 'video'){
+    video.src = p.src;
+    video.style.display = 'block';
+    img.style.display = 'none';
+    img.src = '';
+  } else {
+    img.src = p.src;
+    img.style.display = 'block';
+    video.style.display = 'none';
+    video.src = '';
+  }
+
+  document.getElementById('caption-input').value = p.caption || '';
+  setFavoriteButtonUI(!!p.favorite);
+
+  const sel = document.getElementById('lightbox-album-select');
+  sel.innerHTML = albums.map(a => '<option value="' + a.id + '">' + a.name + '</option>').join('');
+  sel.value = p.albumId || '';
+
+  document.getElementById('lightbox').classList.add('active');
+  resetZoom();
+}
+function refreshCurrentView(){
+  if(currentFolderId) renderFolderPhotos();
+  else renderSearchOrFolders();
+}
+function closeLightbox(){
+  if(slideshowTimer) stopSlideshow();
+  document.getElementById('lightbox').classList.remove('active');
+  document.getElementById('lightbox-video').pause();
+  currentLightboxId = null;
+  resetZoom();
+  refreshCurrentView();
+}
+function saveCaption(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p) return;
+  p.caption = document.getElementById('caption-input').value.trim();
+  persistLibrary();
+}
+function setCurrentAlbum(albumId){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p) return;
+  p.albumId = albumId || null;
+  persistLibrary();
+}
+function deleteCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(p) p.deletedAt = Date.now();
+  closeLightbox();
+  persistLibrary();
+  showToast('Moved to Trash');
+}
+function downloadCurrent(){
+  const p = photos.find(p => p.id === currentLightboxId);
+  if(!p) return;
+  const a = document.createElement('a');
+  a.href = p.src;
+  const match = p.src.match(/^data:([^;]+);base64,/);
+  const ext = match ? (match[1].split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg')) : (p.type === 'video' ? 'mp4' : 'jpg');
+  a.download = 'vvault-photo.' + ext;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ---------------- settings sheet ---------------- */
+function openSettings(){
+  document.getElementById('change-secret-label').textContent = vault.secretType === 'pin' ? 'Change PIN' : 'Change password';
+  setBiometricToggleUI();
+  document.getElementById('sheet-overlay').classList.add('active');
+  document.getElementById('settings-sheet').style.display = 'block';
+}
+function closeSettings(){
+  document.getElementById('sheet-overlay').classList.remove('active');
+  document.getElementById('settings-sheet').style.display = 'none';
+}
+async function confirmWipe(){
+  if(confirm('Erase all photos and reset the vault? This cannot be undone.')){
+    photos = [];
+    albums = [];
+    currentFolderId = null;
+    searchQuery = "";
+    vault = { passwordSet:false, passwordHash:"", passwordSalt:"", question:"", answerHash:"", answerSalt:"", changingPassword:false, secretType:"password", biometricEnabled:false, biometricCredentialId:"" };
+    await dbClearAll();
+    await persistAppSettings();
+    updateAppBadge();
+    document.getElementById('setup-pw').value = '';
+    document.getElementById('setup-pw2').value = '';
+    document.getElementById('setup-answer').value = '';
+    setSetupType('password');
+    goTo('screen-setup');
+  }
+}
+
+/* ---------------- PWA: offline install support ---------------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      /* runs fine without it if the browser blocks registration (e.g. file:// preview) */
+    });
+  });
+}
+
+/* ================= BACKUP & RESTORE (AES-GCM via Web Crypto) ================= */
+/* The backup file is encrypted with your vault password. Anyone who gets the
+   file still needs that password to open it — the password itself is never
+   stored inside the file. */
+
+/* ================= CREDENTIAL HASHING (PBKDF2) =================
+   Used for the password and security-answer checks. Only the hash + salt are
+   ever stored — never the plain text. */
+async function hashSecret(secret, saltBytes){
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(secret), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 150000, hash: 'SHA-256' },
+    baseKey,
+    256
+  );
+  return bufToBase64(bits);
+}
+
+/* ================= BACKUP & RESTORE (AES-GCM via Web Crypto) ================= */
+/* The backup file is encrypted with your vault password. Anyone who gets the
+   file still needs that password to open it — the password itself is never
+   stored inside the file. */
+
+async function deriveKey(password, saltBytes){
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 150000, hash: 'SHA-256' },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+function bufToBase64(buf){
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  const chunkSize = 0x8000; // 32768 — stay well under the JS engine's argument-count limit
+  for(let i = 0; i < bytes.length; i += chunkSize){
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+function base64ToBuf(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
+
+let backupPwMode = null; // 'create' | 'restore'
+
+function createBackup(){
+  openBackupPwModalForCreate();
+}
+function openBackupPwModalForCreate(){
+  backupPwMode = 'create';
+  const isPin = vault.secretType === 'pin';
+  document.getElementById('backup-pw-title').textContent = isPin ? 'Confirm your PIN' : 'Confirm your password';
+  document.getElementById('backup-pw-desc').textContent = isPin
+    ? 'We encrypt the backup file with your vault PIN. You\'ll need the same PIN to restore it.'
+    : 'We encrypt the backup file with your vault password. You\'ll need the same password to restore it.';
+  document.getElementById('backup-pw-input').value = '';
+  clearError('backuppw');
+  document.getElementById('backup-pw-confirm-btn').textContent = 'Create backup';
+  document.getElementById('backup-pw-overlay').classList.add('active');
+}
+
+function handleRestoreFile(e){
+  const file = e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      if(!parsed.salt || !parsed.iv || !parsed.ciphertext){ throw new Error('bad file'); }
+      pendingRestoreEncrypted = parsed;
+      backupPwMode = 'restore';
+      document.getElementById('backup-pw-title').textContent = 'Enter backup password';
+      document.getElementById('backup-pw-desc').textContent =
+        'Enter the vault password that was used when this backup was created.';
+      document.getElementById('backup-pw-input').value = '';
+      clearError('backuppw');
+      document.getElementById('backup-pw-confirm-btn').textContent = 'Restore';
+      document.getElementById('backup-pw-overlay').classList.add('active');
+    }catch(err){
+      showToast('That doesn\'t look like a V Vault backup file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function closeBackupPwModal(){
+  document.getElementById('backup-pw-overlay').classList.remove('active');
+  pendingRestoreEncrypted = null;
+  backupPwMode = null;
+}
+
+async function confirmBackupPassword(){
+  const pw = document.getElementById('backup-pw-input').value;
+  if(!pw){ setError('backuppw', 'Enter your password.'); return; }
+
+  try{
+    if(backupPwMode === 'create'){
+      const saltCheck = base64ToBuf(vault.passwordSalt);
+      const checkHash = await hashSecret(pw, saltCheck);
+      if(checkHash !== vault.passwordHash){ setError('backuppw', 'That password isn\'t right.'); return; }
+
+      const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+      const ivBytes = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(pw, saltBytes);
+      const payload = JSON.stringify({ albums, photos });
+      const enc = new TextEncoder();
+      const ciphertextBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivBytes }, key, enc.encode(payload));
+      const backupObj = {
+        app: 'V Vault',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        salt: bufToBase64(saltBytes),
+        iv: bufToBase64(ivBytes),
+        ciphertext: bufToBase64(ciphertextBuf)
+      };
+      const blob = new Blob([JSON.stringify(backupObj)], { type: 'application/octet-stream' });
+
+      {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0,10);
+        a.download = 'vvault-backup-' + dateStr + '.vault';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        closeBackupPwModal();
+        showToast('Backup file created — check your Downloads');
+      }
+
+    } else if(backupPwMode === 'restore'){
+      const saltBytes = base64ToBuf(pendingRestoreEncrypted.salt);
+      const ivBytes = base64ToBuf(pendingRestoreEncrypted.iv);
+      const key = await deriveKey(pw, saltBytes);
+      const ciphertextBuf = base64ToBuf(pendingRestoreEncrypted.ciphertext);
+      const decryptedBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, key, ciphertextBuf);
+      const dec = new TextDecoder();
+      const data = JSON.parse(dec.decode(decryptedBuf));
+
+      // merge: keep existing items, append restored ones with fresh ids to avoid collisions
+      const albumIdMap = {};
+      (data.albums || []).forEach(a => {
+        const exists = albums.find(x => x.name.toLowerCase() === a.name.toLowerCase());
+        if(exists){ albumIdMap[a.id] = exists.id; }
+        else{
+          const newId = 'alb_' + Date.now() + Math.random();
+          albums.push({ id: newId, name: a.name });
+          albumIdMap[a.id] = newId;
+        }
+      });
+      (data.photos || []).forEach(p => {
+        photos.push({
+          id: Date.now() + Math.random(),
+          src: p.src,
+          caption: p.caption || '',
+          albumId: p.albumId ? (albumIdMap[p.albumId] || null) : null
+        });
+      });
+
+      closeBackupPwModal();
+      migrateOrphanPhotos();
+      renderFolders();
+      if(currentFolderId) renderFolderPhotos();
+      persistLibrary();
+      showToast('Backup restored');
+    }
+  }catch(err){
+    console.error('V Vault backup error:', err);
+    const fallback = backupPwMode === 'restore' ? 'Wrong password, or this file is damaged.' : 'Something went wrong creating the backup.';
+    setError('backuppw', (err && err.message ? err.message + ' — ' : '') + fallback);
+  }
+}
+
+/* ================= APPEARANCE (theme + accent colour) =================
+   Stored separately from the vault itself, so the choice applies even on
+   the lock/setup screens before anyone has unlocked anything. */
+let appTheme = 'light';
+let appAccent = 'gold';
+
+async function persistAppSettings(){
+  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge });
+}
+async function loadAppSettings(){
+  try{
+    const saved = await dbGet('appSettings');
+    if(saved){
+      appTheme = saved.theme || 'light';
+      appAccent = saved.accent || 'gold';
+      autoLockMinutes = saved.autoLockMinutes || 0;
+      gridColumns = saved.gridColumns || 3;
+      showAppBadge = saved.showAppBadge !== false;
+    }
+  }catch(err){
+    // no saved settings yet — keep defaults
+  }
+  applyAppearance();
+  document.documentElement.style.setProperty('--grid-cols', gridColumns);
+  const sel = document.getElementById('autolock-select');
+  if(sel) sel.value = String(autoLockMinutes);
+  const badgeToggle = document.getElementById('badge-toggle');
+  if(badgeToggle) badgeToggle.classList.toggle('on', showAppBadge);
+}
+function toggleAppBadge(){
+  showAppBadge = !showAppBadge;
+  document.getElementById('badge-toggle').classList.toggle('on', showAppBadge);
+  if(!showAppBadge && navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {});
+  else updateAppBadge();
+  persistAppSettings();
+}
+function applyAppearance(){
+  document.documentElement.setAttribute('data-theme', appTheme);
+  document.documentElement.setAttribute('data-accent', appAccent);
+  const dm = document.getElementById('darkmode-toggle');
+  if(dm) dm.classList.toggle('on', appTheme === 'dark');
+  document.querySelectorAll('.accent-swatch').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-accent') === appAccent);
+  });
+}
+function toggleDarkMode(){
+  appTheme = appTheme === 'dark' ? 'light' : 'dark';
+  applyAppearance();
+  persistAppSettings();
+}
+function setAccent(name){
+  appAccent = name;
+  applyAppearance();
+  persistAppSettings();
+}
+
+/* ================= AUTO-LOCK =================
+   After N minutes of no taps/touches, automatically return to the lock
+   screen. Checked on a simple interval rather than a single timer, so it
+   also catches the case where the app was backgrounded and resumed later. */
+let lastActivityTime = Date.now();
+function markActivity(){ lastActivityTime = Date.now(); }
+function setAutoLock(minutes){
+  autoLockMinutes = parseInt(minutes, 10) || 0;
+  markActivity();
+  persistAppSettings();
+  showToast(autoLockMinutes > 0 ? 'Auto-lock: ' + autoLockMinutes + ' min' : 'Auto-lock off');
+}
+['click','touchstart','keydown'].forEach(evt => document.addEventListener(evt, markActivity));
+setInterval(() => {
+  if(autoLockMinutes <= 0) return;
+  const activeScreen = document.querySelector('.screen.active');
+  const isUnlockedScreen = activeScreen && (activeScreen.id === 'screen-vault' || activeScreen.id === 'screen-folder');
+  if(isUnlockedScreen && (Date.now() - lastActivityTime) > autoLockMinutes * 60000){
+    markActivity();
+    lockVaultNow();
+    showToast('Locked after inactivity');
+  }
+}, 15000);
+
+/* ================= PRIVACY MODE (blur while app is in the background) =================
+   Browsers can't block OS-level screenshots or screen recording — there is no
+   web API for that. This blurs the vault the moment the tab loses focus or is
+   backgrounded, so nothing sensitive is visible in the app switcher or to anyone
+   glancing over while you're away. A real screenshot block needs a native app
+   (FLAG_SECURE on Android, screen-capture protection on iOS) — see the native
+   app guide for that. */
+function setPrivacyToggleUI(){
+  const t = document.getElementById('privacy-toggle');
+  t.classList.toggle('on', privacyModeEnabled);
+}
+function togglePrivacyMode(){
+  privacyModeEnabled = !privacyModeEnabled;
+  setPrivacyToggleUI();
+  if(!privacyModeEnabled) hidePrivacyOverlay();
+}
+function showPrivacyOverlay(){
+  if(!privacyModeEnabled) return;
+  if(!vault.passwordSet) return; // nothing sensitive to hide before setup
+  document.getElementById('privacy-overlay').classList.add('active');
+}
+function hidePrivacyOverlay(){
+  document.getElementById('privacy-overlay').classList.remove('active');
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) showPrivacyOverlay();
+  else hidePrivacyOverlay();
+});
+window.addEventListener('blur', showPrivacyOverlay);
+window.addEventListener('focus', hidePrivacyOverlay);
+setPrivacyToggleUI();
+
+/* ================= LIGHTBOX ZOOM (pinch, double-tap, drag, +/- buttons) ================= */
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+let zoomScale = 1;
+let zoomX = 0, zoomY = 0;           // current pan offset (px)
+let zoomStartDist = 0;              // pinch: distance at gesture start
+let zoomStartScale = 1;
+let panStartX = 0, panStartY = 0;   // drag start pointer position
+let panOriginX = 0, panOriginY = 0; // pan offset at drag start
+let isPanning = false;
+let lastTapTime = 0;
+let lastTapX = 0, lastTapY = 0;
+
+const lightboxBody = document.getElementById('lightbox-body');
+const lightboxImg = document.getElementById('lightbox-img');
+
+function applyZoomTransform(withTransition){
+  lightboxImg.classList.toggle('zoom-transition', !!withTransition);
+  lightboxImg.style.transform = 'translate(' + zoomX + 'px,' + zoomY + 'px) scale(' + zoomScale + ')';
+  document.getElementById('zoom-controls').classList.toggle('visible', zoomScale > 1.02);
+}
+
+function clampPan(){
+  if(!lightboxBody || !lightboxImg) return;
+  const rect = lightboxBody.getBoundingClientRect();
+  const maxX = (rect.width * (zoomScale - 1)) / 2;
+  const maxY = (rect.height * (zoomScale - 1)) / 2;
+  zoomX = Math.max(-maxX, Math.min(maxX, zoomX));
+  zoomY = Math.max(-maxY, Math.min(maxY, zoomY));
+}
+
+function resetZoom(){
+  zoomScale = 1;
+  zoomX = 0;
+  zoomY = 0;
+  if(lightboxImg) applyZoomTransform(true);
+}
+
+function zoomStep(direction){
+  const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomScale + direction * 0.75));
+  zoomScale = next;
+  if(zoomScale <= 1.001){ zoomScale = 1; zoomX = 0; zoomY = 0; }
+  else clampPan();
+  applyZoomTransform(true);
+}
+
+function distanceBetween(t1, t2){
+  return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+}
+
+if(lightboxBody){
+  lightboxBody.addEventListener('touchstart', (e) => {
+    if(e.touches.length === 2){
+      isPanning = false;
+      zoomStartDist = distanceBetween(e.touches[0], e.touches[1]);
+      zoomStartScale = zoomScale;
+    } else if(e.touches.length === 1){
+      const now = Date.now();
+      const t = e.touches[0];
+      if(now - lastTapTime < 320 && Math.hypot(t.clientX - lastTapX, t.clientY - lastTapY) < 30){
+        // double tap
+        if(zoomScale > 1.02){ resetZoom(); }
+        else{ zoomScale = 2.5; zoomX = 0; zoomY = 0; applyZoomTransform(true); }
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+        lastTapX = t.clientX;
+        lastTapY = t.clientY;
+      }
+      if(zoomScale > 1.02){
+        isPanning = true;
+        panStartX = t.clientX;
+        panStartY = t.clientY;
+        panOriginX = zoomX;
+        panOriginY = zoomY;
+      }
+    }
+  }, { passive: true });
+
+  lightboxBody.addEventListener('touchmove', (e) => {
+    if(e.touches.length === 2 && zoomStartDist > 0){
+      e.preventDefault();
+      const dist = distanceBetween(e.touches[0], e.touches[1]);
+      const scale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomStartScale * (dist / zoomStartDist)));
+      zoomScale = scale;
+      clampPan();
+      applyZoomTransform(false);
+    } else if(e.touches.length === 1 && isPanning){
+      e.preventDefault();
+      const t = e.touches[0];
+      zoomX = panOriginX + (t.clientX - panStartX);
+      zoomY = panOriginY + (t.clientY - panStartY);
+      clampPan();
+      applyZoomTransform(false);
+    }
+  }, { passive: false });
+
+  lightboxBody.addEventListener('touchend', (e) => {
+    if(e.touches.length === 0){
+      isPanning = false;
+      zoomStartDist = 0;
+      if(zoomScale <= 1.02){ zoomScale = 1; zoomX = 0; zoomY = 0; applyZoomTransform(true); }
+    }
+  });
+
+  // desktop fallback: double-click and wheel zoom
+  lightboxBody.addEventListener('dblclick', () => {
+    if(zoomScale > 1.02){ resetZoom(); }
+    else{ zoomScale = 2.5; applyZoomTransform(true); }
+  });
+  lightboxBody.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomScale - e.deltaY * 0.0025));
+    zoomScale = next;
+    if(zoomScale <= 1.001){ zoomScale = 1; zoomX = 0; zoomY = 0; }
+    else clampPan();
+    applyZoomTransform(false);
+  }, { passive: false });
+}
+
+/* kick off: apply saved theme/accent first, then check for an existing vault */
+loadAppSettings();
+bootFromStorage();
+</script>
+</body>
+</html>

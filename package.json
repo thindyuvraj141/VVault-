@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p www && cp index.html www/ && (cp manifest.json www/ 2>/dev/null; true) && (cp sw.js www/ 2>/dev/null; true) && (cp -r icon-*.png www/ 2>/dev/null; true)"
+    "build": "mkdir -p www && cp index.html www/ && (cp manifest.json www/ 2>/dev/null; true) && (cp sw.js www/ 2>/dev/null; true) && (cp -r icon-*.png www/ 2>/dev/null; true) && echo \"window.APP_VERSION = \\\"$(test -f VERSION && cat VERSION | tr -d '[:space:]' || echo 0.0.0)\\\";\" > www/version.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
