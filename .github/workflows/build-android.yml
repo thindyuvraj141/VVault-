@@ -44,7 +44,7 @@ jobs:
           APP_ID=$(node -p "require('./capacitor.config.json').appId")
           PKG_DIR="android/app/src/main/java/$(echo $APP_ID | tr '.' '/')"
           mkdir -p "$PKG_DIR"
-          sed "s/__APP_ID__/$APP_ID/" .github/native/VaultMediaPlugin.kt > "$PKG_DIR/VaultMediaPlugin.kt"
+          sed "s/__APP_ID__/$APP_ID/" .github/native/VaultMediaPlugin.java > "$PKG_DIR/VaultMediaPlugin.java"
           cat > "$PKG_DIR/MainActivity.java" <<EOF
           package $APP_ID;
 
