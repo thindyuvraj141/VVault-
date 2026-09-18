@@ -1596,7 +1596,7 @@ function renderLockMode(){
     );
   }
 
-  const showBiometric = vault.biometricEnabled && !vault.changingPassword && window.PublicKeyCredential;
+  const showBiometric = vault.biometricEnabled && !vault.changingPassword && (isNativeApp() || window.PublicKeyCredential);
   document.getElementById('lock-biometric-btn').style.display = showBiometric ? 'flex' : 'none';
 }
 
@@ -1726,11 +1726,16 @@ async function resetPassword(){
   playIris(() => { enterVault(); showToast(isPin ? 'PIN reset' : 'Password reset'); });
 }
 
-/* ================= BIOMETRIC (WebAuthn platform authenticator) =================
-   This is a purely local, client-side check: a successful platform
-   authenticator ceremony (Face ID / Touch ID / Android biometric/screen-lock)
-   unlocks the vault. There's no server, so there's nothing to verify a
-   signature against — the OS-level user-verification itself is the gate. */
+/* ================= BIOMETRIC (native on Capacitor, WebAuthn in browser) =================
+   Inside the Capacitor-wrapped app, window.Capacitor is present and we use the
+   NativeBiometric plugin (real Android BiometricPrompt / iOS Face-Touch ID) —
+   plain Android WebView does not support WebAuthn platform authenticators.
+   In a normal browser tab (no Capacitor bridge), WebAuthn is used as before.
+   This is a purely local, on-device check either way: there's no server, so
+   a successful OS-level verification is itself the gate. */
+function isNativeApp(){
+  return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+}
 function bufToBase64Url(buf){
   return bufToBase64(buf).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
@@ -1740,16 +1745,41 @@ function base64UrlToBuf(b64url){
 }
 
 async function toggleBiometric(){
-  if(!window.PublicKeyCredential){
-    showToast('Biometric unlock isn\'t supported on this browser');
-    return;
-  }
   if(vault.biometricEnabled){
     vault.biometricEnabled = false;
     vault.biometricCredentialId = '';
     await persistVaultConfig();
     setBiometricToggleUI();
     showToast('Face / Touch unlock disabled');
+    return;
+  }
+
+  if(isNativeApp()){
+    try{
+      const { NativeBiometric } = window.Capacitor.Plugins;
+      const result = await NativeBiometric.isAvailable();
+      if(!result.isAvailable){
+        showToast('This device has no Face/Touch ID or screen-lock set up');
+        return;
+      }
+      await NativeBiometric.verifyIdentity({
+        reason: 'Enable Face / Touch unlock for V Vault',
+        title: 'V Vault'
+      });
+      vault.biometricEnabled = true;
+      vault.biometricCredentialId = 'native'; // native plugin needs no stored credential id
+      await persistVaultConfig();
+      setBiometricToggleUI();
+      showToast('Face / Touch unlock enabled');
+    }catch(err){
+      console.error('V Vault native biometric setup error:', err);
+      showToast('Could not set up biometric unlock');
+    }
+    return;
+  }
+
+  if(!window.PublicKeyCredential){
+    showToast('Biometric unlock isn\'t supported on this browser');
     return;
   }
   try{
@@ -1787,6 +1817,21 @@ function setBiometricToggleUI(){
 }
 
 async function unlockWithBiometric(){
+  if(isNativeApp()){
+    try{
+      const { NativeBiometric } = window.Capacitor.Plugins;
+      await NativeBiometric.verifyIdentity({
+        reason: 'Unlock V Vault',
+        title: 'V Vault'
+      });
+      playIris(() => enterVault());
+    }catch(err){
+      console.error('V Vault native biometric unlock error:', err);
+      showToast('Biometric unlock cancelled or failed');
+    }
+    return;
+  }
+
   try{
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     await navigator.credentials.get({
