@@ -39,6 +39,27 @@ jobs:
             npx cap add android
           fi
 
+      - name: Add VaultMedia native plugin
+        run: |
+          APP_ID=$(node -p "require('./capacitor.config.json').appId")
+          PKG_DIR="android/app/src/main/java/$(echo $APP_ID | tr '.' '/')"
+          mkdir -p "$PKG_DIR"
+          sed "s/__APP_ID__/$APP_ID/" .github/native/VaultMediaPlugin.kt > "$PKG_DIR/VaultMediaPlugin.kt"
+          cat > "$PKG_DIR/MainActivity.java" <<EOF
+          package $APP_ID;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+            @Override
+            public void onCreate(Bundle savedInstanceState) {
+              registerPlugin(VaultMediaPlugin.class);
+              super.onCreate(savedInstanceState);
+            }
+          }
+          EOF
+
       - name: Prepare app icon source
         run: |
           mkdir -p assets
@@ -62,8 +83,8 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 21
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Restore cached keystore
         id: cache-keystore
