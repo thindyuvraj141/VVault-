@@ -1,0 +1,16 @@
+{
+  "name": "vvault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p www && cp index.html www/ && (cp manifest.json www/ 2>/dev/null; true) && (cp sw.js www/ 2>/dev/null; true) && (cp -r icon-*.png www/ 2>/dev/null; true)"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capgo/capacitor-native-biometric": "^7.1.13"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}
