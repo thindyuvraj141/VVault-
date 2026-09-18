@@ -93,14 +93,9 @@ jobs:
           name: V Vault ${{ steps.ver.outputs.tag }}
           files: release-out/vvault-${{ steps.ver.outputs.tag }}.apk
           make_latest: true
-          name: Build Signed Android APK
-
-on:
   workflow_dispatch:
   push:
     branches: [ main ]
-
-jobs:
   build:
     runs-on: ubuntu-latest
     steps:
