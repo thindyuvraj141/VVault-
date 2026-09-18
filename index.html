@@ -575,6 +575,7 @@
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="version.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -1091,6 +1092,10 @@
       <span style="flex:1;">Face / Touch unlock</span>
       <div class="toggle-switch" id="biometric-toggle"><div class="toggle-knob"></div></div>
     </div>
+    <div class="sheet-item" onclick="closeSettings(); openDriveModal();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 2L1.5 9.5L4 14H14L16.5 9.5L12 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6 2L10.5 9.5H16.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      Google Drive backup
+    </div>
     <div class="sheet-item" onclick="closeSettings(); createBackup();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       Create backup file
@@ -1130,6 +1135,49 @@
       <div class="manage-list" id="stats-body"></div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeStorageStats()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Drive backup -->
+  <div class="modal-overlay" id="drive-overlay">
+    <div class="modal-card">
+      <h3>Google Drive backup</h3>
+
+      <div id="drive-setup-section">
+        <p style="font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:14px;">
+          First time only: paste your Google OAuth Client ID.
+          <a href="#" onclick="showToast('See the setup guide included with this app'); return false;" style="color:var(--accent);">What's this?</a>
+        </p>
+        <div class="field">
+          <label for="drive-client-id-input">Google Client ID</label>
+          <input type="text" id="drive-client-id-input" placeholder="xxxxxxxx.apps.googleusercontent.com">
+        </div>
+        <div class="error-msg" id="drive-setup-error">&nbsp;</div>
+        <button class="btn btn-primary" onclick="saveDriveClientId()">Save</button>
+      </div>
+
+      <div id="drive-connect-section" style="display:none;">
+        <p id="drive-status-text" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Not connected</p>
+        <button class="btn btn-primary" id="drive-connect-btn" onclick="connectGoogleDrive()">Connect Google Drive</button>
+        <div id="drive-actions" style="display:none;margin-top:10px;">
+          <button class="btn-biometric" onclick="backupToDrive()">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Backup now to Drive
+          </button>
+          <button class="btn-biometric" onclick="listDriveBackups()">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V2M9 2L5.5 5.5M9 2L12.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Restore from Drive
+          </button>
+          <div id="drive-file-list" class="manage-list" style="display:none;margin-top:10px;"></div>
+          <button class="btn-biometric" onclick="disconnectGoogleDrive()" style="color:var(--danger);border-color:var(--danger);margin-top:10px;">
+            Disconnect Google Drive
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="btn btn-ghost" onclick="closeDriveModal()">Close</button>
       </div>
     </div>
   </div>
@@ -1241,6 +1289,9 @@ let homeSelectionMode = false;
 let selectedFolderIds = new Set();
 let searchTypeFilter = 'all'; // 'all' | 'image' | 'video' | 'favorite'
 let showAppBadge = true;
+let driveClientId = null;
+let driveAccessToken = null;
+let driveTokenClient = null;
 let searchQuery = "";
 let currentLightboxId = null;
 let privacyModeEnabled = true;
@@ -2819,8 +2870,18 @@ function bufToBase64(buf){
 function base64ToBuf(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
 
 let backupPwMode = null; // 'create' | 'restore'
+let backupTarget = 'file'; // 'file' | 'drive'
 
 function createBackup(){
+  backupTarget = 'file';
+  openBackupPwModalForCreate();
+}
+function backupToDrive(){
+  if(!driveAccessToken){ showToast('Connect Google Drive first'); return; }
+  backupTarget = 'drive';
+  openBackupPwModalForCreate();
+}
+function openBackupPwModalForCreate(){
   backupPwMode = 'create';
   const isPin = vault.secretType === 'pin';
   document.getElementById('backup-pw-title').textContent = isPin ? 'Confirm your PIN' : 'Confirm your password';
@@ -2889,17 +2950,23 @@ async function confirmBackupPassword(){
         ciphertext: bufToBase64(ciphertextBuf)
       };
       const blob = new Blob([JSON.stringify(backupObj)], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const dateStr = new Date().toISOString().slice(0,10);
-      a.download = 'vvault-backup-' + dateStr + '.vault';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-      closeBackupPwModal();
-      showToast('Backup file created — check your Downloads');
+
+      if(backupTarget === 'drive'){
+        await uploadBackupToDrive(backupObj);
+        closeBackupPwModal();
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0,10);
+        a.download = 'vvault-backup-' + dateStr + '.vault';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        closeBackupPwModal();
+        showToast('Backup file created — check your Downloads');
+      }
 
     } else if(backupPwMode === 'restore'){
       const saltBytes = base64ToBuf(pendingRestoreEncrypted.salt);
@@ -2944,6 +3011,158 @@ async function confirmBackupPassword(){
   }
 }
 
+/* ================= GOOGLE DRIVE BACKUP =================
+   Uses Google's own sign-in (Identity Services) and the narrowest Drive scope
+   ("drive.file"), which only ever lets this app see files it created itself —
+   never anyone's existing Drive contents. The backup uploaded is the exact
+   same AES-256-GCM encrypted blob used for local backups; Google only ever
+   stores encrypted bytes it can't read. */
+function openDriveModal(){
+  document.getElementById('drive-overlay').classList.add('active');
+  renderDriveModalState();
+}
+function closeDriveModal(){
+  document.getElementById('drive-overlay').classList.remove('active');
+}
+function renderDriveModalState(){
+  const setupSection = document.getElementById('drive-setup-section');
+  const connectSection = document.getElementById('drive-connect-section');
+  if(!driveClientId){
+    setupSection.style.display = 'block';
+    connectSection.style.display = 'none';
+    return;
+  }
+  setupSection.style.display = 'none';
+  connectSection.style.display = 'block';
+  document.getElementById('drive-file-list').style.display = 'none';
+  const statusText = document.getElementById('drive-status-text');
+  const connectBtn = document.getElementById('drive-connect-btn');
+  const actions = document.getElementById('drive-actions');
+  if(driveAccessToken){
+    statusText.textContent = 'Connected';
+    connectBtn.style.display = 'none';
+    actions.style.display = 'block';
+  } else {
+    statusText.textContent = 'Not connected';
+    connectBtn.style.display = 'block';
+    actions.style.display = 'none';
+  }
+}
+function saveDriveClientId(){
+  const val = document.getElementById('drive-client-id-input').value.trim();
+  if(!val){ document.getElementById('drive-setup-error').textContent = 'Paste your Client ID first.'; return; }
+  driveClientId = val;
+  persistAppSettings();
+  renderDriveModalState();
+}
+function connectGoogleDrive(){
+  if(!driveClientId){ showToast('Set up your Client ID first'); return; }
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2){
+    showToast('Google sign-in didn\'t load — check your connection and try again');
+    return;
+  }
+  driveTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: driveClientId,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    callback: (resp) => {
+      if(resp.error){ showToast('Could not connect: ' + resp.error); return; }
+      driveAccessToken = resp.access_token;
+      showToast('Google Drive connected');
+      renderDriveModalState();
+    }
+  });
+  driveTokenClient.requestAccessToken();
+}
+function disconnectGoogleDrive(){
+  if(driveAccessToken && typeof google !== 'undefined' && google.accounts && google.accounts.oauth2){
+    google.accounts.oauth2.revoke(driveAccessToken, () => {});
+  }
+  driveAccessToken = null;
+  renderDriveModalState();
+  showToast('Google Drive disconnected');
+}
+async function uploadBackupToDrive(backupObj){
+  const fileName = 'vvault-backup-' + new Date().toISOString().slice(0,10) + '-' + Date.now() + '.vault';
+  const metadata = { name: fileName, mimeType: 'application/json' };
+  const boundary = 'vvault' + Date.now();
+  const body =
+    '--' + boundary + '\r\n' +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    JSON.stringify(metadata) + '\r\n' +
+    '--' + boundary + '\r\n' +
+    'Content-Type: application/json\r\n\r\n' +
+    JSON.stringify(backupObj) + '\r\n' +
+    '--' + boundary + '--';
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + driveAccessToken,
+      'Content-Type': 'multipart/related; boundary=' + boundary
+    },
+    body
+  });
+  if(!res.ok){
+    if(res.status === 401){ driveAccessToken = null; renderDriveModalState(); }
+    throw new Error('Drive upload failed (' + res.status + ')');
+  }
+  showToast('Backed up to Google Drive');
+}
+async function listDriveBackups(){
+  if(!driveAccessToken){ showToast('Connect Google Drive first'); return; }
+  const list = document.getElementById('drive-file-list');
+  list.style.display = 'block';
+  list.innerHTML = '<div class="manage-empty">Loading…</div>';
+  try{
+    const q = encodeURIComponent("name contains 'vvault-backup'");
+    const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&q=' + q, {
+      headers: { 'Authorization': 'Bearer ' + driveAccessToken }
+    });
+    if(!res.ok){
+      if(res.status === 401){ driveAccessToken = null; renderDriveModalState(); }
+      throw new Error('list failed (' + res.status + ')');
+    }
+    const data = await res.json();
+    if(!data.files || data.files.length === 0){
+      list.innerHTML = '<div class="manage-empty">No backups found in Drive yet.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    data.files.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'manage-row';
+      row.style.cursor = 'pointer';
+      row.innerHTML = '<span>' + f.name + '</span>';
+      row.onclick = () => loadDriveBackupForRestore(f.id);
+      list.appendChild(row);
+    });
+  }catch(err){
+    console.error('Drive list error:', err);
+    list.innerHTML = '<div class="manage-empty">Could not load your Drive backups.</div>';
+  }
+}
+async function loadDriveBackupForRestore(fileId){
+  try{
+    const res = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + driveAccessToken }
+    });
+    if(!res.ok) throw new Error('download failed (' + res.status + ')');
+    const parsed = await res.json();
+    if(!parsed.salt || !parsed.iv || !parsed.ciphertext){ showToast('That file doesn\'t look like a V Vault backup'); return; }
+    pendingRestoreEncrypted = parsed;
+    backupPwMode = 'restore';
+    closeDriveModal();
+    document.getElementById('backup-pw-title').textContent = 'Enter backup password';
+    document.getElementById('backup-pw-desc').textContent = 'Enter the vault password that was used when this backup was created.';
+    document.getElementById('backup-pw-input').value = '';
+    clearError('backuppw');
+    document.getElementById('backup-pw-confirm-btn').textContent = 'Restore';
+    document.getElementById('backup-pw-overlay').classList.add('active');
+  }catch(err){
+    console.error('Drive restore fetch error:', err);
+    showToast('Could not load that backup from Drive');
+  }
+}
+
 /* ================= APPEARANCE (theme + accent colour) =================
    Stored separately from the vault itself, so the choice applies even on
    the lock/setup screens before anyone has unlocked anything. */
@@ -2951,7 +3170,7 @@ let appTheme = 'light';
 let appAccent = 'gold';
 
 async function persistAppSettings(){
-  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge });
+  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, driveClientId: driveClientId });
 }
 async function loadAppSettings(){
   try{
@@ -2962,6 +3181,7 @@ async function loadAppSettings(){
       autoLockMinutes = saved.autoLockMinutes || 0;
       gridColumns = saved.gridColumns || 3;
       showAppBadge = saved.showAppBadge !== false;
+      driveClientId = saved.driveClientId || null;
     }
   }catch(err){
     // no saved settings yet — keep defaults
