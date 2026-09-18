@@ -48,15 +48,31 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/vvault-release.jks
+      - name: Restore cached keystore
+        id: cache-keystore
+        uses: actions/cache@v4
+        with:
+          path: keystore-cache
+          key: vvault-release-keystore-v1
+
+      - name: Generate keystore (first run only)
+        if: steps.cache-keystore.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p keystore-cache
+          keytool -genkeypair -v \
+            -keystore keystore-cache/vvault-release.jks \
+            -alias ${{ secrets.KEY_ALIAS }} \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -dname "CN=V Vault, OU=App, O=VVault, C=IN"
 
       - name: Build release APK
         run: |
           cd android
           chmod +x ./gradlew
           ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/android/app/vvault-release.jks" \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/keystore-cache/vvault-release.jks" \
             -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
@@ -66,3 +82,9 @@ jobs:
         with:
           name: vvault-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload keystore backup (save this somewhere safe!)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vvault-keystore-backup
+          path: keystore-cache/vvault-release.jks
