@@ -44,3 +44,5 @@ Ye agla step hai jab app poori tarah test ho jaye.
 ## Agar build fail ho
 
 Capacitor + Android SDK + Gradle ka combination pehli baar theek se chalna guarantee nahi hai — agar error aaye, **Actions tab ka poora error log screenshot bhej dena**, exact wajah dekh ke fix kar denge (jaise humne Pages workflow ke saath kiya tha).
+npm install capacitor-native-biometric
+npx cap sync android
