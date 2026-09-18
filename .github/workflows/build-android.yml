@@ -39,6 +39,23 @@ jobs:
             npx cap add android
           fi
 
+      - name: Prepare app icon source
+        run: |
+          mkdir -p assets
+          if [ -f icon-512.png ]; then
+            cp icon-512.png assets/icon.png
+          elif [ -f icon-192.png ]; then
+            cp icon-192.png assets/icon.png
+          fi
+
+      - name: Generate app icons
+        run: |
+          if [ -f assets/icon.png ]; then
+            npx @capacitor/assets generate --android --iconBackgroundColor '#E4EEFC' --iconBackgroundColorDark '#0B0D10'
+          else
+            echo "No icon source found (icon-512.png / icon-192.png) — skipping icon generation."
+          fi
+
       - name: Sync Capacitor
         run: npx cap sync android
 
