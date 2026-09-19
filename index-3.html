@@ -95,11 +95,11 @@
   .screen.active{display:flex;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.012em;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
 
   /* ---------- Brand lockup ---------- */
   .brand{display:flex;align-items:center;gap:10px;}
-  .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--text);letter-spacing:-0.01em;}
+  .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--text);letter-spacing:-0.01em;}
   .logo{width:34px;height:34px;flex-shrink:0;}
 
   .center-brand{
@@ -147,7 +147,7 @@
   .btn-biometric svg{color:var(--accent);flex-shrink:0;}
 
   .field label{
-    display:block;font-size:12px;color:var(--text-muted);margin-bottom:7px;font-weight:600;
+    display:block;font-size:12px;color:var(--text-muted);margin-bottom:7px;font-weight:500;
     letter-spacing:0.01em;
   }
   .pw-wrap{position:relative;}
@@ -202,7 +202,7 @@
   .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
   .btn-ghost:hover{color:var(--text);border-color:var(--text-faint);}
   .link-btn{
-    background:none;border:none;color:var(--accent);font-size:13.5px;font-weight:600;
+    background:none;border:none;color:var(--accent);font-size:13.5px;font-weight:500;
     cursor:pointer;font-family:'Inter',sans-serif;padding:4px;
   }
 
@@ -286,7 +286,7 @@
   .album-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;scrollbar-width:none;}
   .album-row::-webkit-scrollbar{display:none;}
   .chip{
-    flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:600;
+    flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:500;
     background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
     cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,border-color .2s;
   }
@@ -297,7 +297,7 @@
   .filter-chip-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
   .filter-chip-row::-webkit-scrollbar{display:none;}
   .filter-chip{
-    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:600;
+    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;
     background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
     cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;
   }
@@ -351,7 +351,7 @@
   .folder-card.selected{outline:2px solid var(--accent);}
   .folder-check{z-index:2;}
   .folder-card .folder-name{
-    font-size:14.5px;font-weight:700;color:var(--text);
+    font-size:14.5px;font-weight:600;color:var(--text);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   .folder-card .folder-count{font-size:12px;color:var(--text-muted);}
@@ -484,7 +484,6 @@
   /* ---------- Settings sheet ---------- */
   .sheet-overlay{
     position:fixed;inset:0;background:rgba(5,6,5,.55);z-index:90;display:none;
-    backdrop-filter:blur(2px);
   }
   .sheet-overlay.active{display:block;}
   .sheet{
@@ -557,7 +556,6 @@
   .modal-overlay{
     position:fixed;inset:0;background:rgba(5,6,5,.6);z-index:110;display:none;
     align-items:center;justify-content:center;padding:24px;
-    backdrop-filter:blur(2px);
   }
   .modal-overlay.active{display:flex;}
   .modal-card{
@@ -604,7 +602,7 @@
   .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:270px;margin:0 auto 20px;}
   .keypad-btn{
     aspect-ratio:1/1;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--border);
-    color:var(--text);font-size:21px;font-family:'Inter',sans-serif;font-weight:600;cursor:pointer;
+    color:var(--text);font-size:21px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
     transition:background .12s, transform .12s;
   }
@@ -616,7 +614,7 @@
   .biometric-btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
     width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--bg-elevated);
-    border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:600;
+    border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:500;
     cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:14px;
   }
   .biometric-btn svg{color:var(--accent);}
@@ -1180,6 +1178,7 @@
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Erase vault
     </div>
+    <div class="app-version-label" id="app-version-label"></div>
   </div>
 
   <!-- Storage & stats modal -->
@@ -1921,22 +1920,44 @@ function enterVault(){
 }
 
 /* ================= NATIVE APP UPDATE CHECK =================
-   Only relevant when running inside the Capacitor-wrapped native app
-   (window.Capacitor + window.APP_VERSION are only injected into that build —
+   Only relevant when running inside the Capacitor-wrapped native app —
    in the plain website/PWA this whole thing quietly does nothing, since the
-   website is always the latest version anyway).
-   Update your own repo's owner/name below if you fork this project. */
+   website is always the latest version anyway.
+   Update your own repo's owner/name below if you fork this project.
+
+   The installed app's version comes straight from the VaultMedia native
+   plugin's getAppVersion() (which reads the real Android package version),
+   not from a window.APP_VERSION value injected some other way — that
+   injection is easy to lose (e.g. if MainActivity.java ever gets
+   regenerated) and silently leaves this stuck comparing against nothing,
+   which is what caused the update banner to never clear correctly before. */
 const VVAULT_REPO = 'thindyuvraj141/VVault-';
 let latestApkUrl = null;
+let appVersion = null; // filled in by loadAppVersion() below
+
+async function loadAppVersion(){
+  if(!isNativeApp()) return;
+  try{
+    const { VaultMedia } = window.Capacitor.Plugins;
+    if(!VaultMedia) return;
+    const res = await VaultMedia.getAppVersion();
+    appVersion = (res && res.version) ? String(res.version) : null;
+    const label = document.getElementById('app-version-label');
+    if(label) label.textContent = appVersion ? ('Version ' + appVersion) : '';
+  }catch(err){
+    // plugin unavailable (e.g. older build before this was added) — the
+    // update banner just won't show, which is safe.
+  }
+}
 
 async function checkForAppUpdate(){
-  if(typeof window.Capacitor === 'undefined' || !window.APP_VERSION) return;
+  if(!isNativeApp() || !appVersion) return;
   try{
     const res = await fetch('https://api.github.com/repos/' + VVAULT_REPO + '/releases/latest');
     if(!res.ok) return;
     const data = await res.json();
-    const latestVersion = (data.tag_name || '').replace(/^v/, '');
-    if(!latestVersion || latestVersion === window.APP_VERSION) return;
+    const latestVersion = (data.tag_name || '').replace(/^v/, '').trim();
+    if(!latestVersion || latestVersion === appVersion.trim()) return;
     const apkAsset = (data.assets || []).find(a => a.name.endsWith('.apk'));
     if(!apkAsset) return;
     latestApkUrl = apkAsset.browser_download_url;
@@ -1953,17 +1974,17 @@ function dismissUpdateBanner(){
   document.getElementById('update-banner').style.display = 'none';
 }
 async function manualCheckForUpdate(){
-  if(typeof window.Capacitor === 'undefined'){
+  if(!isNativeApp()){
     showToast('You\'re using the web version — it\'s always up to date');
     return;
   }
-  if(!window.APP_VERSION){
+  if(!appVersion){
     showToast('Could not read this app\'s version');
     return;
   }
   showToast('Checking for updates…');
   await checkForAppUpdate();
-  if(!latestApkUrl) showToast('You\'re on the latest version (v' + window.APP_VERSION + ')');
+  if(!latestApkUrl) showToast('You\'re on the latest version (v' + appVersion + ')');
 }
 
 function albumName(id){
@@ -3382,6 +3403,7 @@ if(lightboxBody){
 
 /* kick off: apply saved theme/accent first, then check for an existing vault */
 loadAppSettings();
+loadAppVersion();
 bootFromStorage();
 </script>
 </body>
