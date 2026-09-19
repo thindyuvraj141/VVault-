@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light" data-accent="gold">
+<html lang="en" data-theme="light" data-accent="green">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>V Vault — Photo Vault</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E4EEFC">
+<meta name="theme-color" content="#E7F3EC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="V Vault">
@@ -29,11 +29,12 @@
     --radius:18px;
 
     /* --- accent tokens: overridden per accent choice below --- */
-    --accent-rgb:198,161,91;
+    --accent-rgb:74,144,217;
     --accent:rgb(var(--accent-rgb));
     --accent-soft:rgba(var(--accent-rgb),0.14);
     --accent-dim:rgba(var(--accent-rgb),0.45);
     --header-bg:rgba(var(--accent-rgb),0.16);
+    --accent-contrast:#FFFFFF;
   }
 
   /* ---------- dark mode ---------- */
@@ -52,11 +53,11 @@
   }
 
   /* ---------- accent choices ---------- */
-  html[data-accent="gold"]{ --accent-rgb:198,161,91; }
-  html[data-accent="blue"]{ --accent-rgb:74,144,217; }
-  html[data-accent="green"]{ --accent-rgb:87,168,120; }
-  html[data-accent="rose"]{ --accent-rgb:212,110,110; }
-  html[data-accent="purple"]{ --accent-rgb:150,122,214; }
+  html[data-accent="gold"]{ --accent-rgb:198,161,91; --accent-contrast:#1A1204; }
+  html[data-accent="blue"]{ --accent-rgb:74,144,217; --accent-contrast:#FFFFFF; }
+  html[data-accent="green"]{ --accent-rgb:87,168,120; --accent-contrast:#FFFFFF; }
+  html[data-accent="rose"]{ --accent-rgb:212,110,110; --accent-contrast:#FFFFFF; }
+  html[data-accent="purple"]{ --accent-rgb:150,122,214; --accent-contrast:#FFFFFF; }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{
     background:var(--bg);
@@ -79,7 +80,7 @@
     display:none;
     flex-direction:column;
     flex:1;
-    padding:36px 26px 28px;
+    padding:22px 26px 20px;
     animation:fadeIn .35s ease;
   }
   .screen.active{display:flex;}
@@ -92,10 +93,10 @@
   .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--text);}
   .logo{width:34px;height:34px;flex-shrink:0;}
 
-  .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 30px;}
-  .center-brand .logo{width:62px;height:62px;}
-  .center-brand .brand-name{font-size:26px;}
-  .center-brand .tagline{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;max-width:260px;}
+  .center-brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin:0 0 14px;}
+  .center-brand .logo{width:46px;height:46px;}
+  .center-brand .brand-name{font-size:21px;}
+  .center-brand .tagline{font-size:12.5px;color:var(--text-muted);text-align:center;line-height:1.4;max-width:250px;}
 
   /* ---------- Form elements ---------- */
   .field{margin-bottom:16px;}
@@ -164,8 +165,8 @@
     transition:transform .15s, opacity .15s, background .2s;
   }
   .btn:active{transform:scale(0.98);}
-  .btn-primary{background:var(--accent);color:#1A1204;}
-  .btn-primary:hover{background:#D2AE68;}
+  .btn-primary{background:var(--accent);color:var(--accent-contrast);}
+  .btn-primary:hover{filter:brightness(0.93);}
   .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
   .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
   .btn-ghost:hover{color:var(--text);border-color:var(--text-faint);}
@@ -182,7 +183,6 @@
     background:var(--card);border:1px solid var(--border);color:var(--text);
     padding:12px 18px;border-radius:12px;font-size:13.5px;
     display:flex;align-items:center;gap:8px;
-    box-shadow:0 12px 30px rgba(0,0,0,.4);
     opacity:0;pointer-events:none;transition:opacity .3s, transform .3s;
     z-index:50;max-width:340px;
   }
@@ -190,7 +190,7 @@
   .success-toast svg{flex-shrink:0;color:var(--accent);}
 
   /* ---------- Setup / Lock screens spacing ---------- */
-  .stack{flex:1;display:flex;flex-direction:column;justify-content:center;}
+  .stack{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding-top:4vh;}
   .footer-link{text-align:center;margin-top:8px;}
   .back-row{margin-bottom:20px;}
   .back-btn{
@@ -212,7 +212,7 @@
     padding:12px 14px;margin:16px 20px 0;font-size:13px;color:var(--text);
   }
   .update-banner-btn{
-    background:var(--accent);color:#1A1204;border:none;border-radius:8px;
+    background:var(--accent);color:var(--accent-contrast);border:none;border-radius:8px;
     padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
   }
   .update-banner-dismiss{
@@ -290,21 +290,21 @@
   .fab{
     position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
     max-width:430px;width:calc(100% - 40px);
-    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
+    background:var(--accent);color:var(--accent-contrast);border:none;border-radius:14px;
     padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
-    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+    cursor:pointer;z-index:20;
   }
   .fab:active{transform:translateX(-50%) scale(0.98);}
 
   /* ---------- Folders (home screen) ---------- */
   .folder-grid{
-    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+    display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
     padding-bottom:100px;
   }
   .folder-card{
-    position:relative;
-    background:var(--card);border:1px solid var(--border);border-radius:14px;
-    padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px;
+    position:relative;aspect-ratio:1/1;
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:10px;
     transition:background .15s;
   }
   .folder-card:active{background:var(--card-hover);}
@@ -318,10 +318,10 @@
   .folder-card .folder-count{font-size:12px;color:var(--text-muted);}
 
   .folder-card.has-cover{
-    position:relative;height:110px;background-size:cover;background-position:center;color:#fff;justify-content:flex-end;
+    position:relative;height:auto;background-size:cover;background-position:center;color:#fff;justify-content:flex-end;
   }
   .folder-card.has-cover::before{
-    content:'';position:absolute;inset:0;border-radius:14px;
+    content:'';position:absolute;inset:0;border-radius:16px;
     background:linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0) 60%);
   }
   .folder-card.has-cover .folder-icon{display:none;}
@@ -369,7 +369,6 @@
     max-width:430px;width:100%;background:var(--card);border-top:1px solid var(--border);
     padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
     z-index:25;font-size:13.5px;color:var(--text-muted);
-    box-shadow:0 -8px 24px rgba(0,0,0,0.15);
   }
   .selection-actions{display:flex;gap:16px;}
   .sel-action{
@@ -381,9 +380,9 @@
   .new-folder-fab{
     position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
     max-width:430px;width:calc(100% - 40px);
-    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
+    background:var(--accent);color:var(--accent-contrast);border:none;border-radius:14px;
     padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
-    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+    cursor:pointer;z-index:20;
   }
   .new-folder-fab:active{transform:translateX(-50%) scale(0.98);}
 
@@ -413,9 +412,8 @@
   }
   .zoom-controls.visible{opacity:1;pointer-events:auto;}
   .zoom-btn{
-    width:36px;height:36px;border-radius:10px;background:rgba(20,23,28,0.85);border:1px solid var(--border);
-    color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;
-    backdrop-filter:blur(6px);
+    width:36px;height:36px;border-radius:10px;background:#14171C;border:1px solid var(--border);
+    color:#F1EEE8;display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
   .zoom-btn:active{transform:scale(0.94);}
   .caption-wrap{padding:0 22px;}
@@ -448,8 +446,8 @@
   .sheet{
     position:fixed;left:50%;bottom:0;transform:translateX(-50%);
     max-width:430px;width:100%;background:var(--card);border-radius:20px 20px 0 0;
+    border:1px solid var(--border);border-bottom:none;
     padding:10px 22px 28px;z-index:95;
-    box-shadow:0 -10px 40px rgba(0,0,0,.5);
     max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
   .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
@@ -542,7 +540,7 @@
     flex:1;background:none;border:none;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;
     color:var(--text-muted);cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s,color .2s;
   }
-  .type-toggle button.active{background:var(--accent);color:#1A1204;}
+  .type-toggle button.active{background:var(--accent);color:var(--accent-contrast);}
 
   /* PIN pad */
   .pin-set-indicator{
@@ -551,14 +549,14 @@
     padding:14px 16px;margin-bottom:16px;font-size:14px;color:var(--text);
   }
   .pin-set-indicator .change-link{color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
-  .pin-dots{display:flex;justify-content:center;gap:14px;margin:18px 0 26px;}
-  .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--text-faint);transition:background .15s,border-color .15s;}
+  .pin-dots{display:flex;justify-content:center;gap:10px;margin:10px 0 16px;}
+  .pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--text-faint);transition:background .15s,border-color .15s;}
   .pin-dot.filled{background:var(--accent);border-color:var(--accent);}
   .pin-label{text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:4px;}
-  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:270px;margin:0 auto 20px;}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:225px;margin:0 auto 14px;}
   .keypad-btn{
     aspect-ratio:1/1;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--border);
-    color:var(--text);font-size:21px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;
+    color:var(--text);font-size:17px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
   }
   .keypad-btn:active{background:var(--card-hover);}
@@ -984,7 +982,7 @@
   </div>
 
   <button class="fab" id="add-fab" style="display:none;" onclick="addPhotos()">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#1A1204" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="var(--accent-contrast)" stroke-width="2" stroke-linecap="round"/></svg>
     Add photos
   </button>
   <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="handleFiles(event)">
@@ -1065,10 +1063,6 @@
         <option value="5">5 minutes</option>
         <option value="15">15 minutes</option>
       </select>
-    </div>
-    <div class="sheet-item" onclick="lockVaultNow()">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
-      Lock vault now
     </div>
     <div class="sheet-item" onclick="closeSettings(); goToChangePassword();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M9 5.5V9L11.5 10.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -1757,19 +1751,19 @@ function base64UrlToBuf(b64url){
 }
 
 async function toggleBiometric(){
-  if(!window.PublicKeyCredential){
-    showToast('Biometric unlock isn\'t supported on this browser');
-    return;
-  }
-  if(vault.biometricEnabled){
-    vault.biometricEnabled = false;
-    vault.biometricCredentialId = '';
-    await persistVaultConfig();
-    setBiometricToggleUI();
-    showToast('Face / Touch unlock disabled');
-    return;
-  }
   try{
+    if(!window.PublicKeyCredential){
+      showToast('Biometric unlock isn\'t supported on this browser');
+      return;
+    }
+    if(vault.biometricEnabled){
+      vault.biometricEnabled = false;
+      vault.biometricCredentialId = '';
+      await persistVaultConfig();
+      setBiometricToggleUI();
+      showToast('Face / Touch unlock disabled');
+      return;
+    }
     const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
     if(!available){
       showToast('This device has no Face/Touch ID or screen-lock set up');
@@ -1794,7 +1788,8 @@ async function toggleBiometric(){
     showToast('Face / Touch unlock enabled');
   }catch(err){
     console.error('V Vault biometric setup error:', err);
-    showToast((err && err.name ? err.name + ': ' : '') + (err && err.message ? err.message : 'Could not set up biometric unlock'));
+    const msg = (err && err.name ? err.name + ': ' : '') + (err && err.message ? err.message : 'Could not set up biometric unlock');
+    try{ showToast(msg); }catch(toastErr){ alert(msg); }
   }
 }
 
@@ -3044,7 +3039,7 @@ async function confirmBackupPassword(){
    Stored separately from the vault itself, so the choice applies even on
    the lock/setup screens before anyone has unlocked anything. */
 let appTheme = 'light';
-let appAccent = 'gold';
+let appAccent = 'green';
 
 async function persistAppSettings(){
   await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, removeFromGalleryEnabled: removeFromGalleryEnabled });
@@ -3054,7 +3049,7 @@ async function loadAppSettings(){
     const saved = await dbGet('appSettings');
     if(saved){
       appTheme = saved.theme || 'light';
-      appAccent = saved.accent || 'gold';
+      appAccent = saved.accent || 'green';
       autoLockMinutes = saved.autoLockMinutes || 0;
       gridColumns = saved.gridColumns || 3;
       showAppBadge = saved.showAppBadge !== false;
