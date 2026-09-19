@@ -12,51 +12,61 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,680;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     /* --- structural tokens: overridden per theme below --- */
-    --bg:#FFFFFF;
-    --bg-elevated:#F1F5F9;
+    --bg:#F6F6F3;
+    --bg-elevated:#EDEDE8;
     --card:#FFFFFF;
-    --card-hover:#F3F6FA;
-    --text:#1C2126;
-    --text-muted:#6B7280;
-    --text-faint:#9AA1AB;
-    --danger:#C4453E;
-    --border:rgba(0,0,0,0.09);
-    --header-border:rgba(0,0,0,0.06);
-    --radius:18px;
+    --card-hover:#F1F1EC;
+    --text:#191A16;
+    --text-muted:#68675F;
+    --text-faint:#A2A096;
+    --danger:#B8453B;
+    --border:rgba(25,26,22,0.10);
+    --header-border:rgba(25,26,22,0.07);
+    --radius-sm:10px;
+    --radius-md:16px;
+    --radius-lg:24px;
+    --radius:var(--radius-md);
+    --shadow-ambient:0 1px 2px rgba(20,20,15,.05), 0 10px 24px -12px rgba(20,20,15,.18);
+    --shadow-lifted:0 2px 4px rgba(20,20,15,.06), 0 20px 40px -16px rgba(20,20,15,.28);
 
     /* --- accent tokens: overridden per accent choice below --- */
-    --accent-rgb:198,161,91;
+    --accent-rgb:181,138,45;
     --accent:rgb(var(--accent-rgb));
-    --accent-soft:rgba(var(--accent-rgb),0.14);
-    --accent-dim:rgba(var(--accent-rgb),0.45);
-    --header-bg:rgba(var(--accent-rgb),0.16);
+    --accent-ink:#22190A;
+    --accent-soft:rgba(var(--accent-rgb),0.13);
+    --accent-dim:rgba(var(--accent-rgb),0.42);
+    --header-bg:rgba(var(--accent-rgb),0.14);
+    --accent-glow:0 10px 26px -8px rgba(var(--accent-rgb),.55);
   }
 
   /* ---------- dark mode ---------- */
   html[data-theme="dark"]{
-    --bg:#0B0D10;
-    --bg-elevated:#14171C;
-    --card:#1A1E24;
-    --card-hover:#20242B;
-    --text:#F1EEE8;
-    --text-muted:#8D929A;
-    --text-faint:#565B63;
-    --danger:#D9756A;
+    --bg:#0A0B0D;
+    --bg-elevated:#141519;
+    --card:#191B20;
+    --card-hover:#20222A;
+    --text:#F2F0E9;
+    --text-muted:#93938E;
+    --text-faint:#54544F;
+    --danger:#E08277;
     --border:rgba(255,255,255,0.08);
     --header-border:rgba(255,255,255,0.08);
-    --header-bg:rgba(var(--accent-rgb),0.22);
+    --header-bg:rgba(var(--accent-rgb),0.20);
+    --shadow-ambient:0 1px 2px rgba(0,0,0,.4), 0 10px 24px -10px rgba(0,0,0,.55);
+    --shadow-lifted:0 2px 4px rgba(0,0,0,.5), 0 24px 48px -16px rgba(0,0,0,.65);
   }
 
-  /* ---------- accent choices ---------- */
-  html[data-accent="gold"]{ --accent-rgb:198,161,91; }
-  html[data-accent="blue"]{ --accent-rgb:74,144,217; }
-  html[data-accent="green"]{ --accent-rgb:87,168,120; }
-  html[data-accent="rose"]{ --accent-rgb:212,110,110; }
-  html[data-accent="purple"]{ --accent-rgb:150,122,214; }
+  /* ---------- accent choices (refined, richer jewel tones) ---------- */
+  html[data-accent="gold"]{ --accent-rgb:181,138,45; --accent-ink:#22190A; }
+  html[data-accent="blue"]{ --accent-rgb:47,109,196; --accent-ink:#0B1626; }
+  html[data-accent="green"]{ --accent-rgb:53,138,96; --accent-ink:#0A1D14; }
+  html[data-accent="rose"]{ --accent-rgb:190,74,86; --accent-ink:#260E10; }
+  html[data-accent="purple"]{ --accent-rgb:120,89,196; --accent-ink:#160F26; }
+
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{
     background:var(--bg);
@@ -80,47 +90,65 @@
     flex-direction:column;
     flex:1;
     padding:36px 26px 28px;
-    animation:fadeIn .35s ease;
+    animation:fadeIn .4s cubic-bezier(.22,.8,.28,1);
   }
   .screen.active{display:flex;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.012em;}
 
   /* ---------- Brand lockup ---------- */
   .brand{display:flex;align-items:center;gap:10px;}
-  .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--text);}
+  .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--text);letter-spacing:-0.01em;}
   .logo{width:34px;height:34px;flex-shrink:0;}
 
-  .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 30px;}
-  .center-brand .logo{width:62px;height:62px;}
-  .center-brand .brand-name{font-size:26px;}
-  .center-brand .tagline{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;max-width:260px;}
+  .center-brand{
+    display:flex;flex-direction:column;align-items:center;gap:16px;margin:8px 0 30px;
+    position:relative;
+  }
+  /* signature hero moment: faint concentric dial rings behind the mark,
+     echoing the compass/vault-dial logo itself. Used only here. */
+  .center-brand::before{
+    content:'';position:absolute;top:-34px;left:50%;transform:translateX(-50%);
+    width:210px;height:210px;border-radius:50%;
+    background:radial-gradient(circle, var(--accent-soft) 0%, transparent 68%);
+    pointer-events:none;z-index:0;
+  }
+  .center-brand .logo{width:64px;height:64px;position:relative;z-index:1;
+    filter:drop-shadow(0 6px 16px rgba(var(--accent-rgb),.35));}
+  .center-brand .brand-name{font-size:27px;position:relative;z-index:1;}
+  .center-brand .tagline{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    font-size:14.5px;color:var(--text-muted);text-align:center;line-height:1.5;max-width:260px;
+    position:relative;z-index:1;
+  }
 
   /* ---------- Form elements ---------- */
   .field{margin-bottom:16px;}
   /* auth type toggle (Password / PIN) */
   .type-toggle{
-    display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);
     padding:4px;margin-bottom:22px;
   }
   .type-chip{
     flex:1;padding:10px;border:none;background:transparent;color:var(--text-muted);
-    font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;border-radius:9px;cursor:pointer;
+    font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;border-radius:8px;cursor:pointer;
     transition:background .2s,color .2s;
   }
   .type-chip.active{background:var(--accent-soft);color:var(--accent);}
 
   .btn-biometric{
     display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;
-    border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+    border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
     font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;cursor:pointer;margin-top:10px;
+    transition:transform .15s, border-color .15s;
   }
   .btn-biometric:active{transform:scale(0.98);}
   .btn-biometric svg{color:var(--accent);flex-shrink:0;}
 
   .field label{
-    display:block;font-size:12.5px;color:var(--text-muted);margin-bottom:7px;font-weight:500;
+    display:block;font-size:12px;color:var(--text-muted);margin-bottom:7px;font-weight:600;
+    letter-spacing:0.01em;
   }
   .pw-wrap{position:relative;}
   input[type="password"], input[type="text"]{
@@ -129,14 +157,14 @@
     border:1px solid var(--border);
     color:var(--text);
     padding:14px 44px 14px 16px;
-    border-radius:12px;
+    border-radius:var(--radius-sm);
     font-size:15px;
     font-family:'Inter',sans-serif;
     outline:none;
-    transition:border-color .2s, background .2s;
+    transition:border-color .18s, background .18s, box-shadow .18s;
   }
   input[type="text"]{padding-right:16px;}
-  input:focus{border-color:var(--accent-dim);background:var(--card-hover);}
+  input:focus{border-color:var(--accent-dim);background:var(--card-hover);box-shadow:0 0 0 3px var(--accent-soft);}
   input::placeholder{color:var(--text-faint);}
   .toggle-eye{
     position:absolute;right:12px;top:50%;transform:translateY(-50%);
@@ -145,9 +173,9 @@
   }
   select{
     width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);
-    padding:14px 16px;border-radius:12px;font-size:15px;font-family:'Inter',sans-serif;outline:none;
+    padding:14px 16px;border-radius:var(--radius-sm);font-size:15px;font-family:'Inter',sans-serif;outline:none;
     appearance:none;-webkit-appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%238D929A' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%2393938E' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 16px center;
   }
 
@@ -159,18 +187,22 @@
 
   .btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
-    width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
-    font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
-    transition:transform .15s, opacity .15s, background .2s;
+    width:100%;padding:15px;border-radius:var(--radius-sm);border:none;cursor:pointer;
+    font-family:'Inter',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.005em;
+    transition:transform .15s, opacity .15s, background .2s, box-shadow .2s;
   }
   .btn:active{transform:scale(0.98);}
-  .btn-primary{background:var(--accent);color:#1A1204;}
-  .btn-primary:hover{background:#D2AE68;}
-  .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 40%) var(--accent);
+    color:var(--accent-ink);
+    box-shadow:var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
   .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
   .btn-ghost:hover{color:var(--text);border-color:var(--text-faint);}
   .link-btn{
-    background:none;border:none;color:var(--accent);font-size:13.5px;font-weight:500;
+    background:none;border:none;color:var(--accent);font-size:13.5px;font-weight:600;
     cursor:pointer;font-family:'Inter',sans-serif;padding:4px;
   }
 
@@ -180,9 +212,9 @@
   .success-toast{
     position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
     background:var(--card);border:1px solid var(--border);color:var(--text);
-    padding:12px 18px;border-radius:12px;font-size:13.5px;
+    padding:12px 18px;border-radius:var(--radius-sm);font-size:13.5px;
     display:flex;align-items:center;gap:8px;
-    box-shadow:0 12px 30px rgba(0,0,0,.4);
+    box-shadow:var(--shadow-lifted);
     opacity:0;pointer-events:none;transition:opacity .3s, transform .3s;
     z-index:50;max-width:340px;
   }
@@ -199,21 +231,21 @@
   }
   .back-btn:hover{color:var(--text);}
   .security-q-display{
-    background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);
     padding:14px 16px;font-size:14px;color:var(--text-muted);margin-bottom:18px;line-height:1.5;
   }
-  .security-q-display strong{color:var(--text);font-weight:500;}
+  .security-q-display strong{color:var(--text);font-weight:600;}
 
   /* ---------- Vault home ---------- */
   #screen-vault{padding:22px 20px 0;}
   .update-banner{
     display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:var(--accent-soft);border:1px solid var(--accent-dim);border-radius:12px;
+    background:var(--accent-soft);border:1px solid var(--accent-dim);border-radius:var(--radius-sm);
     padding:12px 14px;margin:16px 20px 0;font-size:13px;color:var(--text);
   }
   .update-banner-btn{
-    background:var(--accent);color:#1A1204;border:none;border-radius:8px;
-    padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+    background:var(--accent);color:var(--accent-ink);border:none;border-radius:8px;
+    padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;
   }
   .update-banner-dismiss{
     background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:4px;
@@ -224,13 +256,15 @@
     margin:-22px -20px 22px;padding:22px 20px 18px;
     background:var(--header-bg);border-bottom:1px solid var(--header-border);
   }
-  .vault-title-block .brand-name{font-size:20px;}
+  .vault-title-block .brand-name{font-size:21px;}
   .vault-title-block .count{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
   .icon-btn{
-    width:38px;height:38px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);
+    width:38px;height:38px;border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border);
     display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);
+    transition:color .15s, border-color .15s, transform .15s;
   }
   .icon-btn:hover{color:var(--text);border-color:var(--text-faint);}
+  .icon-btn:active{transform:scale(0.94);}
   .header-actions{display:flex;gap:8px;}
 
   /* search */
@@ -240,7 +274,7 @@
   }
   #search-input{
     width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);
-    padding:11px 14px 11px 38px;border-radius:11px;font-size:14px;font-family:'Inter',sans-serif;outline:none;
+    padding:11px 14px 11px 38px;border-radius:var(--radius-sm);font-size:14px;font-family:'Inter',sans-serif;outline:none;
   }
   #search-input:focus{border-color:var(--accent-dim);}
   #search-clear{
@@ -252,7 +286,7 @@
   .album-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;scrollbar-width:none;}
   .album-row::-webkit-scrollbar{display:none;}
   .chip{
-    flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:500;
+    flex-shrink:0;padding:8px 15px;border-radius:20px;font-size:13px;font-weight:600;
     background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
     cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,border-color .2s;
   }
@@ -263,7 +297,7 @@
   .filter-chip-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
   .filter-chip-row::-webkit-scrollbar{display:none;}
   .filter-chip{
-    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;
+    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:600;
     background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
     cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;
   }
@@ -274,9 +308,11 @@
     padding-bottom:110px;
   }
   .thumb{
-    position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1/1;
+    position:relative;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:1/1;
     background:var(--bg-elevated);cursor:pointer;
+    transition:transform .12s;
   }
+  .thumb:active{transform:scale(0.96);}
   .thumb img{width:100%;height:100%;object-fit:contain;background:var(--bg);display:block;}
 
   .empty-state{
@@ -290,11 +326,13 @@
   .fab{
     position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
     max-width:430px;width:calc(100% - 40px);
-    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
-    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
-    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 40%) var(--accent);
+    color:var(--accent-ink);border:none;border-radius:var(--radius-md);
+    padding:16px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.25);z-index:20;
+    transition:transform .15s;
   }
-  .fab:active{transform:translateX(-50%) scale(0.98);}
+  .fab:active{transform:translateX(-50%) scale(0.97);}
 
   /* ---------- Folders (home screen) ---------- */
   .folder-grid{
@@ -303,16 +341,17 @@
   }
   .folder-card{
     position:relative;
-    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);
     padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px;
-    transition:background .15s;
+    transition:background .15s, transform .12s, box-shadow .15s;
+    box-shadow:var(--shadow-ambient);
   }
-  .folder-card:active{background:var(--card-hover);}
+  .folder-card:active{background:var(--card-hover);transform:scale(0.98);}
   .folder-card .folder-icon{color:var(--folder-accent, var(--accent));}
   .folder-card.selected{outline:2px solid var(--accent);}
   .folder-check{z-index:2;}
   .folder-card .folder-name{
-    font-size:14.5px;font-weight:600;color:var(--text);
+    font-size:14.5px;font-weight:700;color:var(--text);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   .folder-card .folder-count{font-size:12px;color:var(--text-muted);}
@@ -321,7 +360,7 @@
     position:relative;height:110px;background-size:cover;background-position:center;color:#fff;justify-content:flex-end;
   }
   .folder-card.has-cover::before{
-    content:'';position:absolute;inset:0;border-radius:14px;
+    content:'';position:absolute;inset:0;border-radius:var(--radius-md);
     background:linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0) 60%);
   }
   .folder-card.has-cover .folder-icon{display:none;}
@@ -343,7 +382,7 @@
     width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);border:none;
     display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
-  .trash-btn.danger{background:rgba(196,69,62,0.85);}
+  .trash-btn.danger{background:rgba(184,69,59,0.85);}
 
 
   .thumb{position:relative;}
@@ -352,7 +391,7 @@
     background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;
   }
   .thumb-fav-badge{
-    position:absolute;top:6px;right:6px;width:18px;height:18px;color:#F2C94C;
+    position:absolute;top:6px;right:6px;width:18px;height:18px;color:#F2C14E;
     filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));
   }
   .thumb.selectable{cursor:pointer;}
@@ -369,7 +408,7 @@
     max-width:430px;width:100%;background:var(--card);border-top:1px solid var(--border);
     padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
     z-index:25;font-size:13.5px;color:var(--text-muted);
-    box-shadow:0 -8px 24px rgba(0,0,0,0.15);
+    box-shadow:var(--shadow-lifted);
   }
   .selection-actions{display:flex;gap:16px;}
   .sel-action{
@@ -381,15 +420,17 @@
   .new-folder-fab{
     position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
     max-width:430px;width:calc(100% - 40px);
-    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
-    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
-    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+    background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 40%) var(--accent);
+    color:var(--accent-ink);border:none;border-radius:var(--radius-md);
+    padding:16px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.25);z-index:20;
+    transition:transform .15s;
   }
-  .new-folder-fab:active{transform:translateX(-50%) scale(0.98);}
+  .new-folder-fab:active{transform:translateX(-50%) scale(0.97);}
 
   /* ---------- Lightbox ---------- */
   .lightbox{
-    position:fixed;inset:0;background:rgba(6,7,9,0.97);z-index:100;
+    position:fixed;inset:0;background:rgba(5,6,7,0.97);z-index:100;
     display:none;flex-direction:column;
   }
   .lightbox.active{display:flex;}
@@ -403,7 +444,7 @@
     overflow:hidden;position:relative;touch-action:none;
   }
   .lightbox-body img{
-    max-width:100%;max-height:100%;border-radius:10px;object-fit:contain;
+    max-width:100%;max-height:100%;border-radius:var(--radius-sm);object-fit:contain;
     transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none;
   }
   .lightbox-body img.zoom-transition{transition:transform .2s ease;}
@@ -413,7 +454,7 @@
   }
   .zoom-controls.visible{opacity:1;pointer-events:auto;}
   .zoom-btn{
-    width:36px;height:36px;border-radius:10px;background:rgba(20,23,28,0.85);border:1px solid var(--border);
+    width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(20,23,28,0.85);border:1px solid var(--border);
     color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;
     backdrop-filter:blur(6px);
   }
@@ -437,19 +478,20 @@
   .lb-action svg{color:var(--text-muted);}
   .lb-action.danger svg,.lb-action.danger span{color:var(--danger);}
   .lb-action:hover svg,.lb-action:hover span{color:var(--text);}
-  .lb-action.active svg{color:#F2C94C;fill:#F2C94C;}
-  .lb-action.active span{color:#F2C94C;}
+  .lb-action.active svg{color:#F2C14E;fill:#F2C14E;}
+  .lb-action.active span{color:#F2C14E;}
 
   /* ---------- Settings sheet ---------- */
   .sheet-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;display:none;
+    position:fixed;inset:0;background:rgba(5,6,5,.55);z-index:90;display:none;
+    backdrop-filter:blur(2px);
   }
   .sheet-overlay.active{display:block;}
   .sheet{
     position:fixed;left:50%;bottom:0;transform:translateX(-50%);
-    max-width:430px;width:100%;background:var(--card);border-radius:20px 20px 0 0;
+    max-width:430px;width:100%;background:var(--card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
     padding:10px 22px 28px;z-index:95;
-    box-shadow:0 -10px 40px rgba(0,0,0,.5);
+    box-shadow:var(--shadow-lifted);
   }
   .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
   .sheet-item{
@@ -469,6 +511,7 @@
   .toggle-knob{
     width:16px;height:16px;border-radius:50%;background:var(--text-faint);
     position:absolute;top:2px;left:2px;transition:left .2s,background .2s;
+    box-shadow:0 1px 2px rgba(0,0,0,.2);
   }
   .toggle-switch.on .toggle-knob{left:18px;background:var(--accent);}
 
@@ -477,7 +520,9 @@
   .accent-swatch{
     width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;
     padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12);
+    transition:transform .15s;
   }
+  .accent-swatch:active{transform:scale(0.88);}
   .accent-swatch.active{border-color:var(--text);}
 
   /* aperture unlock animation */
@@ -510,13 +555,15 @@
 
   /* centered modal (new album / manage albums) */
   .modal-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:110;display:none;
+    position:fixed;inset:0;background:rgba(5,6,5,.6);z-index:110;display:none;
     align-items:center;justify-content:center;padding:24px;
+    backdrop-filter:blur(2px);
   }
   .modal-overlay.active{display:flex;}
   .modal-card{
-    background:var(--card);border:1px solid var(--border);border-radius:18px;
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
     padding:24px;width:100%;max-width:340px;
+    box-shadow:var(--shadow-lifted);
   }
   .modal-card h3{font-size:17px;margin-bottom:16px;}
   .manage-list{max-height:260px;overflow-y:auto;margin-bottom:16px;}
@@ -534,22 +581,22 @@
 
   /* password/PIN type toggle */
   .type-toggle{
-    display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);
     padding:4px;margin-bottom:20px;
   }
   .type-toggle button{
-    flex:1;background:none;border:none;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;
+    flex:1;background:none;border:none;padding:10px;border-radius:8px;font-size:13.5px;font-weight:600;
     color:var(--text-muted);cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s,color .2s;
   }
-  .type-toggle button.active{background:var(--accent);color:#1A1204;}
+  .type-toggle button.active{background:var(--accent);color:var(--accent-ink);}
 
   /* PIN pad */
   .pin-set-indicator{
     display:flex;align-items:center;justify-content:space-between;
-    background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);
     padding:14px 16px;margin-bottom:16px;font-size:14px;color:var(--text);
   }
-  .pin-set-indicator .change-link{color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
+  .pin-set-indicator .change-link{color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
   .pin-dots{display:flex;justify-content:center;gap:14px;margin:18px 0 26px;}
   .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--text-faint);transition:background .15s,border-color .15s;}
   .pin-dot.filled{background:var(--accent);border-color:var(--accent);}
@@ -557,21 +604,28 @@
   .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:270px;margin:0 auto 20px;}
   .keypad-btn{
     aspect-ratio:1/1;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--border);
-    color:var(--text);font-size:21px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;
+    color:var(--text);font-size:21px;font-family:'Inter',sans-serif;font-weight:600;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
+    transition:background .12s, transform .12s;
   }
-  .keypad-btn:active{background:var(--card-hover);}
+  .keypad-btn:active{background:var(--card-hover);transform:scale(0.93);}
   .keypad-btn.ghost{background:none;border:none;}
   .keypad-btn svg{color:var(--text-muted);}
 
   /* biometric */
   .biometric-btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
-    width:100%;padding:13px;border-radius:12px;background:var(--bg-elevated);
-    border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:500;
+    width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--bg-elevated);
+    border:1px solid var(--border);color:var(--text);font-size:14px;font-weight:600;
     cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:14px;
   }
   .biometric-btn svg{color:var(--accent);}
+
+  /* app version label (settings sheet) */
+  .app-version-label{
+    text-align:center;font-size:11.5px;color:var(--text-faint);
+    padding:16px 6px 2px;letter-spacing:0.01em;
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="version.js"></script>
@@ -980,7 +1034,7 @@
     </div>
   </div>
 
-  <button class="fab" id="add-fab" style="display:none;" onclick="document.getElementById('file-input').click()">
+  <button class="fab" id="add-fab" style="display:none;" onclick="startAddMedia()">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#1A1204" stroke-width="2" stroke-linecap="round"/></svg>
     Add photos
   </button>
@@ -1103,6 +1157,11 @@
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 9C3 5.5 6 3.5 9 3.5s6 2 7.5 5.5c-1.5 3.5-4.5 5.5-7.5 5.5S3 12.5 1.5 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.3" stroke="currentColor" stroke-width="1.3"/></svg>
       <span style="flex:1;">Hide content when I switch apps</span>
       <div class="toggle-switch" id="privacy-toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="sheet-item" onclick="toggleDeleteFromGallery()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="flex:1;">Remove from gallery after adding</span>
+      <div class="toggle-switch" id="delete-gallery-toggle"><div class="toggle-knob"></div></div>
     </div>
     <div class="sheet-item" onclick="closeSettings(); manualCheckForUpdate();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 9a7 7 0 1 1 2 4.9M2 9V5M2 9H6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1232,6 +1291,7 @@ let selectionMode = false;
 let selectedPhotoIds = new Set();
 let sortOrder = 'newest'; // 'newest' | 'oldest'
 let autoLockMinutes = 0; // 0 = off
+let deleteFromGalleryEnabled = false;
 let autoLockTimer = null;
 let gridColumns = 3;
 let slideshowTimer = null;
@@ -2647,14 +2707,63 @@ function renderSearchOrFolders(){
 /* ---------------- adding photos: always into the currently open folder ---------------- */
 function handleFiles(e){
   const files = Array.from(e.target.files);
-  let remaining = files.length;
+  addMediaItems(
+    files.map(file => ({ blob: file, mediaType: file.type.startsWith('video/') ? 'video' : 'image' })),
+    /* sourceUris */ null
+  );
+  e.target.value = '';
+}
+
+/* ================= ADD MEDIA (web picker vs native picker) =================
+   On the web/PWA this just opens the plain <input type=file> as before.
+   Inside the native (Capacitor) app, when "Remove from gallery after adding"
+   is on, we instead go through the VaultMedia native plugin, which returns
+   the original content:// URI for each picked file alongside its bytes —
+   the URI is the one thing a web <input type=file> never exposes, and it's
+   required to ask Android to delete the original afterwards. */
+async function startAddMedia(){
+  if(!isNativeApp() || !deleteFromGalleryEnabled){
+    document.getElementById('file-input').click();
+    return;
+  }
+  try{
+    const { VaultMedia } = window.Capacitor.Plugins;
+    if(!VaultMedia){ document.getElementById('file-input').click(); return; }
+    showToast('Opening picker…');
+    const result = await VaultMedia.pickMedia();
+    const items = (result && result.items) || [];
+    if(items.length === 0) return;
+    const converted = items.map(it => ({
+      blob: base64ToBlob(it.base64, it.mimeType),
+      mediaType: (it.mimeType || '').startsWith('video/') ? 'video' : 'image',
+      uri: it.uri
+    }));
+    addMediaItems(converted, items.map(it => it.uri));
+  }catch(err){
+    // user cancelled the picker, or the plugin isn't available in this build
+    if(err && err.message && !/cancel/i.test(err.message)){
+      showToast('Could not open picker');
+    }
+  }
+}
+function base64ToBlob(base64, mimeType){
+  const byteChars = atob(base64);
+  const byteNumbers = new Array(byteChars.length);
+  for(let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+  return new Blob([new Uint8Array(byteNumbers)], { type: mimeType || 'application/octet-stream' });
+}
+
+function addMediaItems(items, sourceUris){
+  let remaining = items.length;
   if(remaining === 0) return;
-  if(!currentFolderId || currentFolderId === '__favorites__' || currentFolderId === '__trash__'){ showToast('Open a folder first to add photos'); e.target.value = ''; return; }
+  if(!currentFolderId || currentFolderId === '__favorites__' || currentFolderId === '__trash__'){ showToast('Open a folder first to add photos'); return; }
   const targetAlbum = currentFolderId;
   const existingInFolder = photos.filter(p => p.albumId === targetAlbum && !p.deletedAt);
-  let addedCount = 0, dupeCount = 0;
-  files.forEach(file => {
-    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+  let addedCount = 0, dupeCount = 0, lastMediaType = 'image';
+  const successfulUris = [];
+  items.forEach(item => {
+    const mediaType = item.mediaType;
+    lastMediaType = mediaType;
     const reader = new FileReader();
     reader.onload = (ev) => {
       const isDuplicate = existingInFolder.some(p => p.src === ev.target.result);
@@ -2665,19 +2774,37 @@ function handleFiles(e){
         photos.push(newPhoto);
         existingInFolder.push(newPhoto);
         addedCount++;
+        if(item.uri) successfulUris.push(item.uri);
       }
       remaining--;
       if(remaining === 0){
         renderFolderPhotos();
         persistLibrary();
-        let msg = addedCount > 0 ? (addedCount > 1 ? addedCount + ' items added' : (mediaType === 'video' ? 'Video added' : 'Photo added')) : '';
+        let msg = addedCount > 0 ? (addedCount > 1 ? addedCount + ' items added' : (lastMediaType === 'video' ? 'Video added' : 'Photo added')) : '';
         if(dupeCount > 0) msg += (msg ? ' — ' : '') + dupeCount + (dupeCount > 1 ? ' duplicates skipped' : ' duplicate skipped');
         showToast(msg || 'Nothing added');
+        if(deleteFromGalleryEnabled && successfulUris.length > 0) deleteOriginalsFromGallery(successfulUris);
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(item.blob);
   });
-  e.target.value = '';
+}
+
+/* Asks Android to delete the original files from the gallery. On Android 11+
+   this shows the user a one-tap system confirmation (required by the OS —
+   an app cannot silently delete another app's media); the vault copy is
+   already saved by this point regardless of what the user chooses. */
+async function deleteOriginalsFromGallery(uris){
+  if(!isNativeApp()) return;
+  try{
+    const { VaultMedia } = window.Capacitor.Plugins;
+    if(!VaultMedia) return;
+    const res = await VaultMedia.deleteMedia({ uris });
+    if(res && res.deleted > 0) showToast(res.deleted + ' original' + (res.deleted > 1 ? 's' : '') + ' removed from gallery');
+  }catch(err){
+    // user declined the system delete confirmation, or an older Android
+    // version couldn't delete it — the vault copy is safe either way
+  }
 }
 
 /* ---------------- albums: create / manage ---------------- */
@@ -2787,8 +2914,20 @@ function openSettings(){
   document.getElementById('settings-sheet').style.display = 'block';
 }
 function closeSettings(){
-  document.getElementById('sheet-overlay').classList.remove('active');
-  document.getElementById('settings-sheet').style.display = 'none';
+  const overlay = document.getElementById('sheet-overlay');
+  const sheet = document.getElementById('settings-sheet');
+  overlay.classList.remove('active');
+  sheet.style.display = 'none';
+  // Some Android WebViews leave a fixed-position/transformed element
+  // visually "stuck" after display:none until the next paint. Forcing a
+  // reflow + an extra frame reliably clears it, including right before a
+  // screen change (e.g. Lock vault now) that happens in the same click.
+  void sheet.offsetHeight;
+  void overlay.offsetHeight;
+  requestAnimationFrame(() => {
+    sheet.style.display = 'none';
+    overlay.classList.remove('active');
+  });
 }
 async function confirmWipe(){
   if(confirm('Erase all photos and reset the vault? This cannot be undone.')){
@@ -3002,7 +3141,7 @@ let appTheme = 'light';
 let appAccent = 'gold';
 
 async function persistAppSettings(){
-  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge });
+  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, deleteFromGalleryEnabled: deleteFromGalleryEnabled });
 }
 async function loadAppSettings(){
   try{
@@ -3013,6 +3152,7 @@ async function loadAppSettings(){
       autoLockMinutes = saved.autoLockMinutes || 0;
       gridColumns = saved.gridColumns || 3;
       showAppBadge = saved.showAppBadge !== false;
+      deleteFromGalleryEnabled = !!saved.deleteFromGalleryEnabled;
     }
   }catch(err){
     // no saved settings yet — keep defaults
@@ -3023,6 +3163,19 @@ async function loadAppSettings(){
   if(sel) sel.value = String(autoLockMinutes);
   const badgeToggle = document.getElementById('badge-toggle');
   if(badgeToggle) badgeToggle.classList.toggle('on', showAppBadge);
+  const delGalleryToggle = document.getElementById('delete-gallery-toggle');
+  if(delGalleryToggle) delGalleryToggle.classList.toggle('on', deleteFromGalleryEnabled);
+}
+function toggleDeleteFromGallery(){
+  deleteFromGalleryEnabled = !deleteFromGalleryEnabled;
+  const t = document.getElementById('delete-gallery-toggle');
+  if(t) t.classList.toggle('on', deleteFromGalleryEnabled);
+  persistAppSettings();
+  if(deleteFromGalleryEnabled && !isNativeApp()){
+    showToast('This only works in the installed app, not the website');
+  } else {
+    showToast(deleteFromGalleryEnabled ? 'Originals will be removed from gallery' : 'Originals will stay in gallery');
+  }
 }
 function toggleAppBadge(){
   showAppBadge = !showAppBadge;
