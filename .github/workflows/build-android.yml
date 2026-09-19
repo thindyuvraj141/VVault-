@@ -3,12 +3,22 @@ name: Build Native Android App (Capacitor)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Read app version
+        id: ver
+        run: |
+          VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "num=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -31,6 +41,17 @@ jobs:
           else
             echo "No 'build' script in package.json — skipping."
           fi
+
+      - name: Inject app version into web assets
+        run: |
+          WEBDIR="www"
+          if [ -f capacitor.config.json ]; then
+            CONFIGURED=$(node -p "require('./capacitor.config.json').webDir || 'www'" 2>/dev/null || echo "www")
+            [ -n "$CONFIGURED" ] && WEBDIR="$CONFIGURED"
+          fi
+          mkdir -p "$WEBDIR"
+          echo "window.APP_VERSION = '${{ steps.ver.outputs.num }}';" > "$WEBDIR/version.js"
+          echo "Wrote version.js (v${{ steps.ver.outputs.num }}) into $WEBDIR/"
 
       - name: Ensure Android platform exists
         run: |
@@ -115,14 +136,28 @@ jobs:
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
+      - name: Rename APK with version
+        run: |
+          mkdir -p release-out
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             release-out/vvault-${{ steps.ver.outputs.tag }}.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: vvault-release-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: release-out/vvault-${{ steps.ver.outputs.tag }}.apk
 
       - name: Upload keystore backup (save this somewhere safe!)
         uses: actions/upload-artifact@v4
         with:
           name: vvault-keystore-backup
           path: keystore-cache/vvault-release.jks
+
+      - name: Publish GitHub Release with APK attached
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: V Vault ${{ steps.ver.outputs.tag }}
+          files: release-out/vvault-${{ steps.ver.outputs.tag }}.apk
+          make_latest: true
