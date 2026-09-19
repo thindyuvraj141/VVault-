@@ -450,6 +450,7 @@
     max-width:430px;width:100%;background:var(--card);border-radius:20px 20px 0 0;
     padding:10px 22px 28px;z-index:95;
     box-shadow:0 -10px 40px rgba(0,0,0,.5);
+    max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
   .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
   .sheet-item{
@@ -575,9 +576,6 @@
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="version.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -686,11 +684,6 @@
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.4 2.5 2.5 5.4 2.5 9v2.5M9 2.5c3.6 0 6.5 2.9 6.5 6.5v2.5M6 15.2V9a3 3 0 0 1 6 0v3.5a1.5 1.5 0 0 1-3 0V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         Use Face / Touch unlock
       </button>
-      <button type="button" class="biometric-btn" id="lock-phone-btn" style="display:none;" onclick="startPhoneUnlock()">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="5" y="1.5" width="8" height="15" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 14H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-        Verify with phone instead
-      </button>
-
       <div id="lock-password-field">
         <div class="field">
           <label for="lock-pw">Password</label>
@@ -800,6 +793,9 @@
       <div class="header-actions">
         <div class="icon-btn" id="home-select-btn" onclick="toggleHomeSelectionMode()" title="Select folders">
           <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l2 2 4-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="icon-btn" onclick="openAppearanceSheet()" title="Theme">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
         </div>
         <div class="icon-btn" onclick="openSettings()">
           <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1059,22 +1055,7 @@
   <div class="sheet-overlay" id="sheet-overlay" onclick="closeSettings()"></div>
   <div class="sheet" id="settings-sheet" style="display:none;">
     <div class="sheet-handle"></div>
-    <div class="sheet-item" onclick="toggleDarkMode()">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-      <span style="flex:1;">Dark mode</span>
-      <div class="toggle-switch" id="darkmode-toggle"><div class="toggle-knob"></div></div>
-    </div>
-    <div class="sheet-item accent-row" style="cursor:default;">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M9 2.5V9l4.2 4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <span style="flex:1;">App colour</span>
-      <div class="accent-swatches" id="accent-swatches">
-        <button type="button" class="accent-swatch" data-accent="gold" style="background:#C6A15B" onclick="setAccent('gold')"></button>
-        <button type="button" class="accent-swatch" data-accent="blue" style="background:#4A90D9" onclick="setAccent('blue')"></button>
-        <button type="button" class="accent-swatch" data-accent="green" style="background:#57A878" onclick="setAccent('green')"></button>
-        <button type="button" class="accent-swatch" data-accent="rose" style="background:#D46E6E" onclick="setAccent('rose')"></button>
-        <button type="button" class="accent-swatch" data-accent="purple" style="background:#967AD6" onclick="setAccent('purple')"></button>
-      </div>
-    </div>
+
     <div class="sheet-item" style="cursor:default;">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
       <span style="flex:1;">Auto-lock</span>
@@ -1097,14 +1078,6 @@
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.4 2.5 2.5 5.4 2.5 9v2.5M9 2.5c3.6 0 6.5 2.9 6.5 6.5v2.5M6 15.2V9a3 3 0 0 1 6 0v3.5a1.5 1.5 0 0 1-3 0V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <span style="flex:1;">Face / Touch unlock</span>
       <div class="toggle-switch" id="biometric-toggle"><div class="toggle-knob"></div></div>
-    </div>
-    <div class="sheet-item" onclick="closeSettings(); openDriveModal();">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 2L1.5 9.5L4 14H14L16.5 9.5L12 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6 2L10.5 9.5H16.5" stroke="currentColor" stroke-width="1.3"/></svg>
-      Google Drive backup
-    </div>
-    <div class="sheet-item" onclick="closeSettings(); openPhoneModal();">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="5" y="1.5" width="8" height="15" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 14H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      <span id="phone-settings-label">Phone verification (OTP)</span>
     </div>
     <div class="sheet-item" onclick="closeSettings(); createBackup();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -1144,6 +1117,28 @@
     <div style="text-align:center;padding:14px 0 4px;font-size:11.5px;color:var(--text-faint);" id="app-version-footer">V Vault</div>
   </div>
 
+  <!-- ================= APPEARANCE SHEET (dark mode + colour) ================= -->
+  <div class="sheet-overlay" id="appearance-overlay" onclick="closeAppearanceSheet()"></div>
+  <div class="sheet" id="appearance-sheet" style="display:none;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-item" onclick="toggleDarkMode()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <span style="flex:1;">Dark mode</span>
+      <div class="toggle-switch" id="darkmode-toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="sheet-item accent-row" style="cursor:default;">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M9 2.5V9l4.2 4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span style="flex:1;">App colour</span>
+      <div class="accent-swatches" id="accent-swatches">
+        <button type="button" class="accent-swatch" data-accent="gold" style="background:#C6A15B" onclick="setAccent('gold')"></button>
+        <button type="button" class="accent-swatch" data-accent="blue" style="background:#4A90D9" onclick="setAccent('blue')"></button>
+        <button type="button" class="accent-swatch" data-accent="green" style="background:#57A878" onclick="setAccent('green')"></button>
+        <button type="button" class="accent-swatch" data-accent="rose" style="background:#D46E6E" onclick="setAccent('rose')"></button>
+        <button type="button" class="accent-swatch" data-accent="purple" style="background:#967AD6" onclick="setAccent('purple')"></button>
+      </div>
+    </div>
+  </div>
+
   <!-- Storage & stats modal -->
   <div class="modal-overlay" id="stats-overlay">
     <div class="modal-card">
@@ -1151,101 +1146,6 @@
       <div class="manage-list" id="stats-body"></div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeStorageStats()">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Google Drive backup -->
-  <div class="modal-overlay" id="drive-overlay">
-    <div class="modal-card">
-      <h3>Google Drive backup</h3>
-
-      <div id="drive-setup-section">
-        <p style="font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:14px;">
-          First time only: paste your Google OAuth Client ID.
-          <a href="#" onclick="showToast('See the setup guide included with this app'); return false;" style="color:var(--accent);">What's this?</a>
-        </p>
-        <div class="field">
-          <label for="drive-client-id-input">Google Client ID</label>
-          <input type="text" id="drive-client-id-input" placeholder="xxxxxxxx.apps.googleusercontent.com">
-        </div>
-        <div class="error-msg" id="drive-setup-error">&nbsp;</div>
-        <button class="btn btn-primary" onclick="saveDriveClientId()">Save</button>
-      </div>
-
-      <div id="drive-connect-section" style="display:none;">
-        <p id="drive-status-text" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Not connected</p>
-        <button class="btn btn-primary" id="drive-connect-btn" onclick="connectGoogleDrive()">Connect Google Drive</button>
-        <div id="drive-actions" style="display:none;margin-top:10px;">
-          <button class="btn-biometric" onclick="backupToDrive()">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            Backup now to Drive
-          </button>
-          <button class="btn-biometric" onclick="listDriveBackups()">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V2M9 2L5.5 5.5M9 2L12.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            Restore from Drive
-          </button>
-          <div id="drive-file-list" class="manage-list" style="display:none;margin-top:10px;"></div>
-          <button class="btn-biometric" onclick="disconnectGoogleDrive()" style="color:var(--danger);border-color:var(--danger);margin-top:10px;">
-            Disconnect Google Drive
-          </button>
-        </div>
-      </div>
-
-      <div class="modal-actions" style="margin-top:14px;">
-        <button class="btn btn-ghost" onclick="closeDriveModal()">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Phone verification (OTP via Firebase) -->
-  <div class="modal-overlay" id="phone-overlay">
-    <div class="modal-card">
-      <h3>Phone verification</h3>
-
-      <div id="phone-setup-section">
-        <p style="font-size:12.5px;color:var(--text-muted);line-height:1.5;margin-bottom:14px;">
-          First time only: paste your Firebase config (from the Firebase console → Project settings).
-        </p>
-        <div class="field">
-          <label for="phone-firebase-config-input">Firebase config</label>
-          <textarea id="phone-firebase-config-input" rows="5" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "..." }' style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:12px;font-size:12.5px;font-family:monospace;"></textarea>
-        </div>
-        <div class="error-msg" id="phone-setup-error">&nbsp;</div>
-        <button class="btn btn-primary" onclick="saveFirebaseConfig()">Save</button>
-      </div>
-
-      <div id="phone-register-section" style="display:none;">
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">No phone registered yet for this vault.</p>
-        <div class="field">
-          <label for="phone-number-input">Phone number (with country code)</label>
-          <input type="tel" id="phone-number-input" placeholder="+92 3xx xxxxxxx">
-        </div>
-        <div class="error-msg" id="phone-register-error">&nbsp;</div>
-        <button class="btn btn-primary" id="phone-send-otp-btn" onclick="sendPhoneOtp('register')">Send code</button>
-      </div>
-
-      <div id="phone-registered-section" style="display:none;">
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Registered: <strong id="phone-registered-number" style="color:var(--text);"></strong></p>
-        <button class="btn-biometric" onclick="removePhoneVerification()" style="color:var(--danger);border-color:var(--danger);">
-          Remove phone verification
-        </button>
-      </div>
-
-      <div id="phone-code-section" style="display:none;">
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Enter the 6-digit code sent to your phone.</p>
-        <div class="field">
-          <label for="phone-code-input">Code</label>
-          <input type="text" id="phone-code-input" inputmode="numeric" maxlength="6" placeholder="123456">
-        </div>
-        <div class="error-msg" id="phone-code-error">&nbsp;</div>
-        <button class="btn btn-primary" id="phone-confirm-otp-btn" onclick="confirmPhoneOtp()">Verify</button>
-      </div>
-
-      <div id="recaptcha-container"></div>
-
-      <div class="modal-actions" style="margin-top:14px;">
-        <button class="btn btn-ghost" onclick="closePhoneModal()">Close</button>
       </div>
     </div>
   </div>
@@ -1339,8 +1239,7 @@ let vault = {
   changingPassword: false,
   secretType: "password", // "password" | "pin"
   biometricEnabled: false,
-  biometricCredentialId: "",
-  verifiedPhone: null
+  biometricCredentialId: ""
 };
 let photos = []; // {id, src, albumId, caption}
 let albums = []; // {id, name}
@@ -1358,9 +1257,6 @@ let homeSelectionMode = false;
 let selectedFolderIds = new Set();
 let searchTypeFilter = 'all'; // 'all' | 'image' | 'video' | 'favorite'
 let showAppBadge = true;
-let driveClientId = null;
-let driveAccessToken = null;
-let driveTokenClient = null;
 let removeFromGalleryEnabled = true;
 let searchQuery = "";
 let currentLightboxId = null;
@@ -1436,8 +1332,7 @@ async function persistVaultConfig(){
     answerSalt: vault.answerSalt,
     secretType: vault.secretType,
     biometricEnabled: vault.biometricEnabled,
-    biometricCredentialId: vault.biometricCredentialId,
-    verifiedPhone: vault.verifiedPhone
+    biometricCredentialId: vault.biometricCredentialId
   });
 }
 async function persistLibrary(){
@@ -1720,9 +1615,6 @@ function renderLockMode(){
 
   const showBiometric = vault.biometricEnabled && !vault.changingPassword && window.PublicKeyCredential;
   document.getElementById('lock-biometric-btn').style.display = showBiometric ? 'flex' : 'none';
-
-  const showPhone = !!vault.verifiedPhone && !vault.changingPassword;
-  document.getElementById('lock-phone-btn').style.display = showPhone ? 'flex' : 'none';
 }
 
 /* ---------------- lock / unlock ---------------- */
@@ -2936,13 +2828,22 @@ function closeSettings(){
   document.getElementById('sheet-overlay').classList.remove('active');
   document.getElementById('settings-sheet').style.display = 'none';
 }
+function openAppearanceSheet(){
+  applyAppearance();
+  document.getElementById('appearance-overlay').classList.add('active');
+  document.getElementById('appearance-sheet').style.display = 'block';
+}
+function closeAppearanceSheet(){
+  document.getElementById('appearance-overlay').classList.remove('active');
+  document.getElementById('appearance-sheet').style.display = 'none';
+}
 async function confirmWipe(){
   if(confirm('Erase all photos and reset the vault? This cannot be undone.')){
     photos = [];
     albums = [];
     currentFolderId = null;
     searchQuery = "";
-    vault = { passwordSet:false, passwordHash:"", passwordSalt:"", question:"", answerHash:"", answerSalt:"", changingPassword:false, secretType:"password", biometricEnabled:false, biometricCredentialId:"", verifiedPhone:null };
+    vault = { passwordSet:false, passwordHash:"", passwordSalt:"", question:"", answerHash:"", answerSalt:"", changingPassword:false, secretType:"password", biometricEnabled:false, biometricCredentialId:"" };
     await dbClearAll();
     await persistAppSettings();
     updateAppBadge();
@@ -3010,15 +2911,8 @@ function bufToBase64(buf){
 function base64ToBuf(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
 
 let backupPwMode = null; // 'create' | 'restore'
-let backupTarget = 'file'; // 'file' | 'drive'
 
 function createBackup(){
-  backupTarget = 'file';
-  openBackupPwModalForCreate();
-}
-function backupToDrive(){
-  if(!driveAccessToken){ showToast('Connect Google Drive first'); return; }
-  backupTarget = 'drive';
   openBackupPwModalForCreate();
 }
 function openBackupPwModalForCreate(){
@@ -3091,22 +2985,17 @@ async function confirmBackupPassword(){
       };
       const blob = new Blob([JSON.stringify(backupObj)], { type: 'application/octet-stream' });
 
-      if(backupTarget === 'drive'){
-        await uploadBackupToDrive(backupObj);
-        closeBackupPwModal();
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const dateStr = new Date().toISOString().slice(0,10);
-        a.download = 'vvault-backup-' + dateStr + '.vault';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 4000);
-        closeBackupPwModal();
-        showToast('Backup file created — check your Downloads');
-      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateStr = new Date().toISOString().slice(0,10);
+      a.download = 'vvault-backup-' + dateStr + '.vault';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      closeBackupPwModal();
+      showToast('Backup file created — check your Downloads');
 
     } else if(backupPwMode === 'restore'){
       const saltBytes = base64ToBuf(pendingRestoreEncrypted.salt);
@@ -3151,294 +3040,6 @@ async function confirmBackupPassword(){
   }
 }
 
-/* ================= GOOGLE DRIVE BACKUP =================
-   Uses Google's own sign-in (Identity Services) and the narrowest Drive scope
-   ("drive.file"), which only ever lets this app see files it created itself —
-   never anyone's existing Drive contents. The backup uploaded is the exact
-   same AES-256-GCM encrypted blob used for local backups; Google only ever
-   stores encrypted bytes it can't read. */
-function openDriveModal(){
-  document.getElementById('drive-overlay').classList.add('active');
-  renderDriveModalState();
-}
-function closeDriveModal(){
-  document.getElementById('drive-overlay').classList.remove('active');
-}
-function renderDriveModalState(){
-  const setupSection = document.getElementById('drive-setup-section');
-  const connectSection = document.getElementById('drive-connect-section');
-  if(!driveClientId){
-    setupSection.style.display = 'block';
-    connectSection.style.display = 'none';
-    return;
-  }
-  setupSection.style.display = 'none';
-  connectSection.style.display = 'block';
-  document.getElementById('drive-file-list').style.display = 'none';
-  const statusText = document.getElementById('drive-status-text');
-  const connectBtn = document.getElementById('drive-connect-btn');
-  const actions = document.getElementById('drive-actions');
-  if(driveAccessToken){
-    statusText.textContent = 'Connected';
-    connectBtn.style.display = 'none';
-    actions.style.display = 'block';
-  } else {
-    statusText.textContent = 'Not connected';
-    connectBtn.style.display = 'block';
-    actions.style.display = 'none';
-  }
-}
-function saveDriveClientId(){
-  const val = document.getElementById('drive-client-id-input').value.trim();
-  if(!val){ document.getElementById('drive-setup-error').textContent = 'Paste your Client ID first.'; return; }
-  driveClientId = val;
-  persistAppSettings();
-  renderDriveModalState();
-}
-function connectGoogleDrive(){
-  if(!driveClientId){ showToast('Set up your Client ID first'); return; }
-  if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2){
-    showToast('Google sign-in didn\'t load — check your connection and try again');
-    return;
-  }
-  driveTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: driveClientId,
-    scope: 'https://www.googleapis.com/auth/drive.file',
-    callback: (resp) => {
-      if(resp.error){ showToast('Could not connect: ' + resp.error); return; }
-      driveAccessToken = resp.access_token;
-      showToast('Google Drive connected');
-      renderDriveModalState();
-    }
-  });
-  driveTokenClient.requestAccessToken();
-}
-function disconnectGoogleDrive(){
-  if(driveAccessToken && typeof google !== 'undefined' && google.accounts && google.accounts.oauth2){
-    google.accounts.oauth2.revoke(driveAccessToken, () => {});
-  }
-  driveAccessToken = null;
-  renderDriveModalState();
-  showToast('Google Drive disconnected');
-}
-async function uploadBackupToDrive(backupObj){
-  const fileName = 'vvault-backup-' + new Date().toISOString().slice(0,10) + '-' + Date.now() + '.vault';
-  const metadata = { name: fileName, mimeType: 'application/json' };
-  const boundary = 'vvault' + Date.now();
-  const body =
-    '--' + boundary + '\r\n' +
-    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-    JSON.stringify(metadata) + '\r\n' +
-    '--' + boundary + '\r\n' +
-    'Content-Type: application/json\r\n\r\n' +
-    JSON.stringify(backupObj) + '\r\n' +
-    '--' + boundary + '--';
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + driveAccessToken,
-      'Content-Type': 'multipart/related; boundary=' + boundary
-    },
-    body
-  });
-  if(!res.ok){
-    if(res.status === 401){ driveAccessToken = null; renderDriveModalState(); }
-    throw new Error('Drive upload failed (' + res.status + ')');
-  }
-  showToast('Backed up to Google Drive');
-}
-async function listDriveBackups(){
-  if(!driveAccessToken){ showToast('Connect Google Drive first'); return; }
-  const list = document.getElementById('drive-file-list');
-  list.style.display = 'block';
-  list.innerHTML = '<div class="manage-empty">Loading…</div>';
-  try{
-    const q = encodeURIComponent("name contains 'vvault-backup'");
-    const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&q=' + q, {
-      headers: { 'Authorization': 'Bearer ' + driveAccessToken }
-    });
-    if(!res.ok){
-      if(res.status === 401){ driveAccessToken = null; renderDriveModalState(); }
-      throw new Error('list failed (' + res.status + ')');
-    }
-    const data = await res.json();
-    if(!data.files || data.files.length === 0){
-      list.innerHTML = '<div class="manage-empty">No backups found in Drive yet.</div>';
-      return;
-    }
-    list.innerHTML = '';
-    data.files.forEach(f => {
-      const row = document.createElement('div');
-      row.className = 'manage-row';
-      row.style.cursor = 'pointer';
-      row.innerHTML = '<span>' + f.name + '</span>';
-      row.onclick = () => loadDriveBackupForRestore(f.id);
-      list.appendChild(row);
-    });
-  }catch(err){
-    console.error('Drive list error:', err);
-    list.innerHTML = '<div class="manage-empty">Could not load your Drive backups.</div>';
-  }
-}
-async function loadDriveBackupForRestore(fileId){
-  try{
-    const res = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
-      headers: { 'Authorization': 'Bearer ' + driveAccessToken }
-    });
-    if(!res.ok) throw new Error('download failed (' + res.status + ')');
-    const parsed = await res.json();
-    if(!parsed.salt || !parsed.iv || !parsed.ciphertext){ showToast('That file doesn\'t look like a V Vault backup'); return; }
-    pendingRestoreEncrypted = parsed;
-    backupPwMode = 'restore';
-    closeDriveModal();
-    document.getElementById('backup-pw-title').textContent = 'Enter backup password';
-    document.getElementById('backup-pw-desc').textContent = 'Enter the vault password that was used when this backup was created.';
-    document.getElementById('backup-pw-input').value = '';
-    clearError('backuppw');
-    document.getElementById('backup-pw-confirm-btn').textContent = 'Restore';
-    document.getElementById('backup-pw-overlay').classList.add('active');
-  }catch(err){
-    console.error('Drive restore fetch error:', err);
-    showToast('Could not load that backup from Drive');
-  }
-}
-
-/* ================= PHONE VERIFICATION (Firebase OTP) =================
-   Optional extra unlock method, same pattern as biometric: the local
-   password/PIN is always the real fallback. Firebase only ever sees a phone
-   number and a verification code — never any vault content. */
-let firebaseConfig = null;
-let firebaseInitialized = false;
-let recaptchaVerifier = null;
-let confirmationResult = null;
-let phoneOtpMode = 'register'; // 'register' | 'unlock'
-
-function openPhoneModal(){
-  document.getElementById('phone-overlay').classList.add('active');
-  renderPhoneModalState();
-}
-function closePhoneModal(){
-  document.getElementById('phone-overlay').classList.remove('active');
-  document.getElementById('phone-code-section').style.display = 'none';
-}
-function renderPhoneModalState(){
-  const setupSection = document.getElementById('phone-setup-section');
-  const registerSection = document.getElementById('phone-register-section');
-  const registeredSection = document.getElementById('phone-registered-section');
-  document.getElementById('phone-code-section').style.display = 'none';
-
-  if(!firebaseConfig){
-    setupSection.style.display = 'block';
-    registerSection.style.display = 'none';
-    registeredSection.style.display = 'none';
-    return;
-  }
-  setupSection.style.display = 'none';
-  if(vault.verifiedPhone){
-    registerSection.style.display = 'none';
-    registeredSection.style.display = 'block';
-    document.getElementById('phone-registered-number').textContent = vault.verifiedPhone;
-  } else {
-    registerSection.style.display = 'block';
-    registeredSection.style.display = 'none';
-  }
-}
-function saveFirebaseConfig(){
-  const raw = document.getElementById('phone-firebase-config-input').value.trim();
-  if(!raw){ document.getElementById('phone-setup-error').textContent = 'Paste your Firebase config first.'; return; }
-  try{
-    // forgiving parse: strips "const firebaseConfig =" / trailing ";" if pasted as a JS snippet
-    const cleaned = raw
-      .replace(/^\s*(const|var|let)\s+\w+\s*=\s*/, '')
-      .replace(/;\s*$/, '')
-      .replace(/(\w+)\s*:/g, '"$1":') // unquoted keys → valid JSON
-      .replace(/'/g, '"');
-    const parsed = JSON.parse(cleaned);
-    if(!parsed.apiKey || !parsed.authDomain){ throw new Error('missing apiKey/authDomain'); }
-    firebaseConfig = parsed;
-    persistAppSettings();
-    initFirebaseIfNeeded();
-    renderPhoneModalState();
-    showToast('Firebase connected');
-  }catch(err){
-    document.getElementById('phone-setup-error').textContent = 'Could not read that config — paste it exactly as shown in Firebase.';
-  }
-}
-function initFirebaseIfNeeded(){
-  if(firebaseInitialized || !firebaseConfig) return;
-  if(typeof firebase === 'undefined'){ showToast('Firebase script didn\'t load — check your connection'); return; }
-  firebase.initializeApp(firebaseConfig);
-  firebaseInitialized = true;
-}
-function getRecaptchaVerifier(){
-  if(recaptchaVerifier) return recaptchaVerifier;
-  recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
-  return recaptchaVerifier;
-}
-async function sendPhoneOtp(mode){
-  phoneOtpMode = mode;
-  initFirebaseIfNeeded();
-  if(!firebaseInitialized){ showToast('Set up Firebase first'); return; }
-
-  const phoneNumber = mode === 'register'
-    ? document.getElementById('phone-number-input').value.trim()
-    : vault.verifiedPhone;
-
-  if(!phoneNumber || !/^\+\d{7,15}$/.test(phoneNumber)){
-    setError('phone-register', 'Enter a number with country code, e.g. +923001234567');
-    return;
-  }
-  try{
-    const verifier = getRecaptchaVerifier();
-    confirmationResult = await firebase.auth().signInWithPhoneNumber(phoneNumber, verifier);
-    document.getElementById('phone-register-section').style.display = 'none';
-    document.getElementById('phone-code-section').style.display = 'block';
-    document.getElementById('phone-code-input').value = '';
-    clearError('phone-code');
-    showToast('Code sent');
-  }catch(err){
-    console.error('Phone OTP send error:', err);
-    setError('phone-register', err && err.message ? err.message : 'Could not send code.');
-    if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
-  }
-}
-async function confirmPhoneOtp(){
-  const code = document.getElementById('phone-code-input').value.trim();
-  if(!code){ setError('phone-code', 'Enter the code you received.'); return; }
-  if(!confirmationResult){ setError('phone-code', 'Send a code first.'); return; }
-  try{
-    const result = await confirmationResult.confirm(code);
-    const phoneNumber = result.user.phoneNumber;
-    if(phoneOtpMode === 'register'){
-      vault.verifiedPhone = phoneNumber;
-      await persistVaultConfig();
-      closePhoneModal();
-      showToast('Phone verified and saved');
-    } else {
-      closePhoneModal();
-      playIris(() => enterVault());
-    }
-  }catch(err){
-    console.error('Phone OTP confirm error:', err);
-    setError('phone-code', 'Wrong code — try again.');
-  }
-}
-function removePhoneVerification(){
-  if(!confirm('Remove phone verification from this vault?')) return;
-  vault.verifiedPhone = null;
-  persistVaultConfig();
-  renderPhoneModalState();
-  showToast('Phone verification removed');
-}
-function startPhoneUnlock(){
-  if(!vault.verifiedPhone){ showToast('No phone registered'); return; }
-  openPhoneModal();
-  document.getElementById('phone-setup-section').style.display = 'none';
-  document.getElementById('phone-register-section').style.display = 'none';
-  document.getElementById('phone-registered-section').style.display = 'none';
-  sendPhoneOtp('unlock');
-}
-
 /* ================= APPEARANCE (theme + accent colour) =================
    Stored separately from the vault itself, so the choice applies even on
    the lock/setup screens before anyone has unlocked anything. */
@@ -3446,7 +3047,7 @@ let appTheme = 'light';
 let appAccent = 'gold';
 
 async function persistAppSettings(){
-  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, driveClientId: driveClientId, firebaseConfig: firebaseConfig, removeFromGalleryEnabled: removeFromGalleryEnabled });
+  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, removeFromGalleryEnabled: removeFromGalleryEnabled });
 }
 async function loadAppSettings(){
   try{
@@ -3457,10 +3058,7 @@ async function loadAppSettings(){
       autoLockMinutes = saved.autoLockMinutes || 0;
       gridColumns = saved.gridColumns || 3;
       showAppBadge = saved.showAppBadge !== false;
-      driveClientId = saved.driveClientId || null;
-      firebaseConfig = saved.firebaseConfig || null;
       removeFromGalleryEnabled = saved.removeFromGalleryEnabled !== false;
-      if(firebaseConfig) initFirebaseIfNeeded();
     }
   }catch(err){
     // no saved settings yet — keep defaults
