@@ -245,6 +245,12 @@
   }
   .colour-popover.open{display:block;}
   .colour-popover .accent-swatch{width:26px;height:26px;}
+  .pop-item{display:flex;align-items:center;gap:10px;padding:11px 6px;cursor:pointer;color:var(--text);font-size:14px;white-space:nowrap;}
+  .pop-item + .pop-item{border-top:1px solid var(--border);}
+  .pop-item svg{color:var(--text-muted);flex-shrink:0;}
+  #screen-vault .header-actions{gap:6px;flex-shrink:0;}
+  #screen-vault .header-actions .icon-btn{width:34px;height:34px;}
+  #screen-vault .vault-title-block{min-width:0;}
 
   /* search */
   .search-wrap{position:relative;margin-bottom:16px;}
@@ -823,6 +829,19 @@
             <button type="button" class="accent-swatch" data-accent="purple" style="background:#967AD6" onclick="setAccent('purple')" title="Purple"></button>
           </div>
         </div>
+        <div class="icon-btn" id="backup-btn" onclick="toggleBackupPopover(event)" title="Backup / Restore">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5.2 13.5a3.4 3.4 0 0 1-.4-6.8 4.4 4.4 0 0 1 8.4 1.2 2.8 2.8 0 0 1-.4 5.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 8.5v6M9 8.5 6.9 10.6M9 8.5l2.1 2.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="colour-popover" id="backup-popover">
+          <div class="pop-item" onclick="closeHeaderPopovers(); createBackup();">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Create backup
+          </div>
+          <div class="pop-item" onclick="closeHeaderPopovers(); document.getElementById('restore-input').click();">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V2M9 2L5.5 5.5M9 2L12.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Restore from backup
+          </div>
+        </div>
         <div class="icon-btn" onclick="openSettings()">
           <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="3.5"/>
@@ -1104,14 +1123,6 @@
       <span style="flex:1;">Face / Touch unlock</span>
       <div class="toggle-switch" id="biometric-toggle"><div class="toggle-knob"></div></div>
     </div>
-    <div class="sheet-item" onclick="closeSettings(); createBackup();">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      Create backup file
-    </div>
-    <div class="sheet-item" onclick="closeSettings(); document.getElementById('restore-input').click();">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V2M9 2L5.5 5.5M9 2L12.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      Restore from backup
-    </div>
     <div class="sheet-item" onclick="togglePrivacyMode()">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 9C3 5.5 6 3.5 9 3.5s6 2 7.5 5.5c-1.5 3.5-4.5 5.5-7.5 5.5S3 12.5 1.5 9Z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.3" stroke="currentColor" stroke-width="1.3"/></svg>
       <span style="flex:1;">Hide content when I switch apps</span>
@@ -1160,7 +1171,7 @@
       <div class="manage-list">
         <div class="manage-row" style="align-items:flex-start;"><span>📁&nbsp; Everything lives in folders — tap "+ New folder" on the home screen to make one.</span></div>
         <div class="manage-row" style="align-items:flex-start;"><span>⭐&nbsp; Tap the star on any photo to pin it to Favorites.</span></div>
-        <div class="manage-row" style="align-items:flex-start;"><span>🔒&nbsp; The gear icon has backups, auto-lock, and a lock for individual folders. Dark mode and colours are the two buttons beside it.</span></div>
+        <div class="manage-row" style="align-items:flex-start;"><span>🔒&nbsp; The buttons at the top have backup / restore, dark mode and colours. The gear icon has auto-lock and a lock for individual folders.</span></div>
         <div class="manage-row" style="align-items:flex-start;"><span>🗑️&nbsp; Deleted photos sit safely in Trash for 30 days before they're gone for good.</span></div>
       </div>
       <div class="modal-actions">
@@ -1616,7 +1627,7 @@ function renderLockMode(){
     );
   }
 
-  const showBiometric = vault.biometricEnabled && !vault.changingPassword && window.PublicKeyCredential;
+  const showBiometric = vault.biometricEnabled && !vault.changingPassword && biometricSupported();
   document.getElementById('lock-biometric-btn').style.display = showBiometric ? 'flex' : 'none';
 
 }
@@ -1769,17 +1780,95 @@ function base64UrlToBuf(b64url){
   return base64ToBuf(b64);
 }
 
-async function toggleBiometric(){
-  if(!window.PublicKeyCredential){
-    showToast('Biometric unlock isn\'t supported on this browser');
-    return;
+/* Inside the Capacitor app (Android/iOS WebView) WebAuthn fingerprint is NOT
+   available, so we use a native biometric plugin when one is installed.
+   Supported: @aparajita/capacitor-biometric-auth ("BiometricAuth") and
+   capacitor-native-biometric ("NativeBiometric"). On the web we keep WebAuthn. */
+function getNativeBiometric(){
+  const P = window.Capacitor && window.Capacitor.Plugins;
+  if(!P) return null;
+  if(P.BiometricAuth){
+    return {
+      async available(){
+        const r = await P.BiometricAuth.checkBiometry();
+        return !!(r && r.isAvailable);
+      },
+      async verify(){
+        await P.BiometricAuth.authenticate({
+          reason: 'Unlock V Vault',
+          cancelTitle: 'Cancel',
+          allowDeviceCredential: true,
+          androidTitle: 'V Vault',
+          androidSubtitle: 'Use fingerprint or face to unlock'
+        });
+      }
+    };
   }
+  if(P.NativeBiometric){
+    return {
+      async available(){
+        const r = await P.NativeBiometric.isAvailable({ useFallback: true });
+        return !!(r && r.isAvailable);
+      },
+      async verify(){
+        await P.NativeBiometric.verifyIdentity({
+          reason: 'Unlock V Vault',
+          title: 'V Vault',
+          subtitle: 'Use fingerprint or face to unlock',
+          useFallback: true
+        });
+      }
+    };
+  }
+  return null;
+}
+function isNativeApp(){
+  const C = window.Capacitor;
+  if(!C) return false;
+  return typeof C.isNativePlatform === 'function' ? C.isNativePlatform() : (C.platform && C.platform !== 'web');
+}
+function biometricSupported(){
+  return !!getNativeBiometric() || (!isNativeApp() && !!window.PublicKeyCredential);
+}
+
+async function toggleBiometric(){
   if(vault.biometricEnabled){
     vault.biometricEnabled = false;
     vault.biometricCredentialId = '';
     await persistVaultConfig();
     setBiometricToggleUI();
     showToast('Face / Touch unlock disabled');
+    return;
+  }
+
+  // ---- native app path ----
+  const native = getNativeBiometric();
+  if(native){
+    try{
+      if(!(await native.available())){
+        showToast('No fingerprint / face set up on this phone — add one in phone Settings first');
+        return;
+      }
+      await native.verify(); // must succeed once before we turn it on
+      vault.biometricEnabled = true;
+      vault.biometricCredentialId = 'native';
+      await persistVaultConfig();
+      setBiometricToggleUI();
+      showToast('Face / Touch unlock enabled');
+    }catch(err){
+      console.error('V Vault native biometric setup error:', err);
+      showToast((err && err.message) ? err.message : 'Could not set up biometric unlock');
+    }
+    return;
+  }
+  if(isNativeApp()){
+    showToast('Fingerprint plugin is missing in this app build — see the note about installing it');
+    return;
+  }
+
+  // ---- web path (WebAuthn) ----
+  if(!window.PublicKeyCredential){
+    showToast('Biometric unlock isn\'t supported on this browser');
     return;
   }
   try{
@@ -1825,6 +1914,16 @@ function setBiometricToggleUI(){
 
 async function unlockWithBiometric(){
   try{
+    const native = getNativeBiometric();
+    if(native){
+      await native.verify();
+      playIris(() => enterVault());
+      return;
+    }
+    if(vault.biometricCredentialId === 'native'){
+      showToast('Fingerprint was set up in the app — use your password here');
+      return;
+    }
     const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out waiting for the device')), ms));
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     await Promise.race([
@@ -3134,16 +3233,21 @@ function setAccent(name){
   persistAppSettings();
   closeColourPopover();
 }
-function toggleColourPopover(e){
+function closeHeaderPopovers(){
+  document.querySelectorAll('.colour-popover').forEach(el => el.classList.remove('open'));
+}
+function toggleHeaderPopover(id, e){
   if(e) e.stopPropagation();
-  document.getElementById('colour-popover').classList.toggle('open');
+  const pop = document.getElementById(id);
+  const wasOpen = pop.classList.contains('open');
+  closeHeaderPopovers();
+  if(!wasOpen) pop.classList.add('open');
 }
-function closeColourPopover(){
-  const pop = document.getElementById('colour-popover');
-  if(pop) pop.classList.remove('open');
-}
+function toggleColourPopover(e){ toggleHeaderPopover('colour-popover', e); }
+function toggleBackupPopover(e){ toggleHeaderPopover('backup-popover', e); }
+function closeColourPopover(){ closeHeaderPopovers(); }
 document.addEventListener('click', e => {
-  if(!e.target.closest('#colour-popover') && !e.target.closest('#colour-btn')) closeColourPopover();
+  if(!e.target.closest('.colour-popover') && !e.target.closest('#colour-btn') && !e.target.closest('#backup-btn')) closeHeaderPopovers();
 });
 
 /* ================= AUTO-LOCK =================
