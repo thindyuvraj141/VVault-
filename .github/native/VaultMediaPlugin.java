@@ -5,14 +5,17 @@ package __APP_ID__;
 // real Capacitor appId from capacitor.config.json — you don't need to
 // edit it by hand.
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Base64;
 
 import androidx.activity.result.ActivityResult;
@@ -21,15 +24,14 @@ import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * VaultMedia — lets the web app (1) pick photos/videos while keeping their
  * original content:// URI, and (2) ask Android to delete those originals
@@ -43,8 +45,92 @@ import java.util.List;
  */
 // requestCodes MUST list the delete-dialog code (9821 = DELETE_REQUEST_CODE below),
 // otherwise Capacitor never calls handleOnActivityResult and the JS promise hangs.
-@CapacitorPlugin(name = "VaultMedia", requestCodes = {9821})
+@CapacitorPlugin(
+    name = "VaultMedia",
+    requestCodes = {9821},
+    permissions = {
+        @Permission(alias = "camera", strings = { Manifest.permission.CAMERA }),
+        // Android 13+ (API 33+): photos and videos
+        @Permission(alias = "media", strings = { Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO }),
+        // Android 12 and below: classic storage permission
+        @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE })
+    }
+)
 public class VaultMediaPlugin extends Plugin {
+
+    /* ---------------- permissions: camera + gallery + file access ---------------- */
+
+    private String mediaAlias() {
+        return Build.VERSION.SDK_INT >= 33 ? "media" : "storage";
+    }
+
+    private boolean hasAllFilesAccess() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                ? Environment.isExternalStorageManager()
+                : true; // Android 10 and below use the classic storage permission
+    }
+
+    private JSObject permissionStates() {
+        JSObject ret = new JSObject();
+        ret.put("camera", getPermissionState("camera") == PermissionState.GRANTED);
+        ret.put("media", getPermissionState(mediaAlias()) == PermissionState.GRANTED);
+        ret.put("allFiles", hasAllFilesAccess());
+        return ret;
+    }
+
+    /** Asks for Camera + Photos/Videos (gallery) permissions if they aren't granted yet. */
+    @PluginMethod
+    public void requestAppPermissions(PluginCall call) {
+        List<String> needed = new ArrayList<>();
+        if (getPermissionState("camera") != PermissionState.GRANTED) needed.add("camera");
+        if (getPermissionState(mediaAlias()) != PermissionState.GRANTED) needed.add(mediaAlias());
+        if (needed.isEmpty()) {
+            call.resolve(permissionStates());
+            return;
+        }
+        requestPermissionForAliases(needed.toArray(new String[0]), call, "permissionsCallback");
+    }
+
+    @PermissionCallback
+    private void permissionsCallback(PluginCall call) {
+        call.resolve(permissionStates());
+    }
+
+    /** Returns the current state of all permissions without asking. */
+    @PluginMethod
+    public void checkAppPermissions(PluginCall call) {
+        call.resolve(permissionStates());
+    }
+
+    /**
+     * "All files access" (file-manager level access) can't be granted with a normal
+     * pop-up on Android 11+; the user has to switch it on in a system settings screen.
+     * This opens that screen for this app.
+     */
+    @PluginMethod
+    public void openAllFilesAccess(PluginCall call) {
+        if (hasAllFilesAccess()) {
+            call.resolve(permissionStates());
+            return;
+        }
+        try {
+            Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:" + getContext().getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+        } catch (Exception e) {
+            try {
+                Intent fallback = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(fallback);
+            } catch (Exception e2) {
+                call.reject("Could not open the settings screen");
+                return;
+            }
+        }
+        call.resolve(permissionStates());
+    }
 
     @PluginMethod
     public void pickMedia(PluginCall call) {
@@ -130,6 +216,12 @@ public class VaultMediaPlugin extends Plugin {
     private Uri toMediaStoreUri(Uri uri) {
         if (uri == null) return null;
         try {
+            // Android 12+: the system converts the picked URI for us and keeps
+            // the access the user granted when picking the file.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                Uri viaSystem = MediaStore.getMediaUri(getContext(), uri);
+                if (viaSystem != null) return viaSystem;
+            }
             String authority = uri.getAuthority();
             if ("media".equals(authority)) {
                 return uri; // already a MediaStore / picker URI
@@ -145,9 +237,6 @@ public class VaultMediaPlugin extends Plugin {
                         return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
                     }
                 }
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                return MediaStore.getMediaUri(getContext(), uri);
             }
         } catch (Exception e) {
             // fall through
@@ -177,6 +266,30 @@ public class VaultMediaPlugin extends Plugin {
             return;
         }
 
+        int deletedDirectly = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+            // "All files access" is on: no confirmation dialog needed, delete directly.
+            List<Uri> remaining = new ArrayList<>();
+            for (Uri u : uris) {
+                try {
+                    if (getContext().getContentResolver().delete(u, null, null) > 0) {
+                        deletedDirectly++;
+                        continue;
+                    }
+                } catch (Exception e) {
+                    // fall back to the system dialog for this one
+                }
+                remaining.add(u);
+            }
+            uris = remaining;
+            if (uris.isEmpty()) {
+                JSObject done = new JSObject();
+                done.put("deleted", deletedDirectly);
+                call.resolve(done);
+                return;
+            }
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Android 11+: one system confirmation dialog covers every file
             // in the batch. The user taps "Allow" once; there is no way to
@@ -193,7 +306,7 @@ public class VaultMediaPlugin extends Plugin {
                 call.setKeepAlive(true);
                 bridge.saveCall(call);
                 pendingDeleteCallbackId = call.getCallbackId();
-                pendingDeleteCount = uris.size();
+                pendingDeleteCount = uris.size() + deletedDirectly;
                 getActivity().startIntentSenderForResult(
                         pendingIntent.getIntentSender(), DELETE_REQUEST_CODE,
                         null, 0, 0, 0
