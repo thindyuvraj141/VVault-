@@ -2780,7 +2780,7 @@ async function pickMediaNative(){
       if(delResult && delResult.deleted > 0){
         showToast('Removed ' + delResult.deleted + (delResult.deleted === 1 ? ' original' : ' originals') + ' from gallery');
       } else {
-        showToast('Added to vault, but the originals could not be removed from the gallery');
+        showToast('Added to vault. Originals were kept in the gallery.');
       }
     }catch(err){
       console.error('VaultMedia delete error:', err);
