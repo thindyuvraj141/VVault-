@@ -2,6 +2,18 @@ name: Build Native Android App (Capacitor)
 
 on:
   workflow_dispatch:
+  # Build automatically whenever the app files change (no need to press Run workflow)
+  push:
+    branches: [main, master]
+    paths:
+      - 'index.html'
+      - 'VERSION'
+      - '.github/native/**'
+
+# never run two builds at the same time (they share the signing key cache)
+concurrency:
+  group: vvault-build
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -16,7 +28,12 @@ jobs:
       - name: Read app version
         id: ver
         run: |
-          VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
+          # VERSION file only sets the first two numbers (e.g. 1.0); the last number
+          # is the build number, so every build gets a new version automatically.
+          BASE=$(cat VERSION 2>/dev/null | tr -d '[:space:]')
+          [ -z "$BASE" ] && BASE="1.0.0"
+          MAJOR_MINOR=$(echo "$BASE" | cut -d. -f1-2)
+          VERSION="$MAJOR_MINOR.${{ github.run_number }}"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "num=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -59,6 +76,12 @@ jobs:
             echo "No android/ folder found — adding Capacitor Android platform."
             npx cap add android
           fi
+
+      - name: Set Android versionCode / versionName
+        run: |
+          GRADLE="android/app/build.gradle"
+          sed -i "s/versionCode [0-9][0-9]*/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"${{ steps.ver.outputs.num }}\"/" "$GRADLE"
+          grep -n "versionCode\|versionName" "$GRADLE" || echo "WARNING: versionCode/versionName not found in $GRADLE"
 
       - name: Add biometric (fingerprint) plugin
         run: |
