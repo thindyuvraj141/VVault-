@@ -1141,14 +1141,6 @@
       <span style="flex:1;">Show item count on app icon</span>
       <div class="toggle-switch" id="badge-toggle"><div class="toggle-knob"></div></div>
     </div>
-    <div class="sheet-item" id="permissions-item" style="display:none;" onclick="requestNativePermissions(true)">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2 3.5 4.2v4.3c0 3.3 2.3 5.9 5.5 7 3.2-1.1 5.5-3.7 5.5-7V4.2L9 2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.6 9l1.7 1.7L11.6 7.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Camera &amp; gallery permissions
-    </div>
-    <div class="sheet-item" id="allfiles-item" style="display:none;" onclick="openAllFilesAccess()">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h5l1.3 2H15.5v7h-13z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-      All files access (file manager)
-    </div>
     <div class="sheet-item" id="gallery-delete-item" style="display:none;" onclick="toggleGalleryDelete()">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span style="flex:1;">Remove originals from gallery</span>
@@ -1280,6 +1272,7 @@ let selectedFolderIds = new Set();
 let searchTypeFilter = 'all'; // 'all' | 'image' | 'video' | 'favorite'
 let showAppBadge = true;
 let removeFromGalleryEnabled = true;
+let permissionsAsked = false; // native app: have we shown the first-run permission prompts yet?
 let searchQuery = "";
 let currentLightboxId = null;
 let privacyModeEnabled = true;
@@ -2765,6 +2758,26 @@ async function requestNativePermissions(fromSettings){
     return null;
   }
 }
+/* First time the installed app opens: show the camera + gallery permission pop-ups
+   (and offer "All files access"). Only ever asked once automatically. */
+async function askPermissionsOnFirstRun(){
+  const V = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VaultMedia;
+  if(!V || !V.requestAppPermissions || permissionsAsked) return;
+  permissionsAsked = true;
+  persistAppSettings();
+  await new Promise(r => setTimeout(r, 600)); // let the first screen appear
+  await requestNativePermissions(false);
+  try{
+    const st = await V.checkAppPermissions();
+    if(st && !st.allFiles && V.openAllFilesAccess){
+      if(confirm('Allow "All files access"? This lets V Vault remove originals from your gallery without asking every time. It opens a system settings screen — switch it on for V Vault, then come back.')){
+        await V.openAllFilesAccess();
+      }
+    }
+  }catch(err){
+    console.error('First-run permission flow error:', err);
+  }
+}
 async function openAllFilesAccess(){
   const V = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VaultMedia;
   if(!V || !V.openAllFilesAccess){ showToast('Update the app to use this option'); return; }
@@ -3191,7 +3204,7 @@ let appTheme = 'light';
 let appAccent = 'gold';
 
 async function persistAppSettings(){
-  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, removeFromGalleryEnabled: removeFromGalleryEnabled });
+  await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, removeFromGalleryEnabled: removeFromGalleryEnabled, permissionsAsked: permissionsAsked });
 }
 async function loadAppSettings(){
   try{
@@ -3203,6 +3216,7 @@ async function loadAppSettings(){
       gridColumns = saved.gridColumns || 3;
       showAppBadge = saved.showAppBadge !== false;
       removeFromGalleryEnabled = saved.removeFromGalleryEnabled !== false;
+      permissionsAsked = !!saved.permissionsAsked;
     }
   }catch(err){
     // no saved settings yet — keep defaults
@@ -3217,7 +3231,6 @@ async function loadAppSettings(){
   const isNativeMediaAvailable = !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VaultMedia);
   const galleryItem = document.getElementById('gallery-delete-item');
   if(galleryItem) galleryItem.style.display = isNativeMediaAvailable ? 'flex' : 'none';
-  ['permissions-item','allfiles-item'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = isNativeMediaAvailable ? 'flex' : 'none'; });
   const galleryToggle = document.getElementById('gallery-delete-toggle');
   if(galleryToggle) galleryToggle.classList.toggle('on', removeFromGalleryEnabled);
 
@@ -3225,6 +3238,8 @@ async function loadAppSettings(){
   if(versionFooter){
     versionFooter.textContent = window.APP_VERSION ? ('V Vault v' + window.APP_VERSION) : 'V Vault — web version';
   }
+
+  askPermissionsOnFirstRun();
 }
 function toggleAppBadge(){
   showAppBadge = !showAppBadge;
@@ -3449,6 +3464,49 @@ if(lightboxBody){
     applyZoomTransform(false);
   }, { passive: false });
 }
+
+
+/* ================= PHONE BACK BUTTON (Android app) =================
+   Without this, the phone's back button closes the whole app. Instead it now
+   steps back like the on-screen arrows: close viewer / popups / settings,
+   leave a folder, and only exit (after a second press) from the home screen. */
+let lastBackPress = 0;
+function exitAppNow(){
+  const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if(A && A.exitApp) A.exitApp();
+}
+function handleBackPress(){
+  const el = id => document.getElementById(id);
+
+  if(el('lightbox').classList.contains('active')){ closeLightbox(); return; }
+  if(document.querySelector('.colour-popover.open')){ closeHeaderPopovers(); return; }
+  if(el('sheet-overlay').classList.contains('active')){ closeSettings(); return; }
+
+  const modal = document.querySelector('.modal-overlay.active');
+  if(modal){
+    if(modal.id === 'backup-pw-overlay' && typeof closeBackupPwModal === 'function') closeBackupPwModal();
+    else modal.classList.remove('active');
+    return;
+  }
+
+  if(selectionMode){ toggleSelectionMode(); return; }
+  if(homeSelectionMode){ toggleHomeSelectionMode(); return; }
+
+  const active = document.querySelector('.screen.active');
+  const id = active ? active.id : '';
+  if(id === 'screen-folder'){ closeFolder(); return; }
+  if(id === 'screen-vault' && searchQuery){ clearSearch(); return; }
+  if(id === 'screen-forgot-1' || id === 'screen-forgot-2'){ goTo('screen-lock'); return; }
+
+  // home / lock / setup screen: press back twice to exit
+  const now = Date.now();
+  if(now - lastBackPress < 2000){ exitAppNow(); }
+  else{ lastBackPress = now; showToast('Press back again to exit'); }
+}
+(function setupBackButton(){
+  const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if(A && A.addListener) A.addListener('backButton', handleBackPress);
+})();
 
 /* kick off: apply saved theme/accent first, then check for an existing vault */
 loadAppSettings();
