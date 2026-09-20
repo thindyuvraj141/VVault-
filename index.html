@@ -2779,10 +2779,13 @@ async function pickMediaNative(){
       const delResult = await window.Capacitor.Plugins.VaultMedia.deleteMedia({ uris: addedUris });
       if(delResult && delResult.deleted > 0){
         showToast('Removed ' + delResult.deleted + (delResult.deleted === 1 ? ' original' : ' originals') + ' from gallery');
+      } else {
+        showToast('Added to vault, but the originals could not be removed from the gallery');
       }
     }catch(err){
       console.error('VaultMedia delete error:', err);
       // Not fatal — the photos are already safely copied into the vault either way.
+      showToast('Gallery delete failed: ' + ((err && (err.message || err.errorMessage)) || 'unknown error'));
     }
   }
 }
