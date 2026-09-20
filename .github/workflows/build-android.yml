@@ -73,6 +73,12 @@ jobs:
             echo "Added USE_BIOMETRIC permission"
           fi
 
+      - name: Add back-button plugin (@capacitor/app)
+        run: |
+          CAP_MAJOR=$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
+          npm install "@capacitor/app@$CAP_MAJOR" --save \
+            || npm install "@capacitor/app@latest" --save
+
       - name: Add app permissions (camera, gallery, file access)
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
