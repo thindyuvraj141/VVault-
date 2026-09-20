@@ -60,6 +60,24 @@ jobs:
             npx cap add android
           fi
 
+      - name: Add biometric (fingerprint) plugin
+        run: |
+          # pick the plugin version that matches the Capacitor major version
+          CAP_MAJOR=$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
+          case "$CAP_MAJOR" in
+            5) PLUGIN_VER="7" ;;
+            6) PLUGIN_VER="8" ;;
+            7) PLUGIN_VER="9" ;;
+            *) PLUGIN_VER="latest" ;;
+          esac
+          echo "Capacitor $CAP_MAJOR -> biometric plugin @$PLUGIN_VER"
+          npm install "@aparajita/capacitor-biometric-auth@$PLUGIN_VER" --save
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          if ! grep -q "USE_BIOMETRIC" "$MANIFEST"; then
+            sed -i 's#<application#<uses-permission android:name="android.permission.USE_BIOMETRIC" />\n    <application#' "$MANIFEST"
+            echo "Added USE_BIOMETRIC permission"
+          fi
+
       - name: Add VaultMedia native plugin
         run: |
           APP_ID=$(node -p "require('./capacitor.config.json').appId")
@@ -120,7 +138,7 @@ jobs:
           mkdir -p keystore-cache
           keytool -genkeypair -v \
             -keystore keystore-cache/vvault-release.jks \
-            -alias ${{ secrets.KEY_ALIAS }} \
+            -alias "${{ secrets.KEY_ALIAS }}" \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
             -keypass "${{ secrets.KEY_PASSWORD }}" \
@@ -132,9 +150,9 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/keystore-cache/vvault-release.jks" \
-            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
       - name: Rename APK with version
         run: |
