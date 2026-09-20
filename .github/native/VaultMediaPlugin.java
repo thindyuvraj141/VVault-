@@ -32,6 +32,10 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * VaultMedia — lets the web app (1) pick photos/videos while keeping their
  * original content:// URI, and (2) ask Android to delete those originals
@@ -81,7 +85,7 @@ public class VaultMediaPlugin extends Plugin {
     /** Asks for Camera + Photos/Videos (gallery) permissions if they aren't granted yet. */
     @PluginMethod
     public void requestAppPermissions(PluginCall call) {
-        List<String> needed = new ArrayList<>();
+        java.util.List<String> needed = new java.util.ArrayList<>();
         if (getPermissionState("camera") != PermissionState.GRANTED) needed.add("camera");
         if (getPermissionState(mediaAlias()) != PermissionState.GRANTED) needed.add(mediaAlias());
         if (needed.isEmpty()) {
@@ -151,7 +155,7 @@ public class VaultMediaPlugin extends Plugin {
         }
 
         Intent data = result.getData();
-        List<Uri> uris = new ArrayList<>();
+        java.util.List<Uri> uris = new java.util.ArrayList<>();
         if (data != null && data.getClipData() != null) {
             int count = data.getClipData().getItemCount();
             for (int i = 0; i < count; i++) {
@@ -176,9 +180,9 @@ public class VaultMediaPlugin extends Plugin {
             String mimeType = getContext().getContentResolver().getType(uri);
             if (mimeType == null) mimeType = "application/octet-stream";
 
-            try (InputStream stream = getContext().getContentResolver().openInputStream(uri)) {
+            try (java.io.InputStream stream = getContext().getContentResolver().openInputStream(uri)) {
                 if (stream != null) {
-                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
                     byte[] chunk = new byte[8192];
                     int n;
                     while ((n = stream.read(chunk)) != -1) buffer.write(chunk, 0, n);
@@ -247,7 +251,7 @@ public class VaultMediaPlugin extends Plugin {
     @PluginMethod
     public void deleteMedia(PluginCall call) {
         JSArray uriArray = call.getArray("uris");
-        List<Uri> uris = new ArrayList<>();
+        java.util.List<Uri> uris = new java.util.ArrayList<>();
         try {
             if (uriArray != null) {
                 for (Object o : uriArray.toList()) {
@@ -269,7 +273,7 @@ public class VaultMediaPlugin extends Plugin {
         int deletedDirectly = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
             // "All files access" is on: no confirmation dialog needed, delete directly.
-            List<Uri> remaining = new ArrayList<>();
+            java.util.List<Uri> remaining = new java.util.ArrayList<>();
             for (Uri u : uris) {
                 try {
                     if (getContext().getContentResolver().delete(u, null, null) > 0) {
@@ -346,4 +350,4 @@ public class VaultMediaPlugin extends Plugin {
         savedCall.resolve(ret);
         bridge.releaseCall(savedCall);
     }
-}
+            }
