@@ -73,6 +73,26 @@ jobs:
             echo "Added USE_BIOMETRIC permission"
           fi
 
+      - name: Add app permissions (camera, gallery, file access)
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          add_line() {
+            # $1 = grep key (to skip if already present), $2 = full XML line
+            if ! grep -q "$1" "$MANIFEST"; then
+              sed -i "s#<application#$2\n    <application#" "$MANIFEST"
+              echo "Added $1"
+            fi
+          }
+          add_line 'android.permission.CAMERA"' '<uses-permission android:name="android.permission.CAMERA" />'
+          add_line 'android.hardware.camera"' '<uses-feature android:name="android.hardware.camera" android:required="false" />'
+          add_line 'android.permission.READ_MEDIA_IMAGES"' '<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />'
+          add_line 'android.permission.READ_MEDIA_VIDEO"' '<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />'
+          add_line 'android.permission.READ_EXTERNAL_STORAGE"' '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />'
+          add_line 'android.permission.WRITE_EXTERNAL_STORAGE"' '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />'
+          add_line 'android.permission.MANAGE_EXTERNAL_STORAGE"' '<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />'
+          echo "--- manifest permissions ---"
+          grep -n "uses-permission\|uses-feature" "$MANIFEST"
+
       - name: Add VaultMedia native plugin
         run: |
           APP_ID=$(node -p "require('./capacitor.config.json').appId")
