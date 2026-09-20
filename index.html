@@ -1,62 +1,71 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light" data-accent="gold">
+<html lang="en" data-theme="light" data-accent="green">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>V Vault — Photo Vault</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E4EEFC">
+<meta name="theme-color" content="#075E54">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="V Vault">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     /* --- structural tokens: overridden per theme below --- */
     --bg:#FFFFFF;
-    --bg-elevated:#F1F5F9;
+    --bg-elevated:#F0F2F5;
     --card:#FFFFFF;
-    --card-hover:#F3F6FA;
-    --text:#1C2126;
-    --text-muted:#6B7280;
-    --text-faint:#9AA1AB;
-    --danger:#C4453E;
-    --border:rgba(0,0,0,0.09);
+    --card-hover:#F5F6F6;
+    --text:#111B21;
+    --text-muted:#667781;
+    --text-faint:#8696A0;
+    --danger:#EA0038;
+    --border:rgba(0,0,0,0.08);
     --header-border:rgba(0,0,0,0.06);
-    --radius:18px;
+    --radius:14px;
+
+    /* --- WhatsApp-style header (always solid, not accent-tinted) --- */
+    --wa-header:#075E54;
+    --wa-header-dark:#202C33;
+    --wa-header-text:#FFFFFF;
+    --wa-chat-bg:#E5DDD5;
+    --wa-bubble:#DCF8C6;
 
     /* --- accent tokens: overridden per accent choice below --- */
-    --accent-rgb:198,161,91;
+    --accent-rgb:37,211,102;
     --accent:rgb(var(--accent-rgb));
     --accent-soft:rgba(var(--accent-rgb),0.14);
     --accent-dim:rgba(var(--accent-rgb),0.45);
-    --header-bg:rgba(var(--accent-rgb),0.16);
+    --header-bg:var(--wa-header);
   }
 
   /* ---------- dark mode ---------- */
   html[data-theme="dark"]{
-    --bg:#0B0D10;
-    --bg-elevated:#14171C;
-    --card:#1A1E24;
-    --card-hover:#20242B;
-    --text:#F1EEE8;
-    --text-muted:#8D929A;
-    --text-faint:#565B63;
-    --danger:#D9756A;
+    --bg:#0B141A;
+    --bg-elevated:#202C33;
+    --card:#111B21;
+    --card-hover:#1F2C33;
+    --text:#E9EDEF;
+    --text-muted:#8696A0;
+    --text-faint:#667781;
+    --danger:#F15C6D;
     --border:rgba(255,255,255,0.08);
     --header-border:rgba(255,255,255,0.08);
-    --header-bg:rgba(var(--accent-rgb),0.22);
+    --accent-rgb:0,168,132;
+    --header-bg:var(--wa-header-dark);
   }
 
-  /* ---------- accent choices ---------- */
+  /* ---------- accent choices (WhatsApp green is the default look) ---------- */
   html[data-accent="gold"]{ --accent-rgb:198,161,91; }
   html[data-accent="blue"]{ --accent-rgb:74,144,217; }
-  html[data-accent="green"]{ --accent-rgb:87,168,120; }
+  html[data-accent="green"]{ --accent-rgb:37,211,102; }
   html[data-accent="rose"]{ --accent-rgb:212,110,110; }
   html[data-accent="purple"]{ --accent-rgb:150,122,214; }
+  html[data-theme="dark"][data-accent="green"]{ --accent-rgb:0,168,132; }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{
     background:var(--bg);
@@ -85,11 +94,11 @@
   .screen.active{display:flex;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
+  h1,h2,h3{font-family:'Roboto','Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;}
 
   /* ---------- Brand lockup ---------- */
   .brand{display:flex;align-items:center;gap:10px;}
-  .brand-name{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--text);}
+  .brand-name{font-family:'Roboto','Inter',sans-serif;font-size:19px;font-weight:700;color:var(--text);}
   .logo{width:34px;height:34px;flex-shrink:0;}
 
   .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 30px;}
@@ -159,13 +168,13 @@
 
   .btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
-    width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;
+    width:100%;padding:15px;border-radius:26px;border:none;cursor:pointer;
     font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
     transition:transform .15s, opacity .15s, background .2s;
   }
   .btn:active{transform:scale(0.98);}
-  .btn-primary{background:var(--accent);color:#1A1204;}
-  .btn-primary:hover{background:#D2AE68;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:rgb(29,190,89);}
   .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
   .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
   .btn-ghost:hover{color:var(--text);border-color:var(--text-faint);}
@@ -212,7 +221,7 @@
     padding:12px 14px;margin:16px 20px 0;font-size:13px;color:var(--text);
   }
   .update-banner-btn{
-    background:var(--accent);color:#1A1204;border:none;border-radius:8px;
+    background:var(--accent);color:#fff;border:none;border-radius:8px;
     padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
   }
   .update-banner-dismiss{
@@ -221,17 +230,20 @@
 
   .vault-header{
     display:flex;align-items:center;justify-content:space-between;
-    margin:-22px -20px 22px;padding:22px 20px 18px;
-    background:var(--header-bg);border-bottom:1px solid var(--header-border);
+    margin:-22px -20px 22px;padding:20px 16px 16px;
+    background:var(--header-bg);border-bottom:none;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
   }
-  .vault-title-block .brand-name{font-size:20px;}
-  .vault-title-block .count{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+  .vault-title-block .brand-name{font-size:21px;color:var(--wa-header-text);font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.2px;}
+  .vault-title-block .count{font-size:12.5px;color:rgba(255,255,255,0.75);margin-top:2px;}
   .icon-btn{
-    width:38px;height:38px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border);
+    width:36px;height:36px;border-radius:50%;background:transparent;border:none;
     display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);
   }
   .icon-btn:hover{color:var(--text);border-color:var(--text-faint);}
-  .header-actions{display:flex;gap:8px;}
+  .header-actions{display:flex;gap:2px;}
+  .vault-header .icon-btn{color:var(--wa-header-text);}
+  .vault-header .icon-btn:hover{background:rgba(255,255,255,0.12);color:var(--wa-header-text);}
 
   /* header quick appearance buttons */
   .header-actions{position:relative;}
@@ -239,8 +251,8 @@
   html[data-theme="dark"] #dark-toggle-btn .ico-moon{display:none;}
   html[data-theme="dark"] #dark-toggle-btn .ico-sun{display:block;}
   .colour-popover{
-    display:none;position:absolute;top:42px;right:0;z-index:80;
-    background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;
+    display:none;position:absolute;top:42px;right:0;z-index:80;min-width:220px;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 14px;
     box-shadow:0 10px 30px rgba(0,0,0,.28);
   }
   .colour-popover.open{display:block;}
@@ -259,7 +271,7 @@
   }
   #search-input{
     width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);
-    padding:11px 14px 11px 38px;border-radius:11px;font-size:14px;font-family:'Inter',sans-serif;outline:none;
+    padding:11px 14px 11px 38px;border-radius:22px;font-size:14px;font-family:'Inter',sans-serif;outline:none;
   }
   #search-input:focus{border-color:var(--accent-dim);}
   #search-clear{
@@ -282,11 +294,11 @@
   .filter-chip-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
   .filter-chip-row::-webkit-scrollbar{display:none;}
   .filter-chip{
-    flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:500;
-    background:var(--bg-elevated);color:var(--text-muted);border:1px solid var(--border);
+    flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:12.5px;font-weight:600;
+    background:var(--bg-elevated);color:var(--text-muted);border:1px solid transparent;
     cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;
   }
-  .filter-chip.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-dim);}
+  .filter-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
   .grid{
     display:grid;grid-template-columns:repeat(var(--grid-cols, 3),1fr);gap:8px;
@@ -307,13 +319,14 @@
   .empty-state p{font-size:13.5px;color:var(--text-muted);line-height:1.5;max-width:230px;}
 
   .fab{
-    position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
-    max-width:430px;width:calc(100% - 40px);
-    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
-    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
-    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+    position:fixed;bottom:24px;right:calc(50% - 215px + 20px);
+    background:var(--accent);color:#fff;border:none;border-radius:50%;
+    width:56px;height:56px;padding:0;font-size:0;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:20;
   }
-  .fab:active{transform:translateX(-50%) scale(0.98);}
+  .fab:active{transform:scale(0.94);}
+  @media (max-width:470px){ .fab{ right:20px; } }
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
 
   /* ---------- Folders (home screen) ---------- */
   .folder-grid{
@@ -398,13 +411,13 @@
   .sel-action.danger{color:var(--danger);}
 
   .new-folder-fab{
-    position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
-    max-width:430px;width:calc(100% - 40px);
-    background:var(--accent);color:#1A1204;border:none;border-radius:14px;
-    padding:15px;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
-    cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.45);z-index:20;
+    position:fixed;bottom:24px;right:calc(50% - 215px + 20px);
+    background:var(--accent);color:#fff;border:none;border-radius:50%;
+    width:56px;height:56px;padding:0;font-size:0;display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:20;
   }
-  .new-folder-fab:active{transform:translateX(-50%) scale(0.98);}
+  .new-folder-fab:active{transform:scale(0.94);}
+  @media (max-width:470px){ .new-folder-fab{ right:20px; } }
 
   /* ---------- Lightbox ---------- */
   .lightbox{
@@ -413,6 +426,8 @@
   }
   .lightbox.active{display:flex;}
   .lightbox-top{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 0;}
+  .lightbox-top .icon-btn{color:#fff;}
+  .lightbox-top .icon-btn:hover{background:rgba(255,255,255,0.12);color:#fff;}
   .slideshow-badge{
     display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);
     color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;
@@ -560,7 +575,7 @@
     flex:1;background:none;border:none;padding:10px;border-radius:9px;font-size:13.5px;font-weight:600;
     color:var(--text-muted);cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s,color .2s;
   }
-  .type-toggle button.active{background:var(--accent);color:#1A1204;}
+  .type-toggle button.active{background:var(--accent);color:#fff;}
 
   /* PIN pad */
   .pin-set-indicator{
@@ -806,33 +821,37 @@
     </div>
     <div class="vault-header">
       <div class="vault-title-block">
-        <div class="brand-name">Your vault</div>
+        <div class="brand-name">V Vault</div>
         <div class="count" id="folder-count">0 folders</div>
       </div>
       <div class="header-actions">
-        <div class="icon-btn" id="home-select-btn" onclick="toggleHomeSelectionMode()" title="Select folders">
-          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l2 2 4-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="icon-btn" onclick="document.getElementById('search-input').focus();" title="Search">
+          <svg width="19" height="19" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M12.2 12.2L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </div>
-        <div class="icon-btn" id="dark-toggle-btn" onclick="toggleDarkMode()" title="Dark mode">
-          <svg class="ico-moon" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-          <svg class="ico-sun" width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="3.2" stroke="currentColor" stroke-width="1.5"/><path d="M9 1.8v2M9 14.2v2M1.8 9h2M14.2 9h2M3.9 3.9l1.4 1.4M12.7 12.7l1.4 1.4M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="icon-btn" id="more-menu-btn" onclick="toggleHeaderPopover('more-popover', event)" title="Menu">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="3.5" r="1.6" fill="currentColor"/><circle cx="9" cy="9" r="1.6" fill="currentColor"/><circle cx="9" cy="14.5" r="1.6" fill="currentColor"/></svg>
         </div>
-        <div class="icon-btn" id="colour-btn" onclick="toggleColourPopover(event)" title="App colour">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.2C5.2 2.2 2.2 5 2.2 8.7c0 3.6 2.8 6.4 6.4 6.4 1.2 0 1.7-.7 1.7-1.4 0-.9-.7-1.2-.7-2 0-.8.6-1.3 1.4-1.3h1.6c1.6 0 2.8-1.1 2.8-2.7C15.4 4.6 12.6 2.2 9 2.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="5.6" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="5.4" r="1" fill="currentColor"/><circle cx="11.2" cy="5.8" r="1" fill="currentColor"/></svg>
-        </div>
-        <div class="colour-popover" id="colour-popover">
-          <div class="accent-swatches" id="accent-swatches">
-            <button type="button" class="accent-swatch" data-accent="gold" style="background:#C6A15B" onclick="setAccent('gold')" title="Gold"></button>
-            <button type="button" class="accent-swatch" data-accent="blue" style="background:#4A90D9" onclick="setAccent('blue')" title="Blue"></button>
-            <button type="button" class="accent-swatch" data-accent="green" style="background:#57A878" onclick="setAccent('green')" title="Green"></button>
-            <button type="button" class="accent-swatch" data-accent="rose" style="background:#D46E6E" onclick="setAccent('rose')" title="Rose"></button>
-            <button type="button" class="accent-swatch" data-accent="purple" style="background:#967AD6" onclick="setAccent('purple')" title="Purple"></button>
+        <div class="colour-popover" id="more-popover">
+          <div class="pop-item" id="home-select-btn" onclick="closeHeaderPopovers(); toggleHomeSelectionMode();">
+            <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l2 2 4-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Select folders
           </div>
-        </div>
-        <div class="icon-btn" id="backup-btn" onclick="toggleBackupPopover(event)" title="Backup / Restore">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5.2 13.5a3.4 3.4 0 0 1-.4-6.8 4.4 4.4 0 0 1 8.4 1.2 2.8 2.8 0 0 1-.4 5.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 8.5v6M9 8.5 6.9 10.6M9 8.5l2.1 2.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="colour-popover" id="backup-popover">
+          <div class="pop-item" id="dark-toggle-btn" onclick="toggleDarkMode()">
+            <svg class="ico-moon" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            <svg class="ico-sun" width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="3.2" stroke="currentColor" stroke-width="1.5"/><path d="M9 1.8v2M9 14.2v2M1.8 9h2M14.2 9h2M3.9 3.9l1.4 1.4M12.7 12.7l1.4 1.4M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Dark mode
+          </div>
+          <div class="pop-item accent-row" style="cursor:default;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.2C5.2 2.2 2.2 5 2.2 8.7c0 3.6 2.8 6.4 6.4 6.4 1.2 0 1.7-.7 1.7-1.4 0-.9-.7-1.2-.7-2 0-.8.6-1.3 1.4-1.3h1.6c1.6 0 2.8-1.1 2.8-2.7C15.4 4.6 12.6 2.2 9 2.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="5.6" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="5.4" r="1" fill="currentColor"/><circle cx="11.2" cy="5.8" r="1" fill="currentColor"/></svg>
+            <span style="flex:1;">App colour</span>
+            <div class="accent-swatches" id="accent-swatches">
+              <button type="button" class="accent-swatch" data-accent="gold" style="background:#C6A15B" onclick="setAccent('gold')" title="Gold"></button>
+              <button type="button" class="accent-swatch" data-accent="blue" style="background:#4A90D9" onclick="setAccent('blue')" title="Blue"></button>
+              <button type="button" class="accent-swatch" data-accent="green" style="background:#25D366" onclick="setAccent('green')" title="Green"></button>
+              <button type="button" class="accent-swatch" data-accent="rose" style="background:#D46E6E" onclick="setAccent('rose')" title="Rose"></button>
+              <button type="button" class="accent-swatch" data-accent="purple" style="background:#967AD6" onclick="setAccent('purple')" title="Purple"></button>
+            </div>
+          </div>
           <div class="pop-item" onclick="closeHeaderPopovers(); createBackup();">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
             Create backup
@@ -841,13 +860,14 @@
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V2M9 2L5.5 5.5M9 2L12.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
             Restore from backup
           </div>
-        </div>
-        <div class="icon-btn" onclick="openSettings()">
-          <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="3.5"/>
-            <circle cx="32" cy="30" r="6.5" fill="currentColor"/>
-            <path d="M28.7 34 L35.3 34 L33.6 42.5 L30.4 42.5 Z" fill="currentColor"/>
-          </svg>
+          <div class="pop-item" onclick="closeHeaderPopovers(); openSettings();">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="9" cy="9" r="7.2" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="9" cy="8.4" r="1.8" fill="currentColor"/>
+              <path d="M7.9 9.5 L10.1 9.5 L9.4 13 L8.6 13 Z" fill="currentColor"/>
+            </svg>
+            Settings
+          </div>
         </div>
       </div>
     </div>
@@ -884,9 +904,9 @@
         <button class="btn btn-primary" style="margin-top:14px;width:auto;padding:12px 22px;" onclick="openNewAlbumModal()">+ Create your first folder</button>
       </div>
 
-      <button class="new-folder-fab" onclick="openNewAlbumModal()">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        New folder
+      <button class="new-folder-fab" onclick="openNewAlbumModal()" title="New folder">
+        <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="sr-only">New folder</span>
       </button>
     </div>
 
@@ -997,7 +1017,7 @@
         <div class="accent-swatches" id="folder-color-swatches">
           <button type="button" class="accent-swatch folder-color-swatch" data-color="" style="background:var(--accent)" onclick="setFolderColor('')" title="Default"></button>
           <button type="button" class="accent-swatch folder-color-swatch" data-color="#4A90D9" style="background:#4A90D9" onclick="setFolderColor('#4A90D9')"></button>
-          <button type="button" class="accent-swatch folder-color-swatch" data-color="#57A878" style="background:#57A878" onclick="setFolderColor('#57A878')"></button>
+          <button type="button" class="accent-swatch folder-color-swatch" data-color="#25D366" style="background:#25D366" onclick="setFolderColor('#25D366')"></button>
           <button type="button" class="accent-swatch folder-color-swatch" data-color="#D46E6E" style="background:#D46E6E" onclick="setFolderColor('#D46E6E')"></button>
           <button type="button" class="accent-swatch folder-color-swatch" data-color="#967AD6" style="background:#967AD6" onclick="setFolderColor('#967AD6')"></button>
         </div>
@@ -1028,9 +1048,9 @@
     </div>
   </div>
 
-  <button class="fab" id="add-fab" style="display:none;" onclick="addPhotos()">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#1A1204" stroke-width="2" stroke-linecap="round"/></svg>
-    Add photos
+  <button class="fab" id="add-fab" style="display:none;" onclick="addPhotos()" title="Add photos">
+    <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><path d="M9 2V16M2 9H16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="sr-only">Add photos</span>
   </button>
   <input type="file" id="file-input" accept="image/*,video/*" multiple onchange="handleFiles(event)">
 
@@ -3201,7 +3221,7 @@ async function confirmBackupPassword(){
    Stored separately from the vault itself, so the choice applies even on
    the lock/setup screens before anyone has unlocked anything. */
 let appTheme = 'light';
-let appAccent = 'gold';
+let appAccent = 'green';
 
 async function persistAppSettings(){
   await dbSet('appSettings', { theme: appTheme, accent: appAccent, autoLockMinutes: autoLockMinutes, gridColumns: gridColumns, showAppBadge: showAppBadge, removeFromGalleryEnabled: removeFromGalleryEnabled, permissionsAsked: permissionsAsked });
@@ -3211,7 +3231,7 @@ async function loadAppSettings(){
     const saved = await dbGet('appSettings');
     if(saved){
       appTheme = saved.theme || 'light';
-      appAccent = saved.accent || 'gold';
+      appAccent = saved.accent || 'green';
       autoLockMinutes = saved.autoLockMinutes || 0;
       gridColumns = saved.gridColumns || 3;
       showAppBadge = saved.showAppBadge !== false;
@@ -3260,6 +3280,8 @@ function applyAppearance(){
   document.querySelectorAll('.accent-swatch').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-accent') === appAccent);
   });
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute('content', appTheme === 'dark' ? '#202C33' : '#075E54');
 }
 function toggleDarkMode(){
   appTheme = appTheme === 'dark' ? 'light' : 'dark';
@@ -3286,7 +3308,7 @@ function toggleColourPopover(e){ toggleHeaderPopover('colour-popover', e); }
 function toggleBackupPopover(e){ toggleHeaderPopover('backup-popover', e); }
 function closeColourPopover(){ closeHeaderPopovers(); }
 document.addEventListener('click', e => {
-  if(!e.target.closest('.colour-popover') && !e.target.closest('#colour-btn') && !e.target.closest('#backup-btn')) closeHeaderPopovers();
+  if(!e.target.closest('.colour-popover') && !e.target.closest('#more-menu-btn')) closeHeaderPopovers();
 });
 
 /* ================= AUTO-LOCK =================
