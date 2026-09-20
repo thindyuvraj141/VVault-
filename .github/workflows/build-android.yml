@@ -62,16 +62,11 @@ jobs:
 
       - name: Add biometric (fingerprint) plugin
         run: |
-          # pick the plugin version that matches the Capacitor major version
+          # plugin major version follows the Capacitor major version
           CAP_MAJOR=$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
-          case "$CAP_MAJOR" in
-            5) PLUGIN_VER="7" ;;
-            6) PLUGIN_VER="8" ;;
-            7) PLUGIN_VER="9" ;;
-            *) PLUGIN_VER="latest" ;;
-          esac
-          echo "Capacitor $CAP_MAJOR -> biometric plugin @$PLUGIN_VER"
-          npm install "@aparajita/capacitor-biometric-auth@$PLUGIN_VER" --save
+          echo "Capacitor major: $CAP_MAJOR"
+          npm install "@capgo/capacitor-native-biometric@$CAP_MAJOR" --save \
+            || npm install "@capgo/capacitor-native-biometric@latest" --save
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           if ! grep -q "USE_BIOMETRIC" "$MANIFEST"; then
             sed -i 's#<application#<uses-permission android:name="android.permission.USE_BIOMETRIC" />\n    <application#' "$MANIFEST"
