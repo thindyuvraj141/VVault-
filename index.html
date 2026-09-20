@@ -239,7 +239,7 @@
   html[data-theme="dark"] #dark-toggle-btn .ico-moon{display:none;}
   html[data-theme="dark"] #dark-toggle-btn .ico-sun{display:block;}
   .colour-popover{
-    display:none;position:absolute;top:46px;right:0;z-index:80;
+    display:none;position:absolute;top:42px;right:0;z-index:80;
     background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;
     box-shadow:0 10px 30px rgba(0,0,0,.28);
   }
@@ -1781,46 +1781,26 @@ function base64UrlToBuf(b64url){
 }
 
 /* Inside the Capacitor app (Android/iOS WebView) WebAuthn fingerprint is NOT
-   available, so we use a native biometric plugin when one is installed.
-   Supported: @aparajita/capacitor-biometric-auth ("BiometricAuth") and
-   capacitor-native-biometric ("NativeBiometric"). On the web we keep WebAuthn. */
+   available, so we use the native "NativeBiometric" plugin
+   (@capgo/capacitor-native-biometric) when it is installed.
+   On the web we keep WebAuthn. */
 function getNativeBiometric(){
   const P = window.Capacitor && window.Capacitor.Plugins;
-  if(!P) return null;
-  if(P.BiometricAuth){
-    return {
-      async available(){
-        const r = await P.BiometricAuth.checkBiometry();
-        return !!(r && r.isAvailable);
-      },
-      async verify(){
-        await P.BiometricAuth.authenticate({
-          reason: 'Unlock V Vault',
-          cancelTitle: 'Cancel',
-          allowDeviceCredential: true,
-          androidTitle: 'V Vault',
-          androidSubtitle: 'Use fingerprint or face to unlock'
-        });
-      }
-    };
-  }
-  if(P.NativeBiometric){
-    return {
-      async available(){
-        const r = await P.NativeBiometric.isAvailable({ useFallback: true });
-        return !!(r && r.isAvailable);
-      },
-      async verify(){
-        await P.NativeBiometric.verifyIdentity({
-          reason: 'Unlock V Vault',
-          title: 'V Vault',
-          subtitle: 'Use fingerprint or face to unlock',
-          useFallback: true
-        });
-      }
-    };
-  }
-  return null;
+  if(!P || !P.NativeBiometric) return null;
+  return {
+    async available(){
+      const r = await P.NativeBiometric.isAvailable({ useFallback: true });
+      return !!(r && r.isAvailable);
+    },
+    async verify(){
+      await P.NativeBiometric.verifyIdentity({
+        reason: 'Unlock V Vault',
+        title: 'V Vault',
+        subtitle: 'Use fingerprint or face to unlock',
+        useFallback: true
+      });
+    }
+  };
 }
 function isNativeApp(){
   const C = window.Capacitor;
@@ -3216,8 +3196,6 @@ function toggleGalleryDelete(){
 function applyAppearance(){
   document.documentElement.setAttribute('data-theme', appTheme);
   document.documentElement.setAttribute('data-accent', appAccent);
-  const dm = document.getElementById('darkmode-toggle');
-  if(dm) dm.classList.toggle('on', appTheme === 'dark');
   document.querySelectorAll('.accent-swatch').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-accent') === appAccent);
   });
