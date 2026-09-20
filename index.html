@@ -1752,6 +1752,15 @@ async function unlockVault(){
 }
 
 function lockVaultNow(){
+  // Close every possible overlay first — otherwise auto-lock (or any other
+  // trigger) could leave something like the Settings sheet or Google Drive
+  // panel visibly open on top of the lock screen, defeating the point of locking.
+  document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
+  document.getElementById('sheet-overlay').classList.remove('active');
+  document.getElementById('settings-sheet').style.display = 'none';
+  document.getElementById('lightbox').classList.remove('active');
+  if(slideshowTimer) stopSlideshow();
+
   goTo('screen-lock');
   document.getElementById('lock-pw').value = '';
   clearError('lock');
@@ -1878,23 +1887,30 @@ async function toggleBiometric(){
     return;
   }
   try{
-    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out waiting for the device')), ms));
+    const available = await Promise.race([
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),
+      timeout(8000)
+    ]);
     if(!available){
       showToast('This device has no Face/Touch ID or screen-lock set up');
       return;
     }
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     const userId = crypto.getRandomValues(new Uint8Array(16));
-    const credential = await navigator.credentials.create({
-      publicKey: {
-        challenge,
-        rp: { name: 'V Vault' },
-        user: { id: userId, name: 'vault-user', displayName: 'V Vault' },
-        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-        timeout: 60000
-      }
-    });
+    const credential = await Promise.race([
+      navigator.credentials.create({
+        publicKey: {
+          challenge,
+          rp: { name: 'V Vault' },
+          user: { id: userId, name: 'vault-user', displayName: 'V Vault' },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+          timeout: 60000
+        }
+      }),
+      timeout(65000)
+    ]);
     vault.biometricEnabled = true;
     vault.biometricCredentialId = bufToBase64Url(credential.rawId);
     await persistVaultConfig();
@@ -1913,15 +1929,19 @@ function setBiometricToggleUI(){
 
 async function unlockWithBiometric(){
   try{
+    const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out waiting for the device')), ms));
     const challenge = crypto.getRandomValues(new Uint8Array(32));
-    await navigator.credentials.get({
-      publicKey: {
-        challenge,
-        allowCredentials: [{ type: 'public-key', id: base64UrlToBuf(vault.biometricCredentialId) }],
-        userVerification: 'required',
-        timeout: 60000
-      }
-    });
+    await Promise.race([
+      navigator.credentials.get({
+        publicKey: {
+          challenge,
+          allowCredentials: [{ type: 'public-key', id: base64UrlToBuf(vault.biometricCredentialId) }],
+          userVerification: 'required',
+          timeout: 60000
+        }
+      }),
+      timeout(65000)
+    ]);
     playIris(() => enterVault());
   }catch(err){
     console.error('V Vault biometric unlock error:', err);
@@ -2510,6 +2530,7 @@ function rotateCurrent(){
     persistLibrary();
     showToast('Rotated');
   };
+  img.onerror = () => showToast('Could not rotate this photo');
   img.src = p.src;
 }
 function cropToSquareCurrent(){
@@ -2530,6 +2551,7 @@ function cropToSquareCurrent(){
     persistLibrary();
     showToast('Cropped to square');
   };
+  img.onerror = () => showToast('Could not crop this photo');
   img.src = p.src;
 }
 
@@ -3132,7 +3154,11 @@ async function confirmBackupPassword(){
           id: Date.now() + Math.random(),
           src: p.src,
           caption: p.caption || '',
-          albumId: p.albumId ? (albumIdMap[p.albumId] || null) : null
+          albumId: p.albumId ? (albumIdMap[p.albumId] || null) : null,
+          favorite: !!p.favorite,
+          type: p.type === 'video' ? 'video' : 'image',
+          rotation: p.rotation || 0,
+          deletedAt: null
         });
       });
 
@@ -3284,7 +3310,10 @@ async function loadDriveBackupForRestore(fileId){
     const res = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
       headers: { 'Authorization': 'Bearer ' + driveAccessToken }
     });
-    if(!res.ok) throw new Error('download failed (' + res.status + ')');
+    if(!res.ok){
+      if(res.status === 401){ driveAccessToken = null; renderDriveModalState(); }
+      throw new Error('download failed (' + res.status + ')');
+    }
     const parsed = await res.json();
     if(!parsed.salt || !parsed.iv || !parsed.ciphertext){ showToast('That file doesn\'t look like a V Vault backup'); return; }
     pendingRestoreEncrypted = parsed;
@@ -3346,20 +3375,27 @@ function saveFirebaseConfig(){
   const raw = document.getElementById('phone-firebase-config-input').value.trim();
   if(!raw){ document.getElementById('phone-setup-error').textContent = 'Paste your Firebase config first.'; return; }
   try{
-    // forgiving parse: strips "const firebaseConfig =" / trailing ";" if pasted as a JS snippet
-    const cleaned = raw
-      .replace(/^\s*(const|var|let)\s+\w+\s*=\s*/, '')
-      .replace(/;\s*$/, '')
-      .replace(/(\w+)\s*:/g, '"$1":') // unquoted keys → valid JSON
-      .replace(/'/g, '"');
-    const parsed = JSON.parse(cleaned);
-    if(!parsed.apiKey || !parsed.authDomain){ throw new Error('missing apiKey/authDomain'); }
+    // Extract just the {...} object literal (in case the full
+    // "const firebaseConfig = {...};" snippet was pasted), then let the
+    // JS engine itself parse it. A text-based JSON conversion can't safely
+    // tell object keys apart from values that contain colons — and
+    // Firebase's own appId ("1:123:web:abc...") always contains colons,
+    // so that approach broke on every real config.
+    const start = raw.indexOf('{');
+    const end = raw.lastIndexOf('}');
+    if(start === -1 || end === -1 || end <= start) throw new Error('no object literal found');
+    const objectText = raw.slice(start, end + 1);
+    const parsed = new Function('return (' + objectText + ')')();
+    if(!parsed || typeof parsed !== 'object' || !parsed.apiKey || !parsed.authDomain){
+      throw new Error('missing apiKey/authDomain');
+    }
     firebaseConfig = parsed;
     persistAppSettings();
     initFirebaseIfNeeded();
     renderPhoneModalState();
     showToast('Firebase connected');
   }catch(err){
+    console.error('Firebase config parse error:', err);
     document.getElementById('phone-setup-error').textContent = 'Could not read that config — paste it exactly as shown in Firebase.';
   }
 }
@@ -3384,7 +3420,9 @@ async function sendPhoneOtp(mode){
     : vault.verifiedPhone;
 
   if(!phoneNumber || !/^\+\d{7,15}$/.test(phoneNumber)){
-    setError('phone-register', 'Enter a number with country code, e.g. +923001234567');
+    const msg = mode === 'register' ? 'Enter a number with country code, e.g. +923001234567' : 'No valid phone registered for this vault.';
+    setError('phone-register', msg);
+    showToast(msg);
     return;
   }
   try{
@@ -3397,7 +3435,9 @@ async function sendPhoneOtp(mode){
     showToast('Code sent');
   }catch(err){
     console.error('Phone OTP send error:', err);
-    setError('phone-register', err && err.message ? err.message : 'Could not send code.');
+    const msg = err && err.message ? err.message : 'Could not send code.';
+    setError('phone-register', msg);
+    showToast(msg); // the register section (holding that error text) may be hidden in the unlock flow — a toast guarantees this is always seen
     if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
   }
 }
