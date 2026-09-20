@@ -7,9 +7,11 @@ package __APP_ID__;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.ContentUris;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Base64;
 
@@ -39,7 +41,9 @@ import java.util.List;
  * delete another app's media. That's why this needs to be native code
  * instead of something addable to the HTML file directly.
  */
-@CapacitorPlugin(name = "VaultMedia")
+// requestCodes MUST list the delete-dialog code (9821 = DELETE_REQUEST_CODE below),
+// otherwise Capacitor never calls handleOnActivityResult and the JS promise hangs.
+@CapacitorPlugin(name = "VaultMedia", requestCodes = {9821})
 public class VaultMediaPlugin extends Plugin {
 
     @PluginMethod
@@ -111,7 +115,45 @@ public class VaultMediaPlugin extends Plugin {
     }
 
     private String pendingDeleteCallbackId;
+    private int pendingDeleteCount = 0;
     private static final int DELETE_REQUEST_CODE = 9821;
+
+
+    /**
+     * ACTION_OPEN_DOCUMENT gives "document" URIs such as
+     *   content://com.android.providers.media.documents/document/image%3A1234
+     * but MediaStore.createDeleteRequest only accepts real MediaStore URIs such as
+     *   content://media/external/images/media/1234
+     * Passing a document URI throws, so the delete never happened. This converts.
+     * Returns null when the file isn't in MediaStore (e.g. Google Drive, Downloads).
+     */
+    private Uri toMediaStoreUri(Uri uri) {
+        if (uri == null) return null;
+        try {
+            String authority = uri.getAuthority();
+            if ("media".equals(authority)) {
+                return uri; // already a MediaStore / picker URI
+            }
+            if ("com.android.providers.media.documents".equals(authority)) {
+                String docId = DocumentsContract.getDocumentId(uri); // e.g. "image:1234"
+                String[] parts = docId.split(":");
+                if (parts.length == 2) {
+                    long id = Long.parseLong(parts[1]);
+                    if ("image".equals(parts[0])) {
+                        return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                    } else if ("video".equals(parts[0])) {
+                        return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+                    }
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                return MediaStore.getMediaUri(getContext(), uri);
+            }
+        } catch (Exception e) {
+            // fall through
+        }
+        return null;
+    }
 
     @PluginMethod
     public void deleteMedia(PluginCall call) {
@@ -120,7 +162,8 @@ public class VaultMediaPlugin extends Plugin {
         try {
             if (uriArray != null) {
                 for (Object o : uriArray.toList()) {
-                    uris.add(Uri.parse(String.valueOf(o)));
+                    Uri converted = toMediaStoreUri(Uri.parse(String.valueOf(o)));
+                    if (converted != null) uris.add(converted);
                 }
             }
         } catch (Exception e) {
@@ -150,6 +193,7 @@ public class VaultMediaPlugin extends Plugin {
                 call.setKeepAlive(true);
                 bridge.saveCall(call);
                 pendingDeleteCallbackId = call.getCallbackId();
+                pendingDeleteCount = uris.size();
                 getActivity().startIntentSenderForResult(
                         pendingIntent.getIntentSender(), DELETE_REQUEST_CODE,
                         null, 0, 0, 0
@@ -184,9 +228,8 @@ public class VaultMediaPlugin extends Plugin {
         pendingDeleteCallbackId = null;
         if (savedCall == null) return;
         JSObject ret = new JSObject();
-        // Android doesn't report back exactly how many were deleted from this
-        // dialog — RESULT_OK means the user approved the whole batch.
-        ret.put("deleted", resultCode == Activity.RESULT_OK ? 1 : 0);
+        // RESULT_OK means the user approved the whole batch.
+        ret.put("deleted", resultCode == Activity.RESULT_OK ? pendingDeleteCount : 0);
         savedCall.resolve(ret);
         bridge.releaseCall(savedCall);
     }
