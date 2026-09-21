@@ -1,8 +1,7 @@
 package __APP_ID__;
 
-// The line above gets rewritten automatically at build time (same as
-// VaultMediaPlugin.java) to match your real Capacitor appId from
-// capacitor.config.json — you don't need to edit it by hand.
+// __APP_ID__ above gets replaced automatically at build time (same pattern as
+// VaultMediaPlugin.java) — you don't need to edit it by hand.
 
 import android.content.Intent;
 import android.net.Uri;
@@ -18,21 +17,19 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
- * MainActivity — the single Activity that hosts the Capacitor WebView.
+ * MainActivity — hosts the Capacitor WebView.
  *
- * On top of the normal Capacitor boilerplate, this also receives Android's
- * "Share" intent (ACTION_SEND / ACTION_SEND_MULTIPLE) so that sharing a
- * photo or video into V Vault from Gallery (or any other app) works. The
- * shared files are read into base64 here and handed to the web app via
- * window.receiveSharedMedia(...), which is already defined in index.html.
- *
- * VaultMediaPlugin registers itself automatically (it's annotated with
- * @CapacitorPlugin), so nothing else needs to change there.
+ * Registers VaultMediaPlugin (pick/delete media) and also receives Android's
+ * "Share" intent (ACTION_SEND / ACTION_SEND_MULTIPLE), so sharing a photo or
+ * video into V Vault from Gallery (or any other app) works. Shared files are
+ * read into base64 and handed to the web app via
+ * window.receiveSharedMedia(...), which already exists in index.html.
  */
 public class MainActivity extends BridgeActivity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(VaultMediaPlugin.class);
         super.onCreate(savedInstanceState);
         handleShareIntent(getIntent());
     }
@@ -46,8 +43,8 @@ public class MainActivity extends BridgeActivity {
 
     /**
      * Reads any shared photos/videos out of the given intent and passes them
-     * to the web app as base64 data URLs. Safe to call with any intent —
-     * it quietly does nothing if the intent isn't a media share.
+     * to the web app as base64 data URLs. Safe to call with any intent — it
+     * quietly does nothing if the intent isn't a media share.
      */
     private void handleShareIntent(Intent intent) {
         if (intent == null) return;
@@ -88,7 +85,6 @@ public class MainActivity extends BridgeActivity {
         }
         if (items.length() == 0) return;
 
-        // Wait for the WebView to be ready, then hand the data to the web app.
         final JSONArray finalItems = items;
         getBridge().getWebView().post(() -> {
             String js = "window.receiveSharedMedia && window.receiveSharedMedia(" + finalItems.toString() + ")";
