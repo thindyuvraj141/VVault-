@@ -10,20 +10,25 @@ import android.util.Base64;
 
 import com.getcapacitor.BridgeActivity;
 
-import org.json.JSONArray;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * MainActivity — hosts the Capacitor WebView.
  *
  * Registers VaultMediaPlugin (pick/delete media) and also receives Android's
  * "Share" intent (ACTION_SEND / ACTION_SEND_MULTIPLE), so sharing a photo or
- * video into V Vault from Gallery (or any other app) works. Shared files are
- * read into base64 and handed to the web app via
- * window.receiveSharedMedia(...), which already exists in index.html.
+ * video into V Vault from Gallery (or any other app) works.
+ *
+ * Shared files are read into base64 here and handed straight to
+ * VaultMediaPlugin's static queue (addSharedMedia) — NOT injected into the
+ * WebView directly. That matters: on a cold start (app wasn't already
+ * running), the WebView hasn't finished loading index.html yet when this
+ * runs, so any JS call made from here would silently be lost. Queuing on the
+ * native side instead means the web app can safely pull the data whenever
+ * it's actually ready, via VaultMedia.getSharedMedia().
  */
 public class MainActivity extends BridgeActivity {
 
@@ -42,9 +47,9 @@ public class MainActivity extends BridgeActivity {
     }
 
     /**
-     * Reads any shared photos/videos out of the given intent and passes them
-     * to the web app as base64 data URLs. Safe to call with any intent — it
-     * quietly does nothing if the intent isn't a media share.
+     * Reads any shared photos/videos out of the given intent and queues them
+     * on VaultMediaPlugin as base64 data URLs. Safe to call with any intent —
+     * it quietly does nothing if the intent isn't a media share.
      */
     private void handleShareIntent(Intent intent) {
         if (intent == null) return;
@@ -64,7 +69,7 @@ public class MainActivity extends BridgeActivity {
         }
         if (uris.isEmpty()) return;
 
-        JSONArray items = new JSONArray();
+        List<String> dataUris = new ArrayList<>();
         for (Uri uri : uris) {
             try {
                 InputStream is = getContentResolver().openInputStream(uri);
@@ -78,17 +83,13 @@ public class MainActivity extends BridgeActivity {
                 String mime = getContentResolver().getType(uri);
                 if (mime == null) mime = type;
                 String base64 = Base64.encodeToString(buffer.toByteArray(), Base64.NO_WRAP);
-                items.put("data:" + mime + ";base64," + base64);
+                dataUris.add("data:" + mime + ";base64," + base64);
             } catch (Exception e) {
                 // Skip a file we couldn't read rather than failing the whole batch.
             }
         }
-        if (items.length() == 0) return;
+        if (dataUris.isEmpty()) return;
 
-        final JSONArray finalItems = items;
-        getBridge().getWebView().post(() -> {
-            String js = "window.receiveSharedMedia && window.receiveSharedMedia(" + finalItems.toString() + ")";
-            getBridge().getWebView().evaluateJavascript(js, null);
-        });
+        VaultMediaPlugin.addSharedMedia(dataUris);
     }
 }
