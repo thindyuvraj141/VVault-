@@ -2300,8 +2300,13 @@ async function moveSelectedFoldersToGallery(){
   if(items.length === 0){ showToast('The selected ' + (n === 1 ? 'folder has' : 'folders have') + ' no photos to move'); return; }
   if(!confirm('Move ' + n + (n === 1 ? ' folder' : ' folders') + ' (' + items.length + (items.length === 1 ? ' item' : ' items') + ') to your device gallery? Everything will be saved to your device and removed from the vault.')) return;
   showToast('Saving to gallery…');
-  for(let i = 0; i < items.length; i++){
-    await saveDataUrlToDevice(items[i], i);
+  try{
+    for(let i = 0; i < items.length; i++){
+      await saveDataUrlToDevice(items[i], i);
+    }
+  }catch(e){
+    showToast('Could not save to gallery — nothing was removed from the vault');
+    return;
   }
   const movedIds = new Set(items.map(p => p.id));
   photos = photos.filter(p => !movedIds.has(p.id));
@@ -2448,24 +2453,30 @@ function renderFolderPhotos(){
     const isSelected = selectedPhotoIds.has(p.id);
     div.className = 'thumb' + (selectionMode ? ' selectable' : '') + (isSelected ? ' selected' : '');
 
-    // Touch: long-press (500ms) activates selection mode; tap selects/opens
+    // Touch: long-press (500ms) activates selection mode; short tap selects/opens.
+    // touchend's preventDefault() (when a long-press fired) stops the browser's
+    // synthetic "click" that would otherwise follow and immediately re-open the
+    // lightbox right after the long-press selection.
     let longPressTimer = null;
-    let longPressActivated = false;
-    div.addEventListener('touchstart', (e) => {
-      longPressActivated = false;
+    let longPressFired = false;
+    div.addEventListener('touchstart', () => {
+      longPressFired = false;
       longPressTimer = setTimeout(() => {
         longPressTimer = null;
-        longPressActivated = true;
+        longPressFired = true;
         if(!selectionMode){ toggleSelectionMode(); }
         togglePhotoSelection(p.id);
       }, 500);
     }, { passive: true });
-    div.addEventListener('touchend', () => { clearTimeout(longPressTimer); longPressTimer = null; });
     div.addEventListener('touchmove', () => { clearTimeout(longPressTimer); longPressTimer = null; });
     div.addEventListener('touchcancel', () => { clearTimeout(longPressTimer); longPressTimer = null; });
+    div.addEventListener('touchend', (e) => {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+      if(longPressFired) e.preventDefault();
+    }, { passive: false });
 
     div.onclick = () => {
-      if(longPressActivated){ longPressActivated = false; return; }
       selectionMode ? togglePhotoSelection(p.id) : openLightbox(p.id);
     };
     const rot = p.rotation ? ' style="transform:rotate(' + p.rotation + 'deg);"' : '';
@@ -2554,18 +2565,30 @@ function deleteSelectedPhotos(){
   showToast(n + (n === 1 ? ' item moved to Trash' : ' items moved to Trash'));
 }
 /* ---------------- move selected photos out to the device's public gallery ---------------- */
-function saveDataUrlToDevice(p, index){
-  return new Promise(resolve => {
-    const a = document.createElement('a');
-    a.href = p.src;
-    const match = p.src.match(/^data:([^;]+);base64,/);
-    const ext = match ? (match[1].split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg')) : (p.type === 'video' ? 'mp4' : 'jpg');
-    a.download = 'vvault-' + (index + 1) + '.' + ext;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(resolve, 250); // small gap so the browser doesn't block back-to-back downloads
-  });
+async function saveDataUrlToDevice(p, index){
+  const match = p.src.match(/^data:([^;]+);base64,(.*)$/s);
+  const mimeType = match ? match[1] : (p.type === 'video' ? 'video/mp4' : 'image/jpeg');
+  const base64 = match ? match[2] : null;
+  const ext = mimeType.split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg');
+  const fileName = 'vvault-' + (index + 1) + '-' + Date.now() + '.' + ext;
+
+  const V = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VaultMedia;
+  if(V && V.saveMedia && base64){
+    // Reliable path: writes straight into the device's real MediaStore/Gallery.
+    // A plain <a download> on a data: URI is not dependable inside an embedded
+    // Android WebView, so this is the one used on the native app.
+    await V.saveMedia({ base64, mimeType, fileName });
+    return;
+  }
+
+  // Web/browser fallback (no native plugin available)
+  const a = document.createElement('a');
+  a.href = p.src;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  await new Promise(resolve => setTimeout(resolve, 250)); // small gap so the browser doesn't block back-to-back downloads
 }
 async function moveSelectedPhotosToGallery(){
   const n = selectedPhotoIds.size;
@@ -2573,8 +2596,13 @@ async function moveSelectedPhotosToGallery(){
   if(!confirm('Move ' + n + (n === 1 ? ' item' : ' items') + ' to your device gallery? ' + (n === 1 ? 'It' : 'They') + ' will be saved to your device and removed from the vault.')) return;
   const list = photos.filter(p => selectedPhotoIds.has(p.id));
   showToast('Saving to gallery…');
-  for(let i = 0; i < list.length; i++){
-    await saveDataUrlToDevice(list[i], i);
+  try{
+    for(let i = 0; i < list.length; i++){
+      await saveDataUrlToDevice(list[i], i);
+    }
+  }catch(e){
+    showToast('Could not save to gallery — nothing was removed from the vault');
+    return;
   }
   photos = photos.filter(p => !selectedPhotoIds.has(p.id));
   selectedPhotoIds.clear();
@@ -3214,17 +3242,16 @@ function deleteCurrent(){
   persistLibrary();
   showToast('Moved to Trash');
 }
-function downloadCurrent(){
+async function downloadCurrent(){
   const p = photos.find(p => p.id === currentLightboxId);
   if(!p) return;
-  const a = document.createElement('a');
-  a.href = p.src;
-  const match = p.src.match(/^data:([^;]+);base64,/);
-  const ext = match ? (match[1].split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg')) : (p.type === 'video' ? 'mp4' : 'jpg');
-  a.download = 'vvault-photo.' + ext;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  showToast('Saving…');
+  try{
+    await saveDataUrlToDevice(p, 0);
+    showToast(p.type === 'video' ? 'Video saved to your gallery' : 'Photo saved to your gallery');
+  }catch(e){
+    showToast('Could not save to gallery');
+  }
 }
 
 /* ---------------- settings sheet ---------------- */
