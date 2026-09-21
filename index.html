@@ -101,7 +101,7 @@
   .brand-name{font-family:'Roboto','Inter',sans-serif;font-size:19px;font-weight:700;color:var(--text);}
   .logo{width:34px;height:34px;flex-shrink:0;}
 
-  .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:8px 0 30px;}
+  .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:32px 0 30px;}
   .center-brand .logo{width:62px;height:62px;}
   .center-brand .brand-name{font-size:26px;}
   .center-brand .tagline{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;max-width:260px;}
@@ -137,9 +137,9 @@
     background:var(--bg-elevated);
     border:1px solid var(--border);
     color:var(--text);
-    padding:14px 44px 14px 16px;
+    padding:12px 44px 12px 16px;
     border-radius:12px;
-    font-size:15px;
+    font-size:13px;
     font-family:'Inter',sans-serif;
     outline:none;
     transition:border-color .2s, background .2s;
@@ -230,11 +230,12 @@
 
   .vault-header{
     display:flex;align-items:center;justify-content:space-between;
-    margin:-22px -20px 22px;padding:20px 16px 16px;
+    margin:-22px -20px 22px;padding:26px 16px 22px;
     background:var(--header-bg);border-bottom:none;
-    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
   }
-  .vault-title-block .brand-name{font-size:21px;color:var(--wa-header-text);font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.2px;}
+  .vault-header .icon-btn{ width:40px; height:40px; }
+  .vault-title-block .brand-name{font-size:23px;color:var(--wa-header-text);font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.2px;}
   .vault-title-block .count{font-size:12.5px;color:rgba(255,255,255,0.75);margin-top:2px;}
   .icon-btn{
     width:36px;height:36px;border-radius:50%;background:transparent;border:none;
@@ -250,6 +251,12 @@
   #dark-toggle-btn .ico-sun{display:none;}
   html[data-theme="dark"] #dark-toggle-btn .ico-moon{display:none;}
   html[data-theme="dark"] #dark-toggle-btn .ico-sun{display:block;}
+  html[data-theme="dark"] #dark-toggle-btn .dark-toggle-label::before{content:'Light mode';}
+  html[data-theme="dark"] #dark-toggle-btn .dark-toggle-label{font-size:0;}
+  html[data-theme="dark"] #dark-toggle-btn .dark-toggle-label::before{font-size:14px;}
+  html[data-theme="light"] #dark-toggle-btn .dark-toggle-label::before{content:'Dark mode';}
+  html[data-theme="light"] #dark-toggle-btn .dark-toggle-label{font-size:0;}
+  html[data-theme="light"] #dark-toggle-btn .dark-toggle-label::before{font-size:14px;}
   .colour-popover{
     display:none;position:absolute;top:42px;right:0;z-index:80;min-width:220px;
     background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 14px;
@@ -839,7 +846,7 @@
           <div class="pop-item" id="dark-toggle-btn" onclick="toggleDarkMode()">
             <svg class="ico-moon" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5a6.5 6.5 0 1 0 6.4 7.6A6.5 6.5 0 0 1 9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
             <svg class="ico-sun" width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="3.2" stroke="currentColor" stroke-width="1.5"/><path d="M9 1.8v2M9 14.2v2M1.8 9h2M14.2 9h2M3.9 3.9l1.4 1.4M12.7 12.7l1.4 1.4M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            Dark mode
+            <span class="dark-toggle-label">Dark mode</span>
           </div>
           <div class="pop-item accent-row" style="cursor:default;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.2C5.2 2.2 2.2 5 2.2 8.7c0 3.6 2.8 6.4 6.4 6.4 1.2 0 1.7-.7 1.7-1.4 0-.9-.7-1.2-.7-2 0-.8.6-1.3 1.4-1.3h1.6c1.6 0 2.8-1.1 2.8-2.7C15.4 4.6 12.6 2.2 9 2.2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="5.6" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="5.4" r="1" fill="currentColor"/><circle cx="11.2" cy="5.8" r="1" fill="currentColor"/></svg>
@@ -1463,12 +1470,13 @@ function updateStrength(){
 }
 
 /* ---------------- toast ---------------- */
-function showToast(msg){
+function showToast(msg, duration){
   const t = document.getElementById('toast');
   document.getElementById('toast-text').textContent = msg;
   t.classList.add('show');
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  const ms = duration || (msg.startsWith('✓') ? 3500 : 2200);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), ms);
 }
 
 /* ---------------- iris unlock animation ---------------- */
@@ -2034,18 +2042,6 @@ function renderFolders(){
   grid.style.display = 'grid';
   grid.innerHTML = '';
 
-  // Favorites card always first (not selectable/deletable — skip in select mode)
-  const favCount = photos.filter(p => p.favorite && !p.deletedAt).length;
-  const favCard = document.createElement('button');
-  favCard.type = 'button';
-  favCard.className = 'folder-card favorites-card';
-  favCard.onclick = () => openFolder('__favorites__');
-  favCard.innerHTML =
-    '<svg class="folder-icon" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" fill="currentColor"/></svg>' +
-    '<div><div class="folder-name">Favorites</div>' +
-    '<div class="folder-count">' + favCount + (favCount === 1 ? ' photo' : ' photos') + '</div></div>';
-  grid.appendChild(favCard);
-
   albums.forEach(a => {
     const folderPhotos = photos.filter(p => p.albumId === a.id && !p.deletedAt);
     const n = folderPhotos.length;
@@ -2067,6 +2063,18 @@ function renderFolders(){
       '<div class="folder-count">' + n + (n === 1 ? ' photo' : ' photos') + '</div></div>';
     grid.appendChild(card);
   });
+
+  // Favorites card just before Trash (not selectable/deletable)
+  const favCount = photos.filter(p => p.favorite && !p.deletedAt).length;
+  const favCard = document.createElement('button');
+  favCard.type = 'button';
+  favCard.className = 'folder-card favorites-card';
+  favCard.onclick = () => openFolder('__favorites__');
+  favCard.innerHTML =
+    '<svg class="folder-icon" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" fill="currentColor"/></svg>' +
+    '<div><div class="folder-name">Favorites</div>' +
+    '<div class="folder-count">' + favCount + (favCount === 1 ? ' photo' : ' photos') + '</div></div>';
+  grid.appendChild(favCard);
 
   // Trash card always last (not selectable)
   const trashCount = photos.filter(p => p.deletedAt).length;
@@ -3136,12 +3144,23 @@ async function confirmBackupPassword(){
   const pw = document.getElementById('backup-pw-input').value;
   if(!pw){ setError('backuppw', 'Enter your password.'); return; }
 
+  const confirmBtn = document.getElementById('backup-pw-confirm-btn');
+  const origText = confirmBtn.textContent;
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Please wait…';
+
   try{
     if(backupPwMode === 'create'){
       const saltCheck = base64ToBuf(vault.passwordSalt);
       const checkHash = await hashSecret(pw, saltCheck);
-      if(checkHash !== vault.passwordHash){ setError('backuppw', 'That password isn\'t right.'); return; }
+      if(checkHash !== vault.passwordHash){
+        setError('backuppw', 'That password isn\'t right.');
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = origText;
+        return;
+      }
 
+      confirmBtn.textContent = 'Encrypting…';
       const saltBytes = crypto.getRandomValues(new Uint8Array(16));
       const ivBytes = crypto.getRandomValues(new Uint8Array(12));
       const key = await deriveKey(pw, saltBytes);
@@ -3168,17 +3187,27 @@ async function confirmBackupPassword(){
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       closeBackupPwModal();
-      showToast('Backup file created — check your Downloads');
+      showToast('✓ Backup complete — saved to Downloads');
 
     } else if(backupPwMode === 'restore'){
+      confirmBtn.textContent = 'Decrypting…';
       const saltBytes = base64ToBuf(pendingRestoreEncrypted.salt);
       const ivBytes = base64ToBuf(pendingRestoreEncrypted.iv);
       const key = await deriveKey(pw, saltBytes);
       const ciphertextBuf = base64ToBuf(pendingRestoreEncrypted.ciphertext);
-      const decryptedBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, key, ciphertextBuf);
+      let decryptedBuf;
+      try{
+        decryptedBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, key, ciphertextBuf);
+      }catch(decErr){
+        setError('backuppw', 'Wrong password, or this backup file is damaged.');
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = origText;
+        return;
+      }
       const dec = new TextDecoder();
       const data = JSON.parse(dec.decode(decryptedBuf));
 
+      confirmBtn.textContent = 'Importing…';
       // merge: keep existing items, append restored ones with fresh ids to avoid collisions
       const albumIdMap = {};
       (data.albums || []).forEach(a => {
@@ -3190,6 +3219,7 @@ async function confirmBackupPassword(){
           albumIdMap[a.id] = newId;
         }
       });
+      let restoredCount = 0;
       (data.photos || []).forEach(p => {
         photos.push({
           id: Date.now() + Math.random(),
@@ -3201,19 +3231,22 @@ async function confirmBackupPassword(){
           rotation: p.rotation || 0,
           deletedAt: null
         });
+        restoredCount++;
       });
 
-      closeBackupPwModal();
+      await persistLibrary();
       migrateOrphanPhotos();
       renderFolders();
       if(currentFolderId) renderFolderPhotos();
-      persistLibrary();
-      showToast('Backup restored');
+      closeBackupPwModal();
+      showToast('✓ Restore complete — ' + restoredCount + (restoredCount === 1 ? ' item' : ' items') + ' restored');
     }
   }catch(err){
     console.error('V Vault backup error:', err);
     const fallback = backupPwMode === 'restore' ? 'Wrong password, or this file is damaged.' : 'Something went wrong creating the backup.';
     setError('backuppw', (err && err.message ? err.message + ' — ' : '') + fallback);
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = origText;
   }
 }
 
