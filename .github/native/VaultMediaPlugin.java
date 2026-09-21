@@ -9,6 +9,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -33,6 +34,7 @@ import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,8 +59,9 @@ import java.util.List;
         @Permission(alias = "camera", strings = { Manifest.permission.CAMERA }),
         // Android 13+ (API 33+): photos and videos
         @Permission(alias = "media", strings = { Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO }),
-        // Android 12 and below: classic storage permission
-        @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE })
+        // Android 12 and below: classic storage permission (write is only
+        // actually needed pre-Android 10, and the manifest caps it there too)
+        @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE })
     }
 )
 public class VaultMediaPlugin extends Plugin {
@@ -87,6 +90,73 @@ public class VaultMediaPlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("items", items);
         call.resolve(ret);
+    }
+
+    /* ---------------- "Save to device" / "Move to Gallery" ----------------
+       A plain <a download> on a data: URI is unreliable inside an embedded
+       Android WebView (it silently does nothing on a lot of devices/OS
+       versions) — it only really works in a full browser tab. This uses
+       MediaStore directly instead, which is the same mechanism the real
+       Gallery/Camera app uses to save photos, so the file reliably shows up
+       there. Saves into Pictures/V Vault or Movies/V Vault. */
+    @PluginMethod
+    public void saveMedia(PluginCall call) {
+        String base64 = call.getString("base64");
+        String mimeType = call.getString("mimeType");
+        String fileName = call.getString("fileName");
+        if (base64 == null || mimeType == null) {
+            call.reject("base64 and mimeType are required");
+            return;
+        }
+        boolean isVideo = mimeType.startsWith("video/");
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = "vvault_" + System.currentTimeMillis() + (isVideo ? ".mp4" : ".jpg");
+        }
+
+        try {
+            byte[] bytes = Base64.decode(base64, Base64.NO_WRAP);
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        (isVideo ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES) + "/V Vault");
+                values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+            }
+
+            Uri collection = isVideo
+                    ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Uri itemUri = getContext().getContentResolver().insert(collection, values);
+            if (itemUri == null) {
+                call.reject("Could not create file in gallery");
+                return;
+            }
+
+            try (OutputStream out = getContext().getContentResolver().openOutputStream(itemUri)) {
+                if (out == null) {
+                    call.reject("Could not open output stream for saved file");
+                    return;
+                }
+                out.write(bytes);
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues done = new ContentValues();
+                done.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                getContext().getContentResolver().update(itemUri, done, null, null);
+            }
+
+            JSObject ret = new JSObject();
+            ret.put("success", true);
+            ret.put("uri", itemUri.toString());
+            call.resolve(ret);
+        } catch (SecurityException e) {
+            call.reject("Storage permission needed to save to gallery", e);
+        } catch (Exception e) {
+            call.reject("Failed to save media: " + e.getMessage(), e);
+        }
     }
 
     /* ---------------- permissions: camera + gallery + file access ---------------- */
