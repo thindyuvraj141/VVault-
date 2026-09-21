@@ -34,6 +34,7 @@ import com.getcapacitor.annotation.PermissionCallback;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,6 +62,32 @@ import java.util.List;
     }
 )
 public class VaultMediaPlugin extends Plugin {
+
+    /* ---------------- "Share to V Vault" (Android Share sheet) ----------------
+       MainActivity hands photos/videos shared from Gallery (or any app) to this
+       static queue — as full data:...;base64,... strings — the moment they
+       arrive, regardless of whether the WebView has finished loading yet. The
+       web app then pulls them whenever it's actually ready via getSharedMedia().
+       This "push into a static queue, pull when ready" shape is what avoids the
+       old race condition where a JS call fired before index.html had loaded. */
+    private static final List<String> pendingSharedMedia = Collections.synchronizedList(new ArrayList<>());
+
+    public static void addSharedMedia(List<String> dataUris) {
+        if (dataUris == null || dataUris.isEmpty()) return;
+        pendingSharedMedia.addAll(dataUris);
+    }
+
+    @PluginMethod
+    public void getSharedMedia(PluginCall call) {
+        JSArray items = new JSArray();
+        synchronized (pendingSharedMedia) {
+            for (String s : pendingSharedMedia) items.put(s);
+            pendingSharedMedia.clear();
+        }
+        JSObject ret = new JSObject();
+        ret.put("items", items);
+        call.resolve(ret);
+    }
 
     /* ---------------- permissions: camera + gallery + file access ---------------- */
 
@@ -350,4 +377,4 @@ public class VaultMediaPlugin extends Plugin {
         savedCall.resolve(ret);
         bridge.releaseCall(savedCall);
     }
-            }
+}
