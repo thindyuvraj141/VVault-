@@ -88,7 +88,7 @@
     display:none;
     flex-direction:column;
     flex:1;
-    padding:36px 26px 28px;
+    padding:20px 22px 16px;
     animation:fadeIn .35s ease;
   }
   .screen.active{display:flex;}
@@ -101,17 +101,17 @@
   .brand-name{font-family:'Roboto','Inter',sans-serif;font-size:19px;font-weight:700;color:var(--text);}
   .logo{width:34px;height:34px;flex-shrink:0;}
 
-  .center-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin:32px 0 30px;}
-  .center-brand .logo{width:62px;height:62px;}
-  .center-brand .brand-name{font-size:26px;}
-  .center-brand .tagline{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;max-width:260px;}
+  .center-brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin:10px 0 18px;}
+  .center-brand .logo{width:42px;height:42px;}
+  .center-brand .brand-name{font-size:20px;}
+  .center-brand .tagline{font-size:11.5px;color:var(--text-muted);text-align:center;line-height:1.4;max-width:240px;}
 
   /* ---------- Form elements ---------- */
-  .field{margin-bottom:16px;}
+  .field{margin-bottom:10px;}
   /* auth type toggle (Password / PIN) */
   .type-toggle{
     display:flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;
-    padding:4px;margin-bottom:22px;
+    padding:3px;margin-bottom:12px;
   }
   .type-chip{
     flex:1;padding:10px;border:none;background:transparent;color:var(--text-muted);
@@ -164,7 +164,7 @@
   .strength div{height:3px;flex:1;border-radius:3px;background:var(--border);transition:background .25s;}
   .strength-label{font-size:11.5px;color:var(--text-faint);margin-top:6px;}
 
-  .hint{font-size:12.5px;color:var(--text-faint);line-height:1.5;margin-top:-4px;margin-bottom:20px;}
+  .hint{font-size:11.5px;color:var(--text-faint);line-height:1.4;margin-top:-2px;margin-bottom:12px;}
 
   .btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
@@ -428,11 +428,16 @@
 
   /* ---------- Lightbox ---------- */
   .lightbox{
-    position:fixed;inset:0;background:rgba(6,7,9,0.97);z-index:100;
+    position:fixed;inset:0;background:#000;z-index:100;
     display:none;flex-direction:column;
   }
   .lightbox.active{display:flex;}
-  .lightbox-top{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 0;}
+  .lightbox-top{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 14px 0;
+    position:absolute;top:0;left:0;right:0;z-index:5;
+    background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);
+  }
   .lightbox-top .icon-btn{color:#fff;}
   .lightbox-top .icon-btn:hover{background:rgba(255,255,255,0.12);color:#fff;}
   .slideshow-badge{
@@ -440,44 +445,39 @@
     color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;
   }
   .lightbox-body{
-    flex:1;display:flex;align-items:center;justify-content:center;padding:0;min-height:0;
-    overflow:hidden;position:relative;touch-action:none;background:#000;
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;touch-action:none;background:#000;
   }
   .lightbox-body img{
-    width:100%;height:100%;border-radius:0;object-fit:contain;
+    max-width:100%;max-height:100%;border-radius:0;object-fit:contain;
     transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none;
   }
   .lightbox-body img.zoom-transition{transition:transform .2s ease;}
   .zoom-controls{
-    position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:6px;
-    opacity:1;pointer-events:auto;transition:opacity .2s;
+    position:absolute;bottom:80px;right:14px;display:flex;flex-direction:column;gap:6px;
+    opacity:1;pointer-events:auto;transition:opacity .2s;z-index:5;
   }
   .zoom-controls.visible{opacity:1;pointer-events:auto;}
   .zoom-btn{
-    width:36px;height:36px;border-radius:10px;background:rgba(20,23,28,0.85);border:1px solid var(--border);
-    color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;
-    backdrop-filter:blur(6px);
+    width:34px;height:34px;border-radius:10px;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.15);
+    color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
   .zoom-btn:active{transform:scale(0.94);}
-  .caption-wrap{padding:0 22px;}
-  #caption-input{
-    width:100%;background:transparent;border:none;color:var(--text-muted);
-    font-family:'Inter',sans-serif;font-size:13.5px;text-align:center;outline:none;padding:8px 0;
+  .lightbox-bottom{
+    position:absolute;bottom:0;left:0;right:0;z-index:5;
+    display:flex;flex-wrap:nowrap;justify-content:space-around;align-items:center;
+    padding:14px 8px calc(14px + env(safe-area-inset-bottom,0px));
+    background:linear-gradient(to top,rgba(0,0,0,0.72) 0%,transparent 100%);
   }
-  #caption-input::placeholder{color:var(--text-faint);}
-  .album-select-wrap{padding:0 22px 6px;display:flex;justify-content:center;}
-  .album-select-wrap select{
-    width:auto;font-size:12.5px;padding:7px 30px 7px 12px;border-radius:20px;
-    background-position:right 10px center;
-  }
-  .lightbox-bottom{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 14px;padding:14px 14px 26px;}
   .lb-action{
-    display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-muted);
-    background:none;border:none;font-size:11.5px;font-family:'Inter',sans-serif;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    color:rgba(255,255,255,0.75);
+    background:none;border:none;font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;
+    flex:1;
   }
-  .lb-action svg{color:var(--text-muted);}
-  .lb-action.danger svg,.lb-action.danger span{color:var(--danger);}
-  .lb-action:hover svg,.lb-action:hover span{color:var(--text);}
+  .lb-action svg{color:rgba(255,255,255,0.85);}
+  .lb-action.danger svg,.lb-action.danger span{color:#FF6B6B;}
+  .lb-action:active svg,.lb-action:active span{opacity:0.6;}
   .lb-action.active svg{color:#F2C94C;fill:#F2C94C;}
   .lb-action.active span{color:#F2C94C;}
 
@@ -1067,13 +1067,13 @@
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="2" width="3" height="8" fill="white"/><rect x="7" y="2" width="3" height="8" fill="white"/></svg>
         <span>Playing</span>
       </div>
-      <button class="icon-btn" onclick="closeLightbox()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <button class="icon-btn" onclick="closeLightbox()" style="color:#fff;margin-left:auto;">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
     </div>
     <div class="lightbox-body" id="lightbox-body">
       <img id="lightbox-img" src="" alt="">
-      <video id="lightbox-video" src="" controls playsinline style="display:none;max-width:100%;max-height:100%;"></video>
+      <video id="lightbox-video" src="" controls playsinline style="display:none;max-width:100%;max-height:100%;object-fit:contain;"></video>
       <div class="zoom-controls" id="zoom-controls">
         <button type="button" class="zoom-btn" onclick="zoomStep(1)">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11L14.5 14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7 4.5V9.5M4.5 7H9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -1086,14 +1086,8 @@
         </button>
       </div>
     </div>
-    <div class="album-select-wrap">
-      <select id="lightbox-album-select" onchange="setCurrentAlbum(this.value)">
-        <option value="">No album</option>
-      </select>
-    </div>
-    <div class="caption-wrap">
-      <input type="text" id="caption-input" placeholder="Add a caption…" onblur="saveCaption()" onkeydown="if(event.key==='Enter'){this.blur();}">
-    </div>
+    <select id="lightbox-album-select" style="display:none;" onchange="setCurrentAlbum(this.value)"><option value="">No album</option></select>
+    <input type="text" id="caption-input" style="display:none;" onblur="saveCaption()">
     <div class="lightbox-bottom">
       <button class="lb-action" id="lightbox-fav-btn" onclick="toggleFavoriteCurrent()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4.5c1.4-2 5.5-2.2 7 .8 1.3 2.7-.7 5.4-3.3 7.7L12 17.5l-3.7-4.5C5.7 10.7 3.7 8 5 5.3c1.5-3 5.6-2.8 7 .8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
