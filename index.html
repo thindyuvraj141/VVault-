@@ -417,10 +417,11 @@
     z-index:25;font-size:13.5px;color:var(--text-muted);
     box-shadow:0 -8px 24px rgba(0,0,0,0.15);
   }
-  .selection-actions{display:flex;gap:16px;}
+  .selection-actions{display:flex;gap:10px;}
   .sel-action{
     display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;
-    color:var(--text);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;
+    color:var(--text);font-size:10.5px;font-family:'Inter',sans-serif;cursor:pointer;
+    max-width:62px;text-align:center;line-height:1.25;
   }
   .sel-action.danger{color:var(--danger);}
 
@@ -938,6 +939,10 @@
   <div class="selection-bar" id="home-selection-bar" style="display:none;">
     <span id="home-selection-count">0 selected</span>
     <div class="selection-actions">
+      <button class="sel-action" onclick="moveSelectedFoldersToGallery()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="11" rx="1.6" stroke="currentColor" stroke-width="1.4"/><circle cx="6" cy="8" r="1.3" stroke="currentColor" stroke-width="1.3"/><path d="M3 13L7 9L9.5 11.3L12.5 8.3L15 11" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        Move to Gallery
+      </button>
       <button class="sel-action" onclick="exportSelectedFolders()">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V12M9 12L5.5 8.5M9 12L12.5 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         Export
@@ -991,6 +996,10 @@
   <div class="selection-bar" id="selection-bar" style="display:none;">
     <span id="selection-count">0 selected</span>
     <div class="selection-actions">
+      <button class="sel-action" onclick="moveSelectedPhotosToGallery()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="11" rx="1.6" stroke="currentColor" stroke-width="1.4"/><circle cx="6" cy="8" r="1.3" stroke="currentColor" stroke-width="1.3"/><path d="M3 13L7 9L9.5 11.3L12.5 8.3L15 11" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        Move to Gallery
+      </button>
       <button class="sel-action" onclick="openMoveSelectedModal()">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h5l1.3 2H15.5v7h-13z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
         Move
@@ -2237,6 +2246,28 @@ function deleteSelectedFolders(){
   updateHomeSelectionUI();
   showToast(n + (n === 1 ? ' folder deleted' : ' folders deleted'));
 }
+/* ---------------- move selected folders out to the device's public gallery ---------------- */
+async function moveSelectedFoldersToGallery(){
+  const n = selectedFolderIds.size;
+  if(n === 0) return;
+  const items = photos.filter(p => selectedFolderIds.has(p.albumId) && !p.deletedAt);
+  if(items.length === 0){ showToast('The selected ' + (n === 1 ? 'folder has' : 'folders have') + ' no photos to move'); return; }
+  if(!confirm('Move ' + n + (n === 1 ? ' folder' : ' folders') + ' (' + items.length + (items.length === 1 ? ' item' : ' items') + ') to your device gallery? Everything will be saved to your device and removed from the vault.')) return;
+  showToast('Saving to gallery…');
+  for(let i = 0; i < items.length; i++){
+    await saveDataUrlToDevice(items[i], i);
+  }
+  const movedIds = new Set(items.map(p => p.id));
+  photos = photos.filter(p => !movedIds.has(p.id));
+  albums = albums.filter(a => !selectedFolderIds.has(a.id));
+  selectedFolderIds.clear();
+  homeSelectionMode = false;
+  document.getElementById('home-select-btn').style.color = '';
+  persistLibrary();
+  renderFolders();
+  updateHomeSelectionUI();
+  showToast(n + (n === 1 ? ' folder moved to gallery' : ' folders moved to gallery'));
+}
 async function exportSelectedFolders(){
   if(selectedFolderIds.size === 0) return;
   if(typeof JSZip === 'undefined'){ showToast('Export isn\'t available offline the first time — connect once to load it'); return; }
@@ -2475,6 +2506,37 @@ function deleteSelectedPhotos(){
   renderFolderPhotos();
   updateSelectionUI();
   showToast(n + (n === 1 ? ' item moved to Trash' : ' items moved to Trash'));
+}
+/* ---------------- move selected photos out to the device's public gallery ---------------- */
+function saveDataUrlToDevice(p, index){
+  return new Promise(resolve => {
+    const a = document.createElement('a');
+    a.href = p.src;
+    const match = p.src.match(/^data:([^;]+);base64,/);
+    const ext = match ? (match[1].split('/')[1] || (p.type === 'video' ? 'mp4' : 'jpg')) : (p.type === 'video' ? 'mp4' : 'jpg');
+    a.download = 'vvault-' + (index + 1) + '.' + ext;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(resolve, 250); // small gap so the browser doesn't block back-to-back downloads
+  });
+}
+async function moveSelectedPhotosToGallery(){
+  const n = selectedPhotoIds.size;
+  if(n === 0) return;
+  if(!confirm('Move ' + n + (n === 1 ? ' item' : ' items') + ' to your device gallery? ' + (n === 1 ? 'It' : 'They') + ' will be saved to your device and removed from the vault.')) return;
+  const list = photos.filter(p => selectedPhotoIds.has(p.id));
+  showToast('Saving to gallery…');
+  for(let i = 0; i < list.length; i++){
+    await saveDataUrlToDevice(list[i], i);
+  }
+  photos = photos.filter(p => !selectedPhotoIds.has(p.id));
+  selectedPhotoIds.clear();
+  selectionMode = false;
+  persistLibrary();
+  renderFolderPhotos();
+  updateSelectionUI();
+  showToast(n + (n === 1 ? ' item moved to gallery' : ' items moved to gallery'));
 }
 function openMoveSelectedModal(){
   if(selectedPhotoIds.size === 0) return;
