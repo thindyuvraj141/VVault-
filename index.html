@@ -440,11 +440,11 @@
     color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;
   }
   .lightbox-body{
-    flex:1;display:flex;align-items:center;justify-content:center;padding:16px;min-height:0;
-    overflow:hidden;position:relative;touch-action:none;
+    flex:1;display:flex;align-items:center;justify-content:center;padding:0;min-height:0;
+    overflow:hidden;position:relative;touch-action:none;background:#000;
   }
   .lightbox-body img{
-    max-width:100%;max-height:100%;border-radius:10px;object-fit:contain;
+    width:100%;height:100%;border-radius:0;object-fit:contain;
     transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none;
   }
   .lightbox-body img.zoom-transition{transition:transform .2s ease;}
@@ -829,7 +829,6 @@
     <div class="vault-header">
       <div class="vault-title-block">
         <div class="brand-name">V Vault</div>
-        <div class="count" id="folder-count">0 folders</div>
       </div>
       <div class="header-actions">
         <div class="icon-btn" onclick="document.getElementById('search-input').focus();" title="Search">
@@ -2029,9 +2028,9 @@ function folderIconSvg(){
 function renderFolders(){
   const grid = document.getElementById('folder-grid');
   const empty = document.getElementById('folder-empty-state');
-  const folderCount = document.getElementById('folder-count');
+  const folderCount = document.getElementById('folder-count'); // may be null if removed from DOM
 
-  folderCount.textContent = albums.length + (albums.length === 1 ? ' folder' : ' folders');
+  if(folderCount) folderCount.textContent = albums.length + (albums.length === 1 ? ' folder' : ' folders');
 
   if(albums.length === 0){
     grid.style.display = 'none';
@@ -2053,7 +2052,27 @@ function renderFolders(){
     card.className = 'folder-card' + (cover ? ' has-cover' : '') + (isSelected ? ' selected' : '');
     if(cover) card.style.backgroundImage = "url('" + cover.src + "')";
     if(!cover && a.color) card.style.setProperty('--folder-accent', a.color);
-    card.onclick = () => homeSelectionMode ? toggleFolderSelection(a.id) : openFolder(a.id);
+
+    // Touch: long-press (500ms) activates selection mode; tap selects/opens
+    let longPressTimer = null;
+    let longPressActivated = false;
+    card.addEventListener('touchstart', (e) => {
+      longPressActivated = false;
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        longPressActivated = true;
+        if(!homeSelectionMode){ toggleHomeSelectionMode(); }
+        toggleFolderSelection(a.id);
+      }, 500);
+    }, { passive: true });
+    card.addEventListener('touchend', () => { clearTimeout(longPressTimer); longPressTimer = null; });
+    card.addEventListener('touchmove', () => { clearTimeout(longPressTimer); longPressTimer = null; });
+    card.addEventListener('touchcancel', () => { clearTimeout(longPressTimer); longPressTimer = null; });
+
+    card.onclick = (e) => {
+      if(longPressActivated){ longPressActivated = false; return; }
+      homeSelectionMode ? toggleFolderSelection(a.id) : openFolder(a.id);
+    };
     const lockBadge = a.pinHash ? '<svg class="folder-lock-badge" width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>' : '';
     const checkBadge = homeSelectionMode
       ? '<div class="thumb-check folder-check">' + (isSelected ? '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5L4 8.5L10 1.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</div>'
@@ -3220,9 +3239,10 @@ async function confirmBackupPassword(){
         }
       });
       let restoredCount = 0;
-      (data.photos || []).forEach(p => {
+      const baseTime = Date.now();
+      (data.photos || []).forEach((p, idx) => {
         photos.push({
-          id: Date.now() + Math.random(),
+          id: baseTime + idx * 0.001,
           src: p.src,
           caption: p.caption || '',
           albumId: p.albumId ? (albumIdMap[p.albumId] || null) : null,
@@ -3234,8 +3254,8 @@ async function confirmBackupPassword(){
         restoredCount++;
       });
 
-      await persistLibrary();
       migrateOrphanPhotos();
+      await persistLibrary();
       renderFolders();
       if(currentFolderId) renderFolderPhotos();
       closeBackupPwModal();
