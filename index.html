@@ -74,6 +74,13 @@
     height:100%;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+    -webkit-user-select:none;user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  input,textarea{
+    -webkit-user-select:text;user-select:text;
+    -webkit-touch-callout:default;
   }
   #app{
     max-width:430px;
@@ -218,7 +225,7 @@
   .update-banner{
     display:flex;align-items:center;justify-content:space-between;gap:10px;
     background:var(--accent-soft);border:1px solid var(--accent-dim);border-radius:12px;
-    padding:12px 14px;margin:16px 20px 0;font-size:13px;color:var(--text);
+    padding:12px 14px;margin:0 0 16px;font-size:13px;color:var(--text);
   }
   .update-banner-btn{
     background:var(--accent);color:#fff;border:none;border-radius:8px;
@@ -819,13 +826,6 @@
 
   <!-- ================= VAULT HOME ================= -->
   <section class="screen" id="screen-vault">
-    <div class="update-banner" id="update-banner" style="display:none;">
-      <span id="update-banner-text">Update available</span>
-      <div style="display:flex;gap:8px;">
-        <button class="update-banner-btn" onclick="downloadAppUpdate()">Download</button>
-        <button class="update-banner-dismiss" onclick="dismissUpdateBanner()">✕</button>
-      </div>
-    </div>
     <div class="vault-header">
       <div class="vault-title-block">
         <div class="brand-name">V Vault</div>
@@ -875,6 +875,14 @@
             Settings
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="update-banner" id="update-banner" style="display:none;">
+      <span id="update-banner-text">Update available</span>
+      <div style="display:flex;gap:8px;">
+        <button class="update-banner-btn" onclick="downloadAppUpdate()">Download</button>
+        <button class="update-banner-dismiss" onclick="dismissUpdateBanner()">✕</button>
       </div>
     </div>
 
