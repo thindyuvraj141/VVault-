@@ -2015,7 +2015,53 @@ function enterVault(){
   renderSearchOrFolders();
   renderFolders();
   checkForAppUpdate();
+  if(pendingSharedMedia.length > 0){
+    const toAdd = pendingSharedMedia;
+    pendingSharedMedia = [];
+    addSharedMediaToUnsorted(toAdd);
+  }
 }
+
+/* ================= RECEIVE SHARED MEDIA (Android "Share to V Vault") =================
+   Called from the native MainActivity.java when the user shares one or more photos/
+   videos into this app from Gallery (or any other app's Share sheet). `items` is an
+   array of data: URL strings (base64) built on the native side. If the vault is
+   locked when this fires, the items are queued and added once the vault is unlocked. */
+let pendingSharedMedia = [];
+
+function addSharedMediaToUnsorted(items){
+  if(!items || items.length === 0) return;
+  const unsortedId = ensureUnsortedFolder();
+  const existing = photos.filter(p => p.albumId === unsortedId && !p.deletedAt);
+  let added = 0, dupes = 0, lastType = 'image';
+  items.forEach(src => {
+    const isVideo = /^data:video\//.test(src);
+    lastType = isVideo ? 'video' : 'image';
+    const isDuplicate = existing.some(p => p.src === src);
+    if(isDuplicate){ dupes++; return; }
+    const newPhoto = { id: Date.now() + Math.random(), src, albumId: unsortedId, caption: '', favorite: false, type: lastType, rotation: 0, deletedAt: null };
+    photos.push(newPhoto);
+    existing.push(newPhoto);
+    added++;
+  });
+  persistLibrary();
+  if(currentFolderId === unsortedId) renderFolderPhotos();
+  renderFolders();
+  let msg = added > 0 ? (added > 1 ? added + ' items received into Unsorted' : (lastType === 'video' ? 'Video received into Unsorted' : 'Photo received into Unsorted')) : '';
+  if(dupes > 0) msg += (msg ? ' — ' : '') + dupes + (dupes > 1 ? ' duplicates skipped' : ' duplicate skipped');
+  if(msg) showToast(msg);
+}
+
+window.receiveSharedMedia = function(items){
+  const activeScreen = document.querySelector('.screen.active');
+  const activeId = activeScreen ? activeScreen.id : null;
+  const isUnlocked = activeId === 'screen-vault' || activeId === 'screen-folder';
+  if(!isUnlocked){
+    pendingSharedMedia = pendingSharedMedia.concat(items);
+    return;
+  }
+  addSharedMediaToUnsorted(items);
+};
 
 /* ================= NATIVE APP UPDATE CHECK =================
    Only relevant when running inside the Capacitor-wrapped native app
@@ -3738,9 +3784,34 @@ function handleBackPress(){
   if(A && A.addListener) A.addListener('backButton', handleBackPress);
 })();
 
+/* ================= PULL any photos/videos shared in from Gallery =================
+   The native side (MainActivity + VaultMediaPlugin) queues shared media on a
+   static list rather than pushing it into the page directly, because on a cold
+   start the page may not have finished loading yet when the share arrives.
+   So instead the web app asks for it once it's actually ready — right after
+   boot, and again every time the app comes back to the foreground (covers the
+   "app was already running in the background" case too). */
+async function checkForSharedMedia(){
+  const V = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VaultMedia;
+  if(!V || !V.getSharedMedia) return;
+  try{
+    const res = await V.getSharedMedia();
+    if(res && res.items && res.items.length){
+      window.receiveSharedMedia(res.items);
+    }
+  }catch(e){
+    // no-op — nothing was pending, or the native side isn't available yet
+  }
+}
+(function setupSharedMediaListener(){
+  const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if(A && A.addListener) A.addListener('resume', checkForSharedMedia);
+})();
+
 /* kick off: apply saved theme/accent first, then check for an existing vault */
 loadAppSettings();
 bootFromStorage();
+checkForSharedMedia();
 </script>
 </body>
 </html>
