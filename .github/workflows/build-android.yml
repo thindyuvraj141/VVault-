@@ -2,14 +2,13 @@ name: Build Native Android App (Capacitor)
 
 on:
   workflow_dispatch:
-  # Build automatically whenever the app files change (no need to press Run workflow)
   push:
     branches: [main, master]
     paths:
-  - 'index.html'
-  - 'vault.html'
-  - 'VERSION'
-  - '.github/native/**'
+      - 'index.html'
+      - 'vault.html'
+      - 'VERSION'
+      - '.github/native/**'
 
 # never run two builds at the same time (they share the signing key cache)
 concurrency:
