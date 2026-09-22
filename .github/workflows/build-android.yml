@@ -2,6 +2,7 @@ name: Build Native Android App (Capacitor)
 
 on:
   workflow_dispatch:
+  # Build automatically whenever the app files change (no need to press Run workflow)
   push:
     branches: [main, master]
     paths:
@@ -69,6 +70,8 @@ jobs:
           mkdir -p "$WEBDIR"
           echo "window.APP_VERSION = '${{ steps.ver.outputs.num }}';" > "$WEBDIR/version.js"
           echo "Wrote version.js (v${{ steps.ver.outputs.num }}) into $WEBDIR/"
+          cp vault.html "$WEBDIR/vault.html"
+          echo "Copied vault.html into $WEBDIR/"
 
       - name: Ensure Android platform exists
         run: |
