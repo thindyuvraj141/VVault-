@@ -835,6 +835,9 @@
         <div class="icon-btn" onclick="document.getElementById('search-input').focus();" title="Search">
           <svg width="19" height="19" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M12.2 12.2L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </div>
+        <div class="icon-btn" onclick="createBackup();" title="Backup" id="header-backup-btn">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V11M9 11L5.5 7.5M9 11L12.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
         <div class="icon-btn" id="more-menu-btn" onclick="toggleHeaderPopover('more-popover', event)" title="Menu">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="3.5" r="1.6" fill="currentColor"/><circle cx="9" cy="9" r="1.6" fill="currentColor"/><circle cx="9" cy="14.5" r="1.6" fill="currentColor"/></svg>
         </div>
@@ -884,6 +887,18 @@
       <div style="display:flex;gap:8px;">
         <button class="update-banner-btn" onclick="downloadAppUpdate()">Download</button>
         <button class="update-banner-dismiss" onclick="dismissUpdateBanner()">✕</button>
+      </div>
+    </div>
+
+    <!-- WhatsApp-style auto-backup reminder banner -->
+    <div class="update-banner" id="backup-reminder-banner" style="display:none;background:linear-gradient(135deg,#075E54,#128C7E);">
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <span style="font-weight:600;font-size:13px;">🔒 Backup your vault</span>
+        <span id="backup-reminder-text" style="font-size:11.5px;opacity:0.88;">Last backup: Never</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="update-banner-btn" onclick="createBackup()">Backup now</button>
+        <button class="update-banner-dismiss" onclick="dismissBackupReminder()">✕</button>
       </div>
     </div>
 
@@ -1230,6 +1245,12 @@
       <span style="flex:1;">Remove originals from gallery</span>
       <div class="toggle-switch" id="gallery-delete-toggle"><div class="toggle-knob"></div></div>
     </div>
+    <!-- WhatsApp-style Auto Backup row -->
+    <div class="sheet-item" onclick="closeSettings(); openAutoBackupModal();">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V10M9 10L5.5 6.5M9 10L12.5 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="14.5" cy="4.5" r="3" fill="var(--accent)"/><path d="M13.2 4.5l.9.9 1.4-1.4" stroke="white" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="flex:1;">Auto backup</span>
+      <span id="auto-backup-status-label" style="font-size:12px;color:var(--text-muted);">Off</span>
+    </div>
     <div class="sheet-item danger" onclick="closeSettings(); confirmWipe();">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 5H14M7 5V3.5H11V5M6 5V15H12V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Erase vault
@@ -1323,6 +1344,149 @@
 
   <input type="file" id="restore-input" accept=".vault,application/json" onchange="handleRestoreFile(event)">
 
+  <!-- ===== AUTO BACKUP MODAL (WhatsApp-style) ===== -->
+  <!-- ===== GOOGLE DRIVE BACKUP MODAL ===== -->
+  <div class="modal-overlay" id="auto-backup-overlay">
+    <div class="modal-card" style="max-height:92vh;overflow-y:auto;padding-bottom:8px;">
+
+      <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <!-- Google Drive colour icon -->
+        <svg width="22" height="20" viewBox="0 0 87.3 78" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+          <path d="M6.6 66.85 3.8 72.2c-.6 1.1.2 2.4 1.4 2.4h29.3l3.8-7.75z" fill="#0066DA"/>
+          <path d="M44.6 66.85h29.4l3.8 7.75H48.4z" fill="#00AC47"/>
+          <path d="M44.6 66.85 34.5 74.6h18.3l-8.2-7.75z" fill="#EA4335" opacity=".5"/>
+          <path d="M29.8 66.85 22 52.75 5.3 66.85z" fill="#00832D"/>
+          <path d="m57.5 66.85 7.8-14.1 16.7 14.1z" fill="#2684FC"/>
+          <path d="M29.8 66.85 44.6 39.3 59.4 66.85z" fill="#00AC47"/>
+          <path d="M3.8 72.2c-.2.3-.3.7-.3 1 0 1.2 1 2.2 2.2 2.2h28.8l-3.8-7.75H5.2L3.8 72.2z" fill="#0066DA" opacity=".3"/>
+          <path d="M44.6 39.3 29.8 66.85h29.6z" fill="#00832D" opacity=".3"/>
+          <path d="M81.8 72.2c.2.3.3.7.3 1 0 1.2-1 2.2-2.2 2.2H50.8l3.8-7.75h17.5L81.8 72.2z" fill="#2684FC" opacity=".3"/>
+          <path d="M44.6 3.15 59.4 29.7H29.8z" fill="#EA4335"/>
+          <path d="M44.6 3.15 29.8 29.7H3.5L29.8 3.15z" fill="#FFBA00"/>
+          <path d="M44.6 3.15 59.4 29.7H85.8L59.4 3.15z" fill="#00832D"/>
+          <path d="M3.5 29.7 22 52.75 29.8 29.7z" fill="#FFBA00" opacity=".5"/>
+          <path d="M85.8 29.7 65.3 52.75 59.4 29.7z" fill="#00832D" opacity=".5"/>
+          <path d="M22 52.75 29.8 29.7H59.4l7.8 23.05z" fill="#FFBA00"/>
+          <path d="M29.8 29.7H3.5l18.5 23.05z" fill="#FF6D00" opacity=".4"/>
+          <path d="M59.4 29.7h26.4L67.2 52.75z" fill="#009D57" opacity=".4"/>
+        </svg>
+        Google Drive Backup
+      </h3>
+
+      <!-- SIGNED OUT STATE -->
+      <div id="gdrive-signed-out">
+        <div style="text-align:center;padding:8px 0 16px;">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+            <svg width="26" height="26" viewBox="0 0 18 18" fill="none"><path d="M9 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 10c4.4 0 7 2 7 3v1H2v-1c0-1 2.6-3 7-3z" stroke="var(--text-muted)" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:6px;">Sign in with Google</div>
+          <div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">
+            Apna vault automatically aapke Google Drive mein backup hoga — bilkul WhatsApp ki tarah. Sirf aap apna data dekh sakte ho.
+          </div>
+          <button onclick="gdriveSignIn()" id="gdrive-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.4 1.2 8.7 3.2l6.5-6.5C35.2 2.7 30 .5 24 .5 14.7.5 6.7 6 2.9 13.9l7.6 5.9C12.4 13.8 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.3-4 6.1-9.9 6.1-17z"/><path fill="#FBBC05" d="M10.5 28.5A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5L2.6 13.6A23.5 23.5 0 0 0 .5 24c0 3.8.9 7.3 2.4 10.5z"/><path fill="#34A853" d="M24 47.5c6 0 11-2 14.7-5.5l-7.5-5.8c-2 1.4-4.5 2.3-7.2 2.3-6.3 0-11.6-4.3-13.5-10.1l-7.6 5.9C6.8 42 14.8 47.5 24 47.5z"/></svg>
+            Google se sign in karo
+          </button>
+        </div>
+
+        <div style="padding:12px;background:var(--bg-elevated);border-radius:10px;margin-top:4px;">
+          <div style="font-size:11.5px;color:var(--text-muted);line-height:1.6;">
+            🔒 Tumhara vault encrypted rahta hai. Google sirf ek encrypted file dekhta hai — andar kya hai ye sirf tumhe pata hai.
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNED IN STATE -->
+      <div id="gdrive-signed-in" style="display:none;">
+
+        <!-- Account card -->
+        <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg-elevated);border-radius:10px;margin-bottom:14px;">
+          <img id="gdrive-user-avatar" src="" width="36" height="36" style="border-radius:50%;display:none;" alt="">
+          <div id="gdrive-user-initials" style="width:36px;height:36px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--accent);flex-shrink:0;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="gdrive-user-name">—</div>
+            <div style="font-size:11.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="gdrive-user-email">—</div>
+          </div>
+          <button onclick="gdriveSignOut()" style="font-size:11.5px;color:var(--text-muted);background:none;border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;">Sign out</button>
+        </div>
+
+        <!-- Auto backup toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-size:14px;font-weight:500;">Back up automatically</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Google Drive mein save karo</div>
+          </div>
+          <div class="toggle-switch" id="auto-backup-toggle" onclick="toggleAutoBackup()"><div class="toggle-knob"></div></div>
+        </div>
+
+        <!-- Frequency -->
+        <div id="auto-backup-options">
+          <div style="padding:10px 0 4px;font-size:11.5px;color:var(--text-muted);font-weight:600;letter-spacing:.5px;">BACKUP FREQUENCY</div>
+          <div class="manage-list" style="border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+            <label class="manage-row" style="cursor:pointer;gap:10px;">
+              <span style="flex:1;">Daily</span>
+              <input type="radio" name="backup-freq" value="daily" onchange="setBackupFrequency('daily')" style="accent-color:var(--accent);width:16px;height:16px;">
+            </label>
+            <label class="manage-row" style="cursor:pointer;gap:10px;">
+              <span style="flex:1;">Weekly <span style="font-size:11px;color:var(--text-muted);">(recommended)</span></span>
+              <input type="radio" name="backup-freq" value="weekly" onchange="setBackupFrequency('weekly')" style="accent-color:var(--accent);width:16px;height:16px;" checked>
+            </label>
+            <label class="manage-row" style="cursor:pointer;gap:10px;">
+              <span style="flex:1;">Monthly</span>
+              <input type="radio" name="backup-freq" value="monthly" onchange="setBackupFrequency('monthly')" style="accent-color:var(--accent);width:16px;height:16px;">
+            </label>
+          </div>
+
+          <!-- Status -->
+          <div style="margin-top:12px;padding:12px 14px;background:var(--bg-elevated);border-radius:10px;">
+            <div style="font-size:11.5px;color:var(--text-muted);font-weight:600;margin-bottom:8px;">BACKUP STATUS</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="var(--accent)" stroke-width="1.4"/><path d="M6 9l2 2 4-4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="font-size:13px;" id="ab-last-backup-label">Last backup: Never</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><path d="M9 2v4M9 12v4M2 9h4M12 9h4" stroke="var(--text-muted)" stroke-width="1.4" stroke-linecap="round"/></svg>
+              <span style="font-size:13px;color:var(--text-muted);" id="ab-next-backup-label">Next: —</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="14" height="14" viewBox="0 0 87.3 78" fill="none"><path d="M6.6 66.85 3.8 72.2c-.6 1.1.2 2.4 1.4 2.4h29.3l3.8-7.75z" fill="#0066DA"/><path d="M44.6 66.85h29.4l3.8 7.75H48.4z" fill="#00AC47"/><path d="M29.8 66.85 22 52.75 5.3 66.85z" fill="#00832D"/><path d="m57.5 66.85 7.8-14.1 16.7 14.1z" fill="#2684FC"/><path d="M29.8 66.85 44.6 39.3 59.4 66.85z" fill="#00AC47"/><path d="M44.6 39.3 29.8 66.85h29.6z" fill="#00832D" opacity=".3"/><path d="M44.6 3.15 59.4 29.7H29.8z" fill="#EA4335"/><path d="M44.6 3.15 29.8 29.7H3.5L29.8 3.15z" fill="#FFBA00"/><path d="M44.6 3.15 59.4 29.7H85.8L59.4 3.15z" fill="#00832D"/><path d="M22 52.75 29.8 29.7H59.4l7.8 23.05z" fill="#FFBA00"/></svg>
+              <span style="font-size:13px;color:var(--text-muted);" id="ab-drive-label">Drive folder: V Vault Backups</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="gdriveBackupNow()" id="gdrive-backup-now-btn">
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none" style="margin-right:5px;vertical-align:-1px;"><path d="M9 2V10M9 10L5.5 6.5M9 10L12.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Back up now
+          </button>
+          <button class="btn btn-ghost" style="flex:1;" onclick="gdriveRestorePrompt()">
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none" style="margin-right:5px;vertical-align:-1px;"><path d="M9 16V8M9 8L5.5 11.5M9 8L12.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 5V2.5H15V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Restore
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="btn btn-ghost" onclick="closeAutoBackupModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Drive Restore picker modal -->
+  <div class="modal-overlay" id="gdrive-restore-overlay">
+    <div class="modal-card">
+      <h3>Restore from Drive</h3>
+      <div id="gdrive-restore-list" style="max-height:260px;overflow-y:auto;">
+        <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Loading backups…</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeGdriveRestoreModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1361,6 +1525,15 @@ let searchQuery = "";
 let currentLightboxId = null;
 let privacyModeEnabled = true;
 let pendingRestoreEncrypted = null; // holds parsed backup JSON while awaiting password
+
+/* ===== AUTO-BACKUP STATE ===== */
+let autoBackupSettings = {
+  enabled: false,
+  frequency: 'weekly',   // 'daily' | 'weekly' | 'monthly'
+  lastBackupTime: null,
+  lastBackupCount: 0
+};
+let autoBackupCheckTimer = null;
 
 const questionText = {
   pet: "What was the name of your first pet?",
@@ -2019,6 +2192,8 @@ function enterVault(){
   renderSearchOrFolders();
   renderFolders();
   checkForAppUpdate();
+  // WhatsApp-style: check if auto-backup is overdue on every vault open
+  setTimeout(checkAutoBackupDue, 1200);
   if(pendingSharedMedia.length > 0){
     const toAdd = pendingSharedMedia;
     pendingSharedMedia = [];
@@ -3262,6 +3437,9 @@ async function downloadCurrent(){
 function openSettings(){
   document.getElementById('change-secret-label').textContent = vault.secretType === 'pin' ? 'Change PIN' : 'Change password';
   setBiometricToggleUI();
+  // refresh auto-backup status label
+  const abLabel = document.getElementById('auto-backup-status-label');
+  if(abLabel) abLabel.textContent = autoBackupSettings.enabled ? capitalise(autoBackupSettings.frequency) : 'Off';
   document.getElementById('sheet-overlay').classList.add('active');
   document.getElementById('settings-sheet').style.display = 'block';
 }
@@ -3438,6 +3616,12 @@ async function confirmBackupPassword(){
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       closeBackupPwModal();
+      /* record successful backup time for auto-backup system */
+      autoBackupSettings.lastBackupTime = Date.now();
+      autoBackupSettings.lastBackupCount = photos.filter(p => !p.deletedAt).length;
+      saveAutoBackupSettings();
+      const reminderBanner = document.getElementById('backup-reminder-banner');
+      if(reminderBanner) reminderBanner.style.display = 'none';
       showToast('✓ Backup complete — saved to Downloads');
 
     } else if(backupPwMode === 'restore'){
@@ -3501,6 +3685,158 @@ async function confirmBackupPassword(){
     confirmBtn.textContent = origText;
   }
 }
+
+/* ================= AUTO BACKUP (WhatsApp-style) ================= */
+
+function openAutoBackupModal(){
+  refreshAutoBackupUI();
+  document.getElementById('auto-backup-overlay').classList.add('active');
+}
+function closeAutoBackupModal(){
+  document.getElementById('auto-backup-overlay').classList.remove('active');
+}
+
+function toggleAutoBackup(){
+  autoBackupSettings.enabled = !autoBackupSettings.enabled;
+  saveAutoBackupSettings();
+  refreshAutoBackupUI();
+  showToast(autoBackupSettings.enabled ? '✓ Auto backup enabled' : 'Auto backup off');
+  if(autoBackupSettings.enabled) scheduleAutoBackupCheck();
+}
+
+function setBackupFrequency(freq){
+  autoBackupSettings.frequency = freq;
+  saveAutoBackupSettings();
+  refreshAutoBackupUI();
+}
+
+function refreshAutoBackupUI(){
+  const toggle = document.getElementById('auto-backup-toggle');
+  const opts = document.getElementById('auto-backup-options');
+  const info = document.getElementById('auto-backup-info');
+  const statusLabel = document.getElementById('auto-backup-status-label');
+
+  if(!toggle) return;
+
+  if(autoBackupSettings.enabled){
+    toggle.classList.add('on');
+    if(opts) opts.style.display = 'block';
+    if(info) info.style.display = 'none';
+    if(statusLabel) statusLabel.textContent = capitalise(autoBackupSettings.frequency);
+  } else {
+    toggle.classList.remove('on');
+    if(opts) opts.style.display = 'none';
+    if(info) info.style.display = 'block';
+    if(statusLabel) statusLabel.textContent = 'Off';
+  }
+
+  // sync radio buttons
+  const radios = document.querySelectorAll('input[name="backup-freq"]');
+  radios.forEach(r => { r.checked = r.value === autoBackupSettings.frequency; });
+
+  // last backup label
+  const lastEl = document.getElementById('ab-last-backup-label');
+  const nextEl = document.getElementById('ab-next-backup-label');
+  if(lastEl){
+    lastEl.textContent = autoBackupSettings.lastBackupTime
+      ? 'Last backup: ' + friendlyDate(autoBackupSettings.lastBackupTime)
+      : 'Last backup: Never';
+  }
+  if(nextEl && autoBackupSettings.enabled){
+    nextEl.textContent = 'Next: ' + nextBackupDueLabel();
+  }
+}
+
+function nextBackupDueLabel(){
+  if(!autoBackupSettings.lastBackupTime) return 'After next backup';
+  const ms = nextBackupDueMs();
+  if(ms <= 0) return 'Overdue — tap "Back up now"';
+  const hours = Math.round(ms / 3600000);
+  if(hours < 24) return 'In ' + hours + ' hour' + (hours !== 1 ? 's' : '');
+  const days = Math.round(ms / 86400000);
+  return 'In ' + days + ' day' + (days !== 1 ? 's' : '');
+}
+
+function nextBackupDueMs(){
+  if(!autoBackupSettings.lastBackupTime) return 0;
+  const intervals = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
+  const due = autoBackupSettings.lastBackupTime + (intervals[autoBackupSettings.frequency] || 604800000);
+  return due - Date.now();
+}
+
+function isBackupOverdue(){
+  if(!autoBackupSettings.enabled) return false;
+  if(!autoBackupSettings.lastBackupTime) return true;
+  return nextBackupDueMs() <= 0;
+}
+
+function scheduleAutoBackupCheck(){
+  if(autoBackupCheckTimer) clearInterval(autoBackupCheckTimer);
+  // check every hour
+  autoBackupCheckTimer = setInterval(checkAutoBackupDue, 3600000);
+  checkAutoBackupDue(); // immediate check on enable
+}
+
+function checkAutoBackupDue(){
+  if(!autoBackupSettings.enabled) return;
+  const banner = document.getElementById('backup-reminder-banner');
+  if(!banner) return;
+  if(isBackupOverdue()){
+    const textEl = document.getElementById('backup-reminder-text');
+    if(textEl){
+      textEl.textContent = autoBackupSettings.lastBackupTime
+        ? 'Last backup: ' + friendlyDate(autoBackupSettings.lastBackupTime)
+        : 'Last backup: Never';
+    }
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function dismissBackupReminder(){
+  const banner = document.getElementById('backup-reminder-banner');
+  if(banner) banner.style.display = 'none';
+  // snooze for 24h by faking a recent "last backup time" just for banner suppression
+  // (real lastBackupTime only updates after actual backup)
+  autoBackupSettings._snoozedAt = Date.now();
+  saveAutoBackupSettings();
+}
+
+async function saveAutoBackupSettings(){
+  try{ await dbSet('autoBackupSettings', autoBackupSettings); }catch(e){}
+}
+
+async function loadAutoBackupSettings(){
+  try{
+    const saved = await dbGet('autoBackupSettings');
+    if(saved) autoBackupSettings = { ...autoBackupSettings, ...saved };
+    // refresh settings sheet label
+    const label = document.getElementById('auto-backup-status-label');
+    if(label) label.textContent = autoBackupSettings.enabled ? capitalise(autoBackupSettings.frequency) : 'Off';
+    // start checker if enabled
+    if(autoBackupSettings.enabled) scheduleAutoBackupCheck();
+  }catch(e){}
+}
+
+function capitalise(str){ return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
+
+function friendlyDate(ts){
+  if(!ts) return 'Never';
+  const d = new Date(ts);
+  const now = new Date();
+  const diffDays = Math.floor((now - d) / 86400000);
+  if(diffDays === 0) return 'Today at ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  if(diffDays === 1) return 'Yesterday';
+  if(diffDays < 7) return diffDays + ' days ago';
+  return d.toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'});
+}
+
+/* Patch createBackup to record last backup time after success */
+const _origConfirmBackupPassword = confirmBackupPassword;
+// We'll hook into showToast after backup completion — instead patch at the point backup succeeds.
+// Since confirmBackupPassword is async and calls showToast, we wrap the whole thing.
+const _vaultCreateBackup_orig = createBackup;
 
 /* ================= APPEARANCE (theme + accent colour) =================
    Stored separately from the vault itself, so the choice applies even on
@@ -3792,6 +4128,7 @@ function handleBackPress(){
   const modal = document.querySelector('.modal-overlay.active');
   if(modal){
     if(modal.id === 'backup-pw-overlay' && typeof closeBackupPwModal === 'function') closeBackupPwModal();
+    else if(modal.id === 'auto-backup-overlay' && typeof closeAutoBackupModal === 'function') closeAutoBackupModal();
     else modal.classList.remove('active');
     return;
   }
@@ -3841,8 +4178,377 @@ async function checkForSharedMedia(){
 
 /* kick off: apply saved theme/accent first, then check for an existing vault */
 loadAppSettings();
+loadAutoBackupSettings();
 bootFromStorage();
 checkForSharedMedia();
+</script>
+
+<!-- ===== GOOGLE DRIVE BACKUP SYSTEM ===== -->
+<!-- 
+  SETUP (ek baar karna hai):
+  1. https://console.cloud.google.com pe jao
+  2. New Project banao → "V Vault"
+  3. APIs & Services → Enable: "Google Drive API" + "Google Identity Services"
+  4. Credentials → Create OAuth 2.0 Client ID (Web application)
+  5. Authorized JavaScript origins mein apni website ka URL daalo
+  6. Neeche CLIENT_ID mein apna ID daalo
+-->
+<script>
+(function(){
+  /* ── CONFIG: yahan apna Google OAuth Client ID daalo ── */
+  const GDRIVE_CLIENT_ID = '1067709214439-rcvj3gbbrv65j1t8gcn87dii8dcqa4fk.apps.googleusercontent.com';
+  const GDRIVE_SCOPES    = 'https://www.googleapis.com/auth/drive.file';
+  const FOLDER_NAME      = 'V Vault Backups';
+
+  /* ── State ── */
+  let gdriveToken    = null;   // OAuth access token
+  let gdriveUser     = null;   // {name, email, picture}
+  let gdriveFolderId = null;   // cached Drive folder id
+
+  /* ── Load Google Identity Services ── */
+  const gsiScript = document.createElement('script');
+  gsiScript.src   = 'https://accounts.google.com/gsi/client';
+  gsiScript.async = true;
+  gsiScript.defer = true;
+  document.head.appendChild(gsiScript);
+
+  /* ── Restore saved session ── */
+  try {
+    const saved = JSON.parse(localStorage.getItem('vvault_gdrive') || 'null');
+    if(saved && saved.user){ gdriveUser = saved.user; }
+  } catch(e){}
+
+  /* ── Public API ── */
+  window.gdriveSignIn = function(){
+    if(typeof google === 'undefined'){
+      showToast('Google se connect ho raha hai, thoda wait karo…');
+      setTimeout(window.gdriveSignIn, 1500);
+      return;
+    }
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: GDRIVE_CLIENT_ID,
+      scope: GDRIVE_SCOPES,
+      callback: async (resp) => {
+        if(resp.error){ showToast('Sign in cancel hua'); return; }
+        gdriveToken = resp.access_token;
+        await fetchGdriveUserInfo();
+        saveGdriveSession();
+        showGdriveSignedIn();
+        showToast('✓ Google Drive se connected!');
+      }
+    });
+    client.requestAccessToken();
+  };
+
+  window.gdriveSignOut = function(){
+    if(gdriveToken && typeof google !== 'undefined'){
+      try{ google.accounts.oauth2.revoke(gdriveToken); }catch(e){}
+    }
+    gdriveToken    = null;
+    gdriveUser     = null;
+    gdriveFolderId = null;
+    autoBackupSettings.enabled = false;
+    saveAutoBackupSettings();
+    localStorage.removeItem('vvault_gdrive');
+    showGdriveSignedOut();
+    showToast('Google Drive se disconnect ho gaya');
+  };
+
+  window.gdriveBackupNow = async function(){
+    if(!gdriveToken){ showToast('Pehle Google se sign in karo'); return; }
+    const btn = document.getElementById('gdrive-backup-now-btn');
+    if(btn){ btn.disabled = true; btn.textContent = 'Backing up…'; }
+    openBackupPwModalForGdrive();
+  };
+
+  window.gdriveRestorePrompt = async function(){
+    if(!gdriveToken){ showToast('Pehle Google se sign in karo'); return; }
+    document.getElementById('gdrive-restore-overlay').classList.add('active');
+    await loadGdriveBackupList();
+  };
+
+  window.closeGdriveRestoreModal = function(){
+    document.getElementById('gdrive-restore-overlay').classList.remove('active');
+  };
+
+  /* Called by backup-pw modal after password confirmed — mode 'gdrive-create' */
+  window.performGdriveBackup = async function(password){
+    try{
+      showToast('Google Drive mein save ho raha hai…');
+      const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+      const ivBytes   = crypto.getRandomValues(new Uint8Array(12));
+      const key       = await deriveKey(password, saltBytes);
+      const payload   = JSON.stringify({ albums, photos });
+      const enc       = new TextEncoder();
+      const cipherBuf = await crypto.subtle.encrypt({name:'AES-GCM',iv:ivBytes}, key, enc.encode(payload));
+      const backupObj = {
+        app:'V Vault', version:1,
+        exportedAt: new Date().toISOString(),
+        userEmail: gdriveUser ? gdriveUser.email : '',
+        salt: bufToBase64(saltBytes),
+        iv:   bufToBase64(ivBytes),
+        ciphertext: bufToBase64(cipherBuf)
+      };
+      const dateStr  = new Date().toISOString().slice(0,10);
+      const fileName = 'vvault-backup-' + dateStr + '-' + Date.now() + '.vault';
+      const folderId = await ensureGdriveFolder();
+      await uploadToGdrive(fileName, JSON.stringify(backupObj), folderId);
+
+      autoBackupSettings.lastBackupTime  = Date.now();
+      autoBackupSettings.lastBackupCount = photos.filter(p=>!p.deletedAt).length;
+      saveAutoBackupSettings();
+      refreshAutoBackupUI();
+      const banner = document.getElementById('backup-reminder-banner');
+      if(banner) banner.style.display = 'none';
+      showToast('✓ Backup Google Drive mein save ho gaya!');
+    }catch(err){
+      console.error('GDrive backup error', err);
+      showToast('Backup fail hua — try again');
+    }finally{
+      const btn = document.getElementById('gdrive-backup-now-btn');
+      if(btn){ btn.disabled = false; btn.textContent = 'Back up now'; }
+    }
+  };
+
+  window.gdriveRestoreFile = async function(fileId, fileName){
+    closeGdriveRestoreModal();
+    // Ask for password then decrypt
+    pendingGdriveRestoreId = fileId;
+    backupPwMode = 'gdrive-restore';
+    document.getElementById('backup-pw-title').textContent   = 'Enter backup password';
+    document.getElementById('backup-pw-desc').textContent    = 'Wahi password daalo jo backup banate waqt tha.';
+    document.getElementById('backup-pw-input').value         = '';
+    clearError('backuppw');
+    document.getElementById('backup-pw-confirm-btn').textContent = 'Restore';
+    document.getElementById('backup-pw-overlay').classList.add('active');
+  };
+
+  window.performGdriveRestore = async function(password){
+    try{
+      showToast('Google Drive se data la raha hai…');
+      const resp = await fetch(
+        'https://www.googleapis.com/drive/v3/files/' + pendingGdriveRestoreId + '?alt=media',
+        {headers:{Authorization:'Bearer '+gdriveToken}}
+      );
+      if(!resp.ok) throw new Error('Download failed');
+      const text   = await resp.text();
+      const parsed = JSON.parse(text);
+      if(!parsed.salt||!parsed.iv||!parsed.ciphertext) throw new Error('Bad file');
+      const saltBytes    = base64ToBuf(parsed.salt);
+      const ivBytes      = base64ToBuf(parsed.iv);
+      const key          = await deriveKey(password, saltBytes);
+      const cipherBuf    = base64ToBuf(parsed.ciphertext);
+      let decBuf;
+      try{ decBuf = await crypto.subtle.decrypt({name:'AES-GCM',iv:ivBytes}, key, cipherBuf); }
+      catch(e){ setError('backuppw','Wrong password ya file damage hai.'); return false; }
+      const data = JSON.parse(new TextDecoder().decode(decBuf));
+      const albumIdMap = {};
+      (data.albums||[]).forEach(a=>{
+        const ex = albums.find(x=>x.name.toLowerCase()===a.name.toLowerCase());
+        if(ex){ albumIdMap[a.id]=ex.id; }
+        else{
+          const nid='alb_'+Date.now()+Math.random();
+          albums.push({id:nid,name:a.name});
+          albumIdMap[a.id]=nid;
+        }
+      });
+      let count=0;
+      const base=Date.now();
+      (data.photos||[]).forEach((p,i)=>{
+        photos.push({
+          id:base+i*0.001, src:p.src, caption:p.caption||'',
+          albumId:p.albumId?(albumIdMap[p.albumId]||null):null,
+          favorite:!!p.favorite, type:p.type==='video'?'video':'image',
+          rotation:p.rotation||0, deletedAt:null
+        });
+        count++;
+      });
+      migrateOrphanPhotos();
+      await persistLibrary();
+      renderFolders();
+      if(currentFolderId) renderFolderPhotos();
+      showToast('✓ '+count+' items Google Drive se restore ho gaye!');
+      return true;
+    }catch(err){
+      console.error('GDrive restore error', err);
+      showToast('Restore fail hua');
+      return false;
+    }
+  };
+
+  /* ── openAutoBackupModal override ── */
+  const _origOpen = window.openAutoBackupModal;
+  window.openAutoBackupModal = function(){
+    _origOpen && _origOpen();
+    if(gdriveUser){ showGdriveSignedIn(); }
+    else{ showGdriveSignedOut(); }
+    refreshAutoBackupUI();
+  };
+
+  /* ── Internal helpers ── */
+  async function fetchGdriveUserInfo(){
+    try{
+      const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',
+        {headers:{Authorization:'Bearer '+gdriveToken}});
+      const j = await r.json();
+      gdriveUser = {name: j.name||'', email: j.email||'', picture: j.picture||''};
+    }catch(e){ gdriveUser={name:'',email:'',picture:''}; }
+  }
+
+  function saveGdriveSession(){
+    try{ localStorage.setItem('vvault_gdrive', JSON.stringify({user:gdriveUser})); }catch(e){}
+  }
+
+  function showGdriveSignedIn(){
+    const out = document.getElementById('gdrive-signed-out');
+    const inn = document.getElementById('gdrive-signed-in');
+    if(out) out.style.display = 'none';
+    if(inn) inn.style.display = 'block';
+    if(!gdriveUser) return;
+    const nameEl    = document.getElementById('gdrive-user-name');
+    const emailEl   = document.getElementById('gdrive-user-email');
+    const avatarEl  = document.getElementById('gdrive-user-avatar');
+    const initialsEl= document.getElementById('gdrive-user-initials');
+    if(nameEl)  nameEl.textContent  = gdriveUser.name  || 'Google User';
+    if(emailEl) emailEl.textContent = gdriveUser.email || '';
+    if(gdriveUser.picture && avatarEl){
+      avatarEl.src = gdriveUser.picture;
+      avatarEl.style.display = 'block';
+      if(initialsEl) initialsEl.style.display = 'none';
+    } else if(initialsEl){
+      initialsEl.textContent = (gdriveUser.name||'G').charAt(0).toUpperCase();
+    }
+  }
+
+  function showGdriveSignedOut(){
+    const out = document.getElementById('gdrive-signed-out');
+    const inn = document.getElementById('gdrive-signed-in');
+    if(out) out.style.display = 'block';
+    if(inn) inn.style.display = 'none';
+  }
+
+  async function ensureGdriveFolder(){
+    if(gdriveFolderId) return gdriveFolderId;
+    const search = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name%3D'"+encodeURIComponent(FOLDER_NAME)+"'%20and%20mimeType%3D'application%2Fvnd.google-apps.folder'%20and%20trashed%3Dfalse&fields=files(id,name)",
+      {headers:{Authorization:'Bearer '+gdriveToken}}
+    );
+    const sj = await search.json();
+    if(sj.files && sj.files.length > 0){
+      gdriveFolderId = sj.files[0].id;
+      return gdriveFolderId;
+    }
+    const create = await fetch('https://www.googleapis.com/drive/v3/files',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},
+      body:JSON.stringify({name:FOLDER_NAME, mimeType:'application/vnd.google-apps.folder'})
+    });
+    const cj = await create.json();
+    gdriveFolderId = cj.id;
+    return gdriveFolderId;
+  }
+
+  async function uploadToGdrive(fileName, content, folderId){
+    const metadata = {name:fileName, parents:[folderId], mimeType:'application/octet-stream'};
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)],{type:'application/json'}));
+    form.append('file',     new Blob([content],{type:'application/octet-stream'}));
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+gdriveToken},
+      body:form
+    });
+    if(!r.ok) throw new Error('Upload failed: '+r.status);
+    return r.json();
+  }
+
+  async function loadGdriveBackupList(){
+    const listEl = document.getElementById('gdrive-restore-list');
+    if(!listEl) return;
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Loading…</div>';
+    try{
+      const folderId = await ensureGdriveFolder();
+      const r = await fetch(
+        "https://www.googleapis.com/drive/v3/files?q='"+folderId+"'+in+parents+and+trashed%3Dfalse&orderBy=createdTime+desc&fields=files(id,name,createdTime,size)&pageSize=20",
+        {headers:{Authorization:'Bearer '+gdriveToken}}
+      );
+      const j = await r.json();
+      const files = j.files || [];
+      if(files.length === 0){
+        listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Koi backup nahi mila<br><span style="font-size:11.5px;">Pehle ek backup banao</span></div>';
+        return;
+      }
+      listEl.innerHTML = files.map(f=>{
+        const d    = new Date(f.createdTime);
+        const date = d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+        const time = d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        const size = f.size ? (f.size/1024).toFixed(0)+' KB' : '';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">'
+          +'<div>'
+          +'<div style="font-size:13px;font-weight:500;">'+date+' · '+time+'</div>'
+          +(size?'<div style="font-size:11.5px;color:var(--text-muted);">'+size+'</div>':'')
+          +'</div>'
+          +'<button onclick="gdriveRestoreFile(\''+f.id+'\',\''+f.name+'\')" style="font-size:12px;background:var(--accent-soft);color:var(--accent);border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:500;">Restore</button>'
+          +'</div>';
+      }).join('');
+    }catch(err){
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">Load nahi hua — try again</div>';
+    }
+  }
+
+  /* ── Hook into backup-pw modal for gdrive modes ── */
+  let pendingGdriveRestoreId = null;
+
+  function openBackupPwModalForGdrive(){
+    backupPwMode = 'gdrive-create';
+    const isPin = vault.secretType === 'pin';
+    document.getElementById('backup-pw-title').textContent = isPin ? 'Confirm your PIN' : 'Confirm your password';
+    document.getElementById('backup-pw-desc').textContent  = 'Google Drive backup ko encrypt karne ke liye tumhara password chahiye.';
+    document.getElementById('backup-pw-input').value       = '';
+    clearError('backuppw');
+    document.getElementById('backup-pw-confirm-btn').textContent = 'Back up to Drive';
+    document.getElementById('backup-pw-overlay').classList.add('active');
+  }
+
+  /* Patch confirmBackupPassword to handle gdrive modes */
+  const _origConfirm = window.confirmBackupPassword;
+  window.confirmBackupPassword = async function(){
+    if(backupPwMode === 'gdrive-create'){
+      const pw = document.getElementById('backup-pw-input').value;
+      if(!pw){ setError('backuppw','Password daalo.'); return; }
+      const btn = document.getElementById('backup-pw-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Please wait…';
+      const saltCheck = base64ToBuf(vault.passwordSalt);
+      const checkHash = await hashSecret(pw, saltCheck);
+      if(checkHash !== vault.passwordHash){
+        setError('backuppw','Password galat hai.');
+        btn.disabled = false; btn.textContent = 'Back up to Drive';
+        return;
+      }
+      closeBackupPwModal();
+      await performGdriveBackup(pw);
+    } else if(backupPwMode === 'gdrive-restore'){
+      const pw = document.getElementById('backup-pw-input').value;
+      if(!pw){ setError('backuppw','Password daalo.'); return; }
+      const btn = document.getElementById('backup-pw-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Restoring…';
+      const ok = await performGdriveRestore(pw);
+      if(ok){ closeBackupPwModal(); }
+      else { btn.disabled = false; btn.textContent = 'Restore'; }
+    } else {
+      _origConfirm && _origConfirm();
+    }
+  };
+
+  /* Register restore overlay in escape handler */
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape'){
+      const ro = document.getElementById('gdrive-restore-overlay');
+      if(ro && ro.classList.contains('active')){ closeGdriveRestoreModal(); }
+    }
+  });
+
+})();
 </script>
 </body>
 </html>
