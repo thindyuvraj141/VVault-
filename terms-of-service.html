@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service — V Vault</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --text:#e9edf3; --text-muted:#9aa3b2;
+    --accent:#4A90D9; --border:#262b35;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.7;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:40px 20px 80px;}
+  h1{font-size:28px;margin-bottom:4px;}
+  .updated{color:var(--text-muted);font-size:13px;margin-bottom:36px;}
+  h2{font-size:19px;margin-top:36px;margin-bottom:10px;color:var(--accent);}
+  p, li{font-size:15px;color:var(--text);}
+  li{margin-bottom:6px;}
+  ul{padding-left:20px;}
+  .card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:20px 22px;margin-bottom:20px;
+  }
+  a{color:var(--accent);}
+  .footer{margin-top:48px;color:var(--text-muted);font-size:13px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Terms of Service — V Vault</h1>
+  <div class="updated">Last updated: 22 September 2026</div>
+
+  <div class="card">
+    <p>By using V Vault ("the app"), you agree to these terms. Please read them before using the app.</p>
+  </div>
+
+  <h2>1. What V Vault is</h2>
+  <p>V Vault is a personal vault application that lets you lock photos and files behind a password or PIN, on your own device, with an optional encrypted backup to your own Google Drive.</p>
+
+  <h2>2. Your responsibility</h2>
+  <ul>
+    <li>You are responsible for remembering your vault password or PIN. V Vault has no way to recover it if you forget it, since your data is encrypted with it and never sent to us in readable form.</li>
+    <li>You are responsible for keeping your device and Google account secure, since access to either could expose your vault.</li>
+    <li>You should not use V Vault to store illegal content or content that violates any applicable law.</li>
+  </ul>
+
+  <h2>3. No warranty</h2>
+  <p>V Vault is provided "as is", without warranty of any kind. While reasonable care has been taken to secure your data (including AES-GCM encryption for backups), we cannot guarantee the app will be error-free or uninterrupted, and we are not liable for any data loss, including loss caused by a forgotten password, device failure, or issues with Google Drive.</p>
+
+  <h2>4. Changes to the app</h2>
+  <p>Features, including backup options, may be updated, changed, or discontinued over time. We will try to avoid breaking changes to how your existing vault data is stored or read.</p>
+
+  <h2>5. Google Drive backup</h2>
+  <p>If you choose to enable Google Drive backup, your use of Google Drive is also subject to <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Google's own Terms of Service</a>. V Vault only creates and manages the backup files it creates in your Drive (via the drive.file scope) and does not access any other files.</p>
+
+  <h2>6. Changes to these terms</h2>
+  <p>These terms may be updated from time to time. Continued use of the app after a change means you accept the updated terms.</p>
+
+  <h2>7. Contact</h2>
+  <p>For questions about these terms, reach out via the contact details listed on the app's GitHub page.</p>
+
+  <div class="footer">V Vault</div>
+</div>
+</body>
+</html>
