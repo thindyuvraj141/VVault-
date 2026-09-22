@@ -253,6 +253,19 @@
   .vault-header .icon-btn{color:var(--wa-header-text);}
   .vault-header .icon-btn:hover{background:rgba(255,255,255,0.12);color:var(--wa-header-text);}
 
+  /* Google Drive backup header button */
+  .gdrive-header-btn{
+    background:rgba(255,255,255,0.94);
+    box-shadow:0 2px 6px rgba(0,0,0,0.18);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .gdrive-header-btn:hover{
+    background:#ffffff;
+    transform:scale(1.07);
+    box-shadow:0 3px 10px rgba(0,0,0,0.25);
+  }
+  .gdrive-header-btn:active{transform:scale(0.95);}
+
   /* header quick appearance buttons */
   .header-actions{position:relative;}
   #dark-toggle-btn .ico-sun{display:none;}
@@ -835,8 +848,17 @@
         <div class="icon-btn" onclick="document.getElementById('search-input').focus();" title="Search">
           <svg width="19" height="19" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M12.2 12.2L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </div>
-        <div class="icon-btn" onclick="createBackup();" title="Backup" id="header-backup-btn">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2V11M9 11L5.5 7.5M9 11L12.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13V15.5H15V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="icon-btn gdrive-header-btn" onclick="openAutoBackupModal();" title="Google Drive Backup" id="header-gdrive-btn">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <defs>
+              <linearGradient id="gdriveGrad" x1="2" y1="3" x2="16" y2="15" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#4A90D9"/>
+                <stop offset="1" stop-color="#25D366"/>
+              </linearGradient>
+            </defs>
+            <path d="M5.4 12.3a3.1 3.1 0 0 1-.5-6.16A4 4 0 0 1 12.7 5.4a3 3 0 0 1-.5 5.9" stroke="url(#gdriveGrad)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 12.8V7.6M9 7.6l-2.1 2.1M9 7.6l2.1 2.1" stroke="url(#gdriveGrad)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
         <div class="icon-btn" id="more-menu-btn" onclick="toggleHeaderPopover('more-popover', event)" title="Menu">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="3.5" r="1.6" fill="currentColor"/><circle cx="9" cy="9" r="1.6" fill="currentColor"/><circle cx="9" cy="14.5" r="1.6" fill="currentColor"/></svg>
