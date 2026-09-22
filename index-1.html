@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V Vault — Secure Photo Vault</title>
+<meta name="description" content="V Vault is a private photo and video vault app that lets you lock, hide, and securely back up your personal media.">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --bg-elevated:#F0F2F5;
+    --text:#111B21;
+    --text-muted:#667781;
+    --accent:#25D366;
+    --accent-dark:#128C4F;
+    --border:rgba(0,0,0,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+  }
+  header{
+    background:#075E54;
+    color:#fff;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  header .logo{
+    width:40px;height:40px;border-radius:10px;
+    background:#111B21;display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+  }
+  header .brand{font-size:20px;font-weight:700;}
+  main{max-width:720px;margin:0 auto;padding:32px 22px 60px;}
+  h1{font-size:28px;margin-bottom:10px;}
+  p{color:var(--text-muted);margin-bottom:16px;font-size:15.5px;}
+  .hero{
+    background:var(--bg-elevated);
+    border-radius:16px;
+    padding:24px;
+    margin-bottom:28px;
+  }
+  h2{font-size:19px;margin:26px 0 10px;}
+  ul{margin:0 0 16px 20px;color:var(--text-muted);}
+  li{margin-bottom:6px;font-size:15px;}
+  .btn{
+    display:inline-block;
+    background:var(--accent);
+    color:#fff;
+    text-decoration:none;
+    padding:13px 26px;
+    border-radius:24px;
+    font-weight:600;
+    font-size:15px;
+    margin-top:8px;
+  }
+  .btn:hover{background:var(--accent-dark);}
+  footer{
+    border-top:1px solid var(--border);
+    padding:22px;
+    text-align:center;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  footer a{color:var(--accent-dark);text-decoration:none;font-weight:600;}
+  .links{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🔒</div>
+  <div class="brand">V Vault</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Keep your private photos and videos truly private</h1>
+    <p>V Vault is a personal photo and video vault app. It lets you lock away sensitive media behind a password or PIN, organize it into private folders, and optionally back it up securely to your own Google Drive — all without anyone else being able to see it.</p>
+    <a class="btn" href="vault.html">Open V Vault</a>
+  </div>
+
+  <h2>What V Vault does</h2>
+  <ul>
+    <li>Locks your photos and videos behind a password, PIN, or biometric unlock</li>
+    <li>Organizes hidden media into private, named folders</li>
+    <li>Lets you optionally back up your encrypted vault to your own Google Drive account</li>
+    <li>Restores your vault from a previous Google Drive backup on a new device</li>
+    <li>Works entirely on your device — your media is never sent to any V Vault server</li>
+  </ul>
+
+  <h2>Why V Vault asks for Google Drive access</h2>
+  <p>If you choose to enable backups, V Vault uses your Google account only to create a dedicated backup folder in your own Google Drive and to upload or restore your encrypted vault file. V Vault never accesses, reads, or shares any other files in your Google Drive, and no data is ever sent to third parties.</p>
+
+  <h2>Learn more</h2>
+  <p>For full details on what data is collected and how it is used, please read our <a href="privacy-policy.html">Privacy Policy</a>.</p>
+</main>
+
+<footer>
+  <div><strong>V Vault</strong></div>
+  <div class="links">
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="mailto:thindyuvraj141@gmail.com">Contact Support</a>
+  </div>
+</footer>
+
+</body>
+</html>
