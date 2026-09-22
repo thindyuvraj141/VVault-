@@ -643,7 +643,7 @@
 <div id="app">
 
   <!-- ================= SETUP SCREEN ================= -->
-  <section class="screen active" id="screen-setup">
+<section class="screen" id="screen-setup">
     <div class="stack">
       <div class="center-brand">
         <svg class="logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4201,6 +4201,7 @@ async function checkForSharedMedia(){
 /* kick off: apply saved theme/accent first, then check for an existing vault */
 loadAppSettings();
 loadAutoBackupSettings();
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 bootFromStorage();
 checkForSharedMedia();
 </script>
