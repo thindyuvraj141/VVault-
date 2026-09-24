@@ -1703,10 +1703,12 @@ async function bootFromStorage(){
       purgeOldTrash();
       updateAppBadge();
       goTo('screen-lock');
+    } else {
+      goTo('screen-setup');
     }
-    // if no config, the setup screen (already active by default) is correct
   }catch(err){
     console.error('V Vault: could not read local storage', err);
+    goTo('screen-setup');
   }
 }
 
