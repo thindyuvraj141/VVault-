@@ -105,6 +105,12 @@ jobs:
           npm install "@capacitor/app@$CAP_MAJOR" --save \
             || npm install "@capacitor/app@latest" --save
 
+      - name: Add Google Drive backup plugin (@capacitor/browser)
+        run: |
+          CAP_MAJOR=$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
+          npm install "@capacitor/browser@$CAP_MAJOR" --save \
+            || npm install "@capacitor/browser@latest" --save
+
       - name: Add app permissions (camera, gallery, file access)
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
@@ -169,6 +175,30 @@ jobs:
           fi
           echo "--- activity block ---"
           grep -n "intent-filter\|SEND\|action android:name" "$MANIFEST"
+
+      - name: Add Google sign-in deep link (vvaultauth://callback)
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          if ! grep -q 'vvaultauth"' "$MANIFEST"; then
+            FILTER=$(mktemp)
+            {
+              echo '    <intent-filter>'
+              echo '        <action android:name="android.intent.action.VIEW" />'
+              echo '        <category android:name="android.intent.category.DEFAULT" />'
+              echo '        <category android:name="android.intent.category.BROWSABLE" />'
+              echo '        <data android:scheme="vvaultauth" android:host="callback" />'
+              echo '    </intent-filter>'
+            } > "$FILTER"
+            # Insert right after the first existing intent-filter close tag,
+            # so it lands inside the same <activity>...</activity> block.
+            sed -i "0,/<\/intent-filter>/{/<\/intent-filter>/r $FILTER
+            }" "$MANIFEST"
+            echo "Added vvaultauth:// deep link intent-filter"
+          else
+            echo "vvaultauth deep link already present — skipping"
+          fi
+          echo "--- activity block ---"
+          grep -n "intent-filter\|vvaultauth\|scheme" "$MANIFEST"
 
       - name: Prepare app icon source
         run: |
