@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <script>
-  if(localStorage.getItem('vvault_seen')){
+  // Sirf tab redirect karo jab user pehle kabhi successfully vault open kar
+  // chuka ho (Gmail OTP + password/PIN/pattern setup complete, ya us se pehle
+  // se bani vault unlock ho chuki ho). Sirf is page ko dekhne se ye set nahi
+  // hota — isliye pehli baar (aur koi bhi jo login kabhi nahi karta, jaise
+  // Google ka reviewer) hamesha ye about page hi dekhega.
+  if(localStorage.getItem('vvault_loggedin')){
     window.location.replace('vault.html');
-  } else {
-    localStorage.setItem('vvault_seen','1');
   }
 </script>
 <head>
@@ -89,7 +92,7 @@
   <div class="hero">
     <h1>Keep your private photos and videos truly private</h1>
     <p>V Vault is a personal photo and video vault app. It lets you lock away sensitive media behind a password or PIN, organize it into private folders, and optionally back it up securely to your own Google Drive — all without anyone else being able to see it.</p>
-    <a class="btn" href="vault.html">Open V Vault</a>
+    <a class="btn" href="vault.html">Continue</a>
   </div>
 
   <h2>What V Vault does</h2>
@@ -115,16 +118,6 @@
     <a href="mailto:thindyuvraj141@gmail.com">Contact Support</a>
   </div>
 </footer>
-
-<script>
-  // Pehli baar install hone pe yeh page dikhega.
-  // Uske baad hamesha seedha vault.html pe jayega.
-  if(localStorage.getItem('vvault_seen')){
-    window.location.replace('vault.html');
-  } else {
-    localStorage.setItem('vvault_seen','1');
-  }
-</script>
 
 </body>
 </html>

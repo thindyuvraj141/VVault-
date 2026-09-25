@@ -2622,6 +2622,7 @@ async function unlockWithBiometric(){
 
 /* ---------------- vault home ---------------- */
 function enterVault(){
+  try{ localStorage.setItem('vvault_loggedin', '1'); }catch(e){}
   goTo('screen-vault');
   document.getElementById('add-fab').style.display = 'none';
   document.getElementById('search-input').value = '';
