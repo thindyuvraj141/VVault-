@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Signing you in…</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #111;
+    color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+<div id="msg">Signing you in…</div>
+<script>
+  var hash = window.location.hash.substring(1);
+  var params = new URLSearchParams(hash);
+  var token = params.get('access_token');
+  var error = params.get('error');
+
+  if (token) {
+    document.getElementById('msg').innerText = 'Sign-in successful. Ye window band kar dein.';
+    window.location.href = 'vvaultauth://callback#access_token=' + token;
+  } else {
+    document.getElementById('msg').innerText = 'Sign-in failed' + (error ? (': ' + error) : '') + '. Ye window band kar dein.';
+    window.location.href = 'vvaultauth://callback#error=' + encodeURIComponent(error || 'unknown_error');
+  }
+</script>
+</body>
+</html>

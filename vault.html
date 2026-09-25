@@ -4665,7 +4665,43 @@ checkForSharedMedia();
   } catch(e){}
 
   /* ── Public API ── */
-  window.gdriveSignIn = function(){
+  const GDRIVE_REDIRECT_URI = 'https://vvaultweb.dpdns.org/google-callback.html';
+
+  window.gdriveSignIn = async function(){
+    /* ---- Inside the Capacitor (Android/iOS) app: open system browser ---- */
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+      const { Browser, App } = window.Capacitor.Plugins;
+
+      const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
+        + '?client_id=' + encodeURIComponent(GDRIVE_CLIENT_ID)
+        + '&redirect_uri=' + encodeURIComponent(GDRIVE_REDIRECT_URI)
+        + '&response_type=token'
+        + '&scope=' + encodeURIComponent(GDRIVE_SCOPES)
+        + '&prompt=consent';
+
+      const listener = App.addListener('appUrlOpen', async (data) => {
+        const hashIndex = data.url.indexOf('#');
+        if (hashIndex === -1) return;
+        const params = new URLSearchParams(data.url.substring(hashIndex + 1));
+        const token = params.get('access_token');
+        listener.remove();
+        try { await Browser.close(); } catch(e){}
+        if (token) {
+          gdriveToken = token;
+          await fetchGdriveUserInfo();
+          saveGdriveSession();
+          showGdriveSignedIn();
+          showToast('✓ Google Drive se connected!');
+        } else {
+          showToast('Sign in cancel hua');
+        }
+      });
+
+      await Browser.open({ url: authUrl });
+      return;
+    }
+
+    /* ---- Normal website: popup flow (unchanged) ---- */
     if(typeof google === 'undefined'){
       showToast('Google se connect ho raha hai, thoda wait karo…');
       setTimeout(window.gdriveSignIn, 1500);
