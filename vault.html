@@ -243,10 +243,16 @@
   }
 
   .vault-header{
+    position:relative;
     display:flex;align-items:center;justify-content:space-between;
     margin:-22px -20px 22px;padding:26px 16px 22px;
     background:var(--header-bg);border-bottom:none;
     box-shadow:0 2px 8px rgba(0,0,0,.2);
+  }
+  #screen-vault .vault-header{justify-content:flex-end;}
+  #screen-vault .vault-title-block{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    text-align:center;pointer-events:none;
   }
   .vault-header .icon-btn{ width:40px; height:40px; }
   .vault-title-block .brand-name{font-size:23px;color:var(--wa-header-text);font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.2px;}
@@ -1000,9 +1006,6 @@
         <div class="brand-name">V Vault</div>
       </div>
       <div class="header-actions">
-        <div class="icon-btn" onclick="document.getElementById('search-input').focus();" title="Search">
-          <svg width="19" height="19" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6"/><path d="M12.2 12.2L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </div>
         <div class="icon-btn gdrive-header-btn" onclick="openAutoBackupModal();" title="Google Drive Backup" id="header-gdrive-btn">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <defs>
