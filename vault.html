@@ -100,13 +100,13 @@
     flex-direction:column;
     flex:1;
     padding:20px 22px 16px;
-    animation:fadeIn .35s ease;
+    animation:fadeIn .4s cubic-bezier(.16,1,.3,1);
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
   }
   .screen.active{display:flex;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
   h1,h2,h3{font-family:'Roboto','Inter',sans-serif;font-weight:700;letter-spacing:-0.01em;}
 
@@ -291,7 +291,8 @@
   }
   .colour-popover.open{display:block;}
   .colour-popover .accent-swatch{width:26px;height:26px;}
-  .pop-item{display:flex;align-items:center;gap:10px;padding:11px 6px;cursor:pointer;color:var(--text);font-size:14px;white-space:nowrap;}
+  .pop-item{display:flex;align-items:center;gap:10px;padding:11px 6px;cursor:pointer;color:var(--text);font-size:14px;white-space:nowrap;transition:background .15s;border-radius:8px;}
+  .pop-item:active{background:var(--card-hover);}
   .pop-item + .pop-item{border-top:1px solid var(--border);}
   .pop-item svg{color:var(--text-muted);flex-shrink:0;}
   #screen-vault .header-actions{gap:6px;flex-shrink:0;}
@@ -480,6 +481,7 @@
     max-width:100%;max-height:100%;border-radius:0;object-fit:contain;
     transform-origin:center center;will-change:transform;user-select:none;-webkit-user-drag:none;
   }
+  #lightbox-img, #lightbox-video{transition:opacity .2s ease;}
   .lightbox-body img.zoom-transition{transition:transform .2s ease;}
   .zoom-controls{
     position:absolute;bottom:80px;right:14px;display:flex;flex-direction:column;gap:6px;
@@ -511,20 +513,29 @@
 
   /* ---------- Settings sheet ---------- */
   .sheet-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;display:none;
+    position:fixed;inset:0;background:rgba(0,0,0,0);z-index:90;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .25s ease, background .25s ease, visibility 0s linear .25s;
   }
-  .sheet-overlay.active{display:block;}
+  .sheet-overlay.active{
+    opacity:1;visibility:visible;pointer-events:auto;background:rgba(0,0,0,.55);
+    transition:opacity .25s ease, background .25s ease, visibility 0s linear 0s;
+  }
   .sheet{
-    position:fixed;left:50%;bottom:0;transform:translateX(-50%);
+    position:fixed;left:50%;bottom:0;transform:translateX(-50%) translateY(100%);
     max-width:430px;width:100%;background:var(--card);border-radius:20px 20px 0 0;
     padding:10px 22px 28px;z-index:95;max-height:88vh;overflow-y:auto;
     box-shadow:0 -10px 40px rgba(0,0,0,.5);
+    transition:transform .32s cubic-bezier(.16,1,.3,1);
   }
+  .sheet.open{transform:translateX(-50%) translateY(0);}
   .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
   .sheet-item{
     display:flex;align-items:center;gap:12px;padding:14px 6px;cursor:pointer;
     border-bottom:1px solid var(--border);color:var(--text);font-size:14.5px;
+    transition:background .15s;
   }
+  .sheet-item:active{background:var(--card-hover);}
   .sheet-item:last-child{border-bottom:none;}
   .sheet-item svg{color:var(--text-muted);flex-shrink:0;}
   .sheet-item.danger{color:var(--danger);}
@@ -579,13 +590,23 @@
 
   /* centered modal (new album / manage albums) */
   .modal-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:110;display:none;
+    position:fixed;inset:0;background:rgba(0,0,0,0);z-index:110;display:flex;
     align-items:center;justify-content:center;padding:24px;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .25s ease, background .25s ease, visibility 0s linear .25s;
   }
-  .modal-overlay.active{display:flex;}
+  .modal-overlay.active{
+    opacity:1;visibility:visible;pointer-events:auto;background:rgba(0,0,0,.6);
+    transition:opacity .25s ease, background .25s ease, visibility 0s linear 0s;
+  }
   .modal-card{
     background:var(--card);border:1px solid var(--border);border-radius:18px;
     padding:24px;width:100%;max-width:340px;
+    transform:scale(0.92) translateY(12px);opacity:0;
+    transition:transform .3s cubic-bezier(.34,1.3,.64,1), opacity .22s ease;
+  }
+  .modal-overlay.active .modal-card{
+    transform:scale(1) translateY(0);opacity:1;
   }
   .modal-card h3{font-size:17px;margin-bottom:16px;}
   .manage-list{max-height:260px;overflow-y:auto;margin-bottom:16px;}
@@ -1367,7 +1388,7 @@
 
   <!-- ================= SETTINGS SHEET ================= -->
   <div class="sheet-overlay" id="sheet-overlay" onclick="closeSettings()"></div>
-  <div class="sheet" id="settings-sheet" style="display:none;">
+  <div class="sheet" id="settings-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-item" style="cursor:default;">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="8" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8V5.5a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.4"/></svg>
@@ -2316,7 +2337,7 @@ function lockVaultNow(){
   // or another panel visibly open on top of the lock screen, defeating the point of locking.
   document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
   document.getElementById('sheet-overlay').classList.remove('active');
-  document.getElementById('settings-sheet').style.display = 'none';
+  document.getElementById('settings-sheet').classList.remove('open');
   document.getElementById('lightbox').classList.remove('active');
   if(slideshowTimer) stopSlideshow();
 
@@ -3009,6 +3030,21 @@ function thumbBadges(p){
   return html;
 }
 
+/* Video thumbnails only load "metadata" (for speed), which leaves most WebViews
+   showing a blank/black square instead of a preview frame. Seeking a tiny bit
+   into the clip forces the browser to actually decode and paint a real frame,
+   so you can tell which video is which without opening it. */
+function primeVideoThumbnails(container){
+  if(!container) return;
+  container.querySelectorAll('.thumb video').forEach(v => {
+    if(v.dataset.thumbPrimed) return;
+    v.dataset.thumbPrimed = '1';
+    v.addEventListener('loadedmetadata', function(){
+      try { v.currentTime = Math.min(0.5, (v.duration || 1) / 4); } catch(e){}
+    }, { once: true });
+  });
+}
+
 function renderFolderPhotos(){
   const grid = document.getElementById('photo-grid');
   const empty = document.getElementById('empty-state');
@@ -3052,6 +3088,7 @@ function renderFolderPhotos(){
         '</div>';
       grid.appendChild(div);
     });
+    primeVideoThumbnails(grid);
     return;
   }
 
@@ -3096,6 +3133,7 @@ function renderFolderPhotos(){
     div.innerHTML = mediaHtml + thumbBadges(p) + checkHtml;
     grid.appendChild(div);
   });
+  primeVideoThumbnails(grid);
 }
 
 /* ---------------- trash: restore / delete forever / auto-purge ---------------- */
@@ -3543,6 +3581,19 @@ function setSearchTypeFilter(type){
   });
   renderSearchOrFolders();
 }
+function getSearchVisiblePhotos(){
+  const q = searchQuery.toLowerCase();
+  return photos.filter(p => {
+    if(p.deletedAt) return false;
+    if(searchTypeFilter === 'video' && p.type !== 'video') return false;
+    if(searchTypeFilter === 'image' && p.type === 'video') return false;
+    if(searchTypeFilter === 'favorite' && !p.favorite) return false;
+    if(!q) return true;
+    const cap = (p.caption || '').toLowerCase();
+    const alb = (albumName(p.albumId) || '').toLowerCase();
+    return cap.includes(q) || alb.includes(q);
+  });
+}
 function renderSearchOrFolders(){
   const folderView = document.getElementById('folder-view');
   const searchView = document.getElementById('search-view');
@@ -3558,17 +3609,7 @@ function renderSearchOrFolders(){
   folderView.style.display = 'none';
   searchView.style.display = 'block';
 
-  const q = searchQuery.toLowerCase();
-  const visible = photos.filter(p => {
-    if(p.deletedAt) return false;
-    if(searchTypeFilter === 'video' && p.type !== 'video') return false;
-    if(searchTypeFilter === 'image' && p.type === 'video') return false;
-    if(searchTypeFilter === 'favorite' && !p.favorite) return false;
-    if(!q) return true;
-    const cap = (p.caption || '').toLowerCase();
-    const alb = (albumName(p.albumId) || '').toLowerCase();
-    return cap.includes(q) || alb.includes(q);
-  });
+  const visible = getSearchVisiblePhotos();
 
   resultsLabel.style.display = 'block';
   resultsLabel.textContent = visible.length + (visible.length === 1 ? ' result' : ' results') + (q ? ' for "' + searchQuery + '"' : '');
@@ -3593,6 +3634,7 @@ function renderSearchOrFolders(){
     div.innerHTML = mediaHtml + thumbBadges(p);
     grid.appendChild(div);
   });
+  primeVideoThumbnails(grid);
 }
 
 /* ---------------- adding photos: always into the currently open folder ---------------- */
@@ -3616,10 +3658,12 @@ function closeAddPhotoChooser(){
 }
 function chooseCameraCapture(){
   closeAddPhotoChooser();
+  markExternalActivity();
   document.getElementById('camera-input').click();
 }
 function chooseGalleryFiles(){
   closeAddPhotoChooser();
+  markExternalActivity();
   document.getElementById('file-input').click();
 }
 let nativePermAsked = false;
@@ -3665,6 +3709,7 @@ async function openAllFilesAccess(){
   const V = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.VaultMedia;
   if(!V || !V.openAllFilesAccess){ showToast('Update the app to use this option'); return; }
   try{
+    markExternalActivity();
     const r = await V.openAllFilesAccess();
     showToast(r && r.allFiles ? 'All files access is already on' : 'Turn on "Allow access to manage all files" for V Vault, then come back');
   }catch(err){
@@ -3677,6 +3722,7 @@ async function pickMediaNative(){
     nativePermAsked = true;
     await requestNativePermissions(false);
   }
+  markExternalActivity();
   let result;
   try{
     result = await window.Capacitor.Plugins.VaultMedia.pickMedia();
@@ -3796,6 +3842,8 @@ function openLightbox(id){
 
   const img = document.getElementById('lightbox-img');
   const video = document.getElementById('lightbox-video');
+  img.style.opacity = '0';
+  video.style.opacity = '0';
   if(p.type === 'video'){
     video.src = p.src;
     video.style.display = 'block';
@@ -3807,6 +3855,12 @@ function openLightbox(id){
     video.style.display = 'none';
     video.src = '';
   }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      img.style.opacity = '1';
+      video.style.opacity = '1';
+    });
+  });
 
   document.getElementById('caption-input').value = p.caption || '';
   setFavoriteButtonUI(!!p.favorite);
@@ -3822,6 +3876,25 @@ function refreshCurrentView(){
   if(currentFolderId) renderFolderPhotos();
   else renderSearchOrFolders();
 }
+
+/* ---------------- lightbox: swipe to next/previous photo or video ---------------- */
+function getLightboxList(){
+  const searchView = document.getElementById('search-view');
+  if(searchView && searchView.style.display === 'block') return getSearchVisiblePhotos();
+  return getFolderPhotos();
+}
+function lightboxStep(direction){
+  const list = getLightboxList();
+  if(!list || list.length < 2) return;
+  const idx = list.findIndex(p => p.id === currentLightboxId);
+  if(idx === -1) return;
+  let nextIdx = idx + direction;
+  if(nextIdx < 0) nextIdx = list.length - 1;
+  if(nextIdx >= list.length) nextIdx = 0;
+  openLightbox(list[nextIdx].id);
+}
+function lightboxNext(){ lightboxStep(1); }
+function lightboxPrev(){ lightboxStep(-1); }
 function closeLightbox(){
   if(slideshowTimer) stopSlideshow();
   document.getElementById('lightbox').classList.remove('active');
@@ -3869,11 +3942,11 @@ function openSettings(){
   const abLabel = document.getElementById('auto-backup-status-label');
   if(abLabel) abLabel.textContent = autoBackupSettings.enabled ? capitalise(autoBackupSettings.frequency) : 'Off';
   document.getElementById('sheet-overlay').classList.add('active');
-  document.getElementById('settings-sheet').style.display = 'block';
+  document.getElementById('settings-sheet').classList.add('open');
 }
 function closeSettings(){
   document.getElementById('sheet-overlay').classList.remove('active');
-  document.getElementById('settings-sheet').style.display = 'none';
+  document.getElementById('settings-sheet').classList.remove('open');
 }
 async function confirmWipe(){
   if(confirm('Erase all photos and reset the vault? This cannot be undone.')){
@@ -4435,6 +4508,8 @@ let panOriginX = 0, panOriginY = 0; // pan offset at drag start
 let isPanning = false;
 let lastTapTime = 0;
 let lastTapX = 0, lastTapY = 0;
+let swipeStartX = 0, swipeStartY = 0;
+let swipeTracking = false;
 
 const lightboxBody = document.getElementById('lightbox-body');
 const lightboxImg = document.getElementById('lightbox-img');
@@ -4498,12 +4573,17 @@ if(lightboxBody){
         panStartY = t.clientY;
         panOriginX = zoomX;
         panOriginY = zoomY;
+      } else {
+        swipeTracking = true;
+        swipeStartX = t.clientX;
+        swipeStartY = t.clientY;
       }
     }
   }, { passive: true });
 
   lightboxBody.addEventListener('touchmove', (e) => {
     if(e.touches.length === 2 && zoomStartDist > 0){
+      swipeTracking = false;
       e.preventDefault();
       const dist = distanceBetween(e.touches[0], e.touches[1]);
       const scale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomStartScale * (dist / zoomStartDist)));
@@ -4521,6 +4601,17 @@ if(lightboxBody){
   }, { passive: false });
 
   lightboxBody.addEventListener('touchend', (e) => {
+    if(swipeTracking){
+      swipeTracking = false;
+      const t = e.changedTouches && e.changedTouches[0];
+      if(t){
+        const dx = t.clientX - swipeStartX;
+        const dy = t.clientY - swipeStartY;
+        if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5){
+          if(dx < 0) lightboxNext(); else lightboxPrev();
+        }
+      }
+    }
     if(e.touches.length === 0){
       isPanning = false;
       zoomStartDist = 0;
@@ -4611,6 +4702,25 @@ async function checkForSharedMedia(){
   if(A && A.addListener) A.addListener('resume', checkForSharedMedia);
 })();
 
+/* ================= AUTO-LOCK WHEN THE APP IS MINIMISED =================
+   When the user switches away from the app (home button, app switcher, another
+   app on top), lock the vault straight away so it never sits open in the
+   background. The camera, the gallery/file picker, and Google sign-in all
+   briefly send the app "to background" too (they open as a separate screen on
+   top) — markExternalActivity() gives those a short grace window so the user
+   isn't kicked back to the lock screen mid-action. */
+let suppressAutoLockUntil = 0;
+function markExternalActivity(){ suppressAutoLockUntil = Date.now() + 90000; }
+function autoLockOnBackground(){
+  if(Date.now() < suppressAutoLockUntil) return;
+  const vaultScreen = document.getElementById('screen-vault');
+  if(vaultScreen && vaultScreen.classList.contains('active')) lockVaultNow();
+}
+(function setupAutoLock(){
+  const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+  if(A && A.addListener) A.addListener('pause', autoLockOnBackground);
+})();
+
 /* kick off: apply saved theme/accent first, then check for an existing vault */
 loadAppSettings();
 loadAutoBackupSettings();
@@ -4691,6 +4801,7 @@ checkForSharedMedia();
         }
       });
 
+      markExternalActivity();
       await Browser.open({ url: authUrl });
       return;
     }
