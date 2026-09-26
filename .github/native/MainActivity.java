@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.WindowManager;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -29,11 +30,17 @@ import java.util.List;
  * runs, so any JS call made from here would silently be lost. Queuing on the
  * native side instead means the web app can safely pull the data whenever
  * it's actually ready, via VaultMedia.getSharedMedia().
+ *
+ * FLAG_SECURE (set below, before the window's content is created) blocks
+ * screenshots and screen recording of this app system-wide, and also makes
+ * the app's preview in the Android "recent apps" switcher show as a blank
+ * screen instead of the vault's contents.
  */
 public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         registerPlugin(VaultMediaPlugin.class);
         super.onCreate(savedInstanceState);
         handleShareIntent(getIntent());
