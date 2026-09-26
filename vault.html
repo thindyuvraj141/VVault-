@@ -297,10 +297,14 @@
   }
   .colour-popover.open{display:block;}
   .colour-popover .accent-swatch{width:26px;height:26px;}
-  .pop-item{display:flex;align-items:center;gap:10px;padding:11px 6px;cursor:pointer;color:var(--text);font-size:14px;white-space:nowrap;transition:background .15s;border-radius:8px;}
+  .pop-item{display:flex;align-items:center;gap:12px;padding:9px 6px;cursor:pointer;color:var(--text);font-size:14px;white-space:nowrap;transition:background .15s;border-radius:8px;}
   .pop-item:active{background:var(--card-hover);}
   .pop-item + .pop-item{border-top:1px solid var(--border);}
-  .pop-item svg{color:var(--text-muted);flex-shrink:0;}
+  .pop-item svg{
+    color:var(--accent);flex-shrink:0;width:16px;height:16px;
+    background:var(--accent-soft);border-radius:9px;padding:8px;
+    box-sizing:content-box;
+  }
   #screen-vault .header-actions{gap:6px;flex-shrink:0;}
   #screen-vault .header-actions .icon-btn{width:34px;height:34px;}
   #screen-vault .vault-title-block{min-width:0;}
@@ -537,15 +541,19 @@
   .sheet.open{transform:translateX(-50%) translateY(0);}
   .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
   .sheet-item{
-    display:flex;align-items:center;gap:12px;padding:14px 6px;cursor:pointer;
+    display:flex;align-items:center;gap:14px;padding:12px 6px;cursor:pointer;
     border-bottom:1px solid var(--border);color:var(--text);font-size:14.5px;
     transition:background .15s;
   }
   .sheet-item:active{background:var(--card-hover);}
   .sheet-item:last-child{border-bottom:none;}
-  .sheet-item svg{color:var(--text-muted);flex-shrink:0;}
+  .sheet-item svg{
+    color:var(--accent);flex-shrink:0;width:19px;height:19px;
+    background:var(--accent-soft);border-radius:10px;padding:9px;
+    box-sizing:content-box;
+  }
   .sheet-item.danger{color:var(--danger);}
-  .sheet-item.danger svg{color:var(--danger);}
+  .sheet-item.danger svg{color:var(--danger);background:rgba(224,90,79,0.14);}
 
   .toggle-switch{
     width:38px;height:22px;border-radius:20px;background:var(--bg-elevated);border:1px solid var(--border);
